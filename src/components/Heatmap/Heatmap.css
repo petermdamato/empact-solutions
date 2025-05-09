@@ -1,0 +1,39 @@
+.heatmap-container {
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: 120px repeat(auto-fit, 100px);
+  align-items: center;
+  justify-items: center;
+}
+
+.heatmap-label {
+  padding: 8px;
+  text-align: center;
+}
+
+.x-label {
+  border-bottom: 1px solid #ccc;
+}
+
+.y-label {
+  border-right: 1px solid #ccc;
+}
+
+.heatmap-cell {
+  width: 100px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #eee;
+  color: #000;
+}
+
+.heatmap-corner {
+  width: 100%;
+  height: 100%;
+}

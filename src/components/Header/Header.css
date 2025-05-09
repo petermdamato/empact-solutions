@@ -1,0 +1,14 @@
+html,
+body {
+  color: #333a43;
+}
+
+.header-header {
+  padding: 16px;
+}
+.header-header h1 {
+  font-size: 24px;
+}
+.header-header h2 {
+  font-size: 18px;
+}

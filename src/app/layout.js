@@ -1,4 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { CSVProvider } from "@/context/CSVContext";
+import SessionWrapper from "@/components/SessionWrapper/SessionWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,8 +21,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+      <body>
+        <SessionWrapper>
+          <CSVProvider>{children}</CSVProvider>
+        </SessionWrapper>
       </body>
     </html>
   );

@@ -1,0 +1,14 @@
+[
+  {
+    "term": "Average LOS",
+    "definition": "Average LOS is a measure of central tendency. It is calculated by the total sum of days in detention for all youth who were released during the time period, divided by the total number of releases during the time period."
+  },
+  {
+    "term": "Median LOS",
+    "definition": "Median LOS is a measure of central tendency. It is calculated as the midpoint number of days within the range of total number of days in detention for all youth who were released during the time period. Median often has an advantage over an average because while an average is affected by outliers, the median is not."
+  },
+  {
+    "term": "",
+    "definition": "If the Average and Median vary significantly, this indicates that there are outliers in the data."
+  }
+]

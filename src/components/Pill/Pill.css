@@ -1,0 +1,72 @@
+.container-pill {
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+}
+
+.pill-header {
+  background: rgb(230, 230, 230);
+  align-items: center;
+  padding: 8px 2px 2px;
+  height: 56px;
+  margin-bottom: 8px;
+}
+
+.pill-title {
+  margin: 0;
+  text-align: center;
+  padding: 10px 2px 18px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.pill-subtitle {
+  margin: 0;
+  padding: 0 16px;
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: 12px;
+}
+
+.pill-content {
+  font-size: 14px;
+  padding: 0 8px;
+  color: #444444;
+}
+
+/* Styles for the dropdown */
+.pill-header .MuiFormControl-root {
+  width: 100%;
+}
+
+.pill-header .MuiInputLabel-root {
+  font-size: 14px;
+  color: #666666;
+  transform: translate(14px, 12px) scale(1); /* Adjust label position */
+}
+
+.pill-header .MuiInputLabel-shrink {
+  transform: translate(14px, -6px) scale(0.75); /* Adjust label position when shrunk */
+}
+
+.pill-header .MuiSelect-select {
+  padding: 8px 32px 8px 14px; /* Adjust padding to fit height */
+  font-size: 14px;
+  height: 24px; /* Adjust height to match pill-header */
+  display: flex;
+  align-items: center;
+}
+
+.pill-header .MuiOutlinedInput-root {
+  height: 40px; /* Adjust height to match pill-header */
+}
+
+.pill-header .MuiOutlinedInput-notchedOutline {
+  border-color: #e0e0e0; /* Match border color */
+}
+
+.pill-header .MuiSelect-icon {
+  top: calc(50% - 12px); /* Center the dropdown icon */
+}

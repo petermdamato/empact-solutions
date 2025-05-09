@@ -1,0 +1,48 @@
+.line-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* two columns */
+  grid-template-rows: repeat(2, auto); /* two rows */
+  gap: 32px;
+  padding: 20px;
+}
+
+.line-chart-item {
+  background: #f9f9f9;
+}
+
+.container-pill {
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.line-chart-header {
+  background: rgb(230, 230, 230);
+  align-items: center;
+  padding: 8px 2px 2px;
+  height: 56px;
+  margin-bottom: 8px;
+}
+
+.line-chart-title {
+  margin: 0;
+  text-align: center;
+  padding: 10px 2px 18px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.pill-subtitle {
+  margin: 0;
+  padding: 0 16px;
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: 12px;
+}
+
+.pill-content {
+  font-size: 14px;
+  padding: 0 8px;
+  color: #444444;
+}

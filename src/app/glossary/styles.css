@@ -1,0 +1,40 @@
+html,
+body {
+  background-color: #fff;
+}
+
+/* Two-page flowing content */
+.terms-content {
+  column-count: 2; /* Two dynamic columns */
+  column-gap: 60px; /* Space between the two pages */
+  column-fill: auto; /* Automatically distribute content */
+  max-height: 90vh; /* Prevent overflow beyond the viewport */
+  overflow-y: auto; /* Enable scrolling if content is too tall */
+  padding: 20px;
+}
+
+/* Individual term paragraphs */
+.terms-content p {
+  line-height: 1.6;
+  margin-bottom: 20px;
+  break-inside: avoid; /* Prevent paragraphs from splitting across columns */
+}
+
+/* Bolded terms */
+.bold-term {
+  font-weight: bold;
+}
+
+/* Additional Notes section */
+.notes-box {
+  background: rgb(237, 239, 241); /* Grey box */
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  break-inside: avoid; /* Keep the notes together */
+}
+
+/* Italicize the last note */
+.italic-term {
+  font-style: italic;
+}

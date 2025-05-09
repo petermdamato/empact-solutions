@@ -1,0 +1,12 @@
+html,
+body {
+  background-color: #f5f7fa;
+}
+
+.page-header {
+  background: rgb(230, 230, 230);
+  align-items: center;
+  padding: 8px 2px 2px;
+  height: 56px !important;
+  margin-bottom: 8px;
+}

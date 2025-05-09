@@ -1,0 +1,17 @@
+html,
+body {
+  background-color: #f5f7fa;
+}
+li::marker {
+  color: #c35a57;
+  font-size: 24px;
+  font-weight: 700 !important;
+}
+ul li::marker {
+  color: #000000 !important;
+}
+h2 {
+  color: #c35a57;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+}

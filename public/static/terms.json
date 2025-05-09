@@ -1,0 +1,42 @@
+[
+  {
+    "term": "Age at admission",
+    "definition": "The age of youth at the time they were admitted to secure detention."
+  },
+  {
+    "term": "Average Daily Population (ADP)",
+    "definition": "The average number of youth in secure detention. Calculated by the total number of days youth were in detention during the time period. divided by the total number of calendar days in the time period."
+  },
+  {
+    "term": "Gender",
+    "definition": "A youth's internal sense of self, identity, and expression that may or may not align with their sex assigned at birth."
+  },
+  {
+    "term": "Length of Stay (LOS)*",
+    "definition": "The number of days youth spend in secure detention."
+  },
+  {
+    "term": "Offense Category",
+    "definition": "Refers to the most serious proximate event that led to the decision to detain. Values are grouped by Felony, Misdemeanor, Technical (includes probation violations and violations of release), Status Offense, and Unknown."
+  },
+  {
+    "term": "Post-disposition (post-dispo)",
+    "definition": "Also known as post-adjudication, the phase of a case after the dispositional decree has been ordered (or modified) by the court. For the purposes of this workbook, 'post-disposition' is used in lieu of 'post-adjudication'."
+  },
+  {
+    "term": "Pre-disposition (pre-dispo)",
+    "definition": "The phase of a case prior to the dispositional decree being ordered by the court."
+  },
+  {
+    "term": "Race/Ethnicity",
+    "definition": "The race or ethnicity a youth identifies as. For the purposes of this workbook, race and ethnicity are combined into one category, where Hispanic represents youth of any race who identify as Hispanic."
+  },
+  {
+    "term": "Reason for Detention",
+    "definition": "Values are grouped by New Offense, Technical, Awaiting Placement, Confinement to Secure Detention, and Other Post-Dispo Status."
+  },
+  {
+    "term": "Screened/Not Screened",
+    "definition": "Refers to whether or not youth were screened for detention prior to admission to secure detention."
+  }
+]

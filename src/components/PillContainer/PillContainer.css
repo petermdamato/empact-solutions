@@ -1,0 +1,10 @@
+.pill-container {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+}
+
+.pill-container > * {
+  flex: 1; /* All children take equal width */
+  min-width: 0; /* Prevent overflow */
+}
