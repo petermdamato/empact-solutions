@@ -5,22 +5,21 @@ import Header from "@/components/Header/Header";
 import "./styles.css";
 import CSVUploader from "@/components/CSVUploader";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useEffect } from "react";
+import LogoutButton from "@/components/LogoutButton/LogoutButton";
 
 export default function Overview() {
   const { data: session } = useSession();
-  // useEffect(() => {
-  //   // Log out the user when the component mounts
-  //   signOut({ redirect: false }); // If you don't want a redirect after logout
-  // }, []);
+
   if (session) {
     return (
       <div className="max-w-xl mx-auto mt-10">
         <div style={{ display: "flex" }}>
           <Sidebar />
+
           <div
             style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
           >
+            <LogoutButton />
             <Header
               title="Upload"
               subtitle=""

@@ -1,4 +1,5 @@
 import { isLeapYear } from "date-fns";
+import offenseMapFunction from "./offenseMapFunction";
 
 const aggregatePopulationByStatus = (
   data,
@@ -15,11 +16,11 @@ const aggregatePopulationByStatus = (
 
   const getIntakeDate = (record) =>
     detentionType === "secure-detention"
-      ? record.Intake_Date
-        ? new Date(record.Intake_Date)
+      ? record.Admission_Date
+        ? new Date(record.Admission_Date)
         : null
-      : record.ADT_Entry_Date
-      ? new Date(record.ADT_Entry_Date)
+      : record.ATD_Entry_Date
+      ? new Date(record.ATD_Entry_Date)
       : null;
 
   const getReleaseDate = (record) =>
@@ -27,8 +28,8 @@ const aggregatePopulationByStatus = (
       ? record.Release_Date
         ? new Date(record.Release_Date)
         : null
-      : record.ADT_Exit_Date
-      ? new Date(record.ADT_Exit_Date)
+      : record.ATD_Exit_Date
+      ? new Date(record.ATD_Exit_Date)
       : null;
 
   const result = {};
@@ -41,7 +42,13 @@ const aggregatePopulationByStatus = (
     data.forEach((record) => {
       const intake = getIntakeDate(record);
       const release = getReleaseDate(record);
-      const category = record[statusColumn];
+      let category;
+
+      if (statusColumn === "OffenseCategory") {
+        category = offenseMapFunction(record[statusColumn]);
+      } else {
+        category = record[statusColumn];
+      }
       const dispoStatus = record["Pre/post-dispo filter"];
 
       if (!intake || !dispoStatus) return;

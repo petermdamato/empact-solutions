@@ -59,17 +59,34 @@ const getAgeAtAdmission = (dob, intake) => {
 };
 
 // Main analysis function
-const analyzeData = (csvData, calculationType, year, groupBy = null) => {
+const analyzeData = (
+  csvData,
+  calculationType,
+  year,
+  detentionType = "secure-detention",
+  groupBy = null
+) => {
   const results = {};
   const startDate = new Date(`${year}-01-01`);
   const endDate = new Date(`${year}-12-31`);
 
   const grouped = csvData.reduce((acc, row) => {
-    const intakeDate = parseDate(row.Intake_Date);
-    const releaseDate = parseDate(row.Release_Date);
+    const intakeDate =
+      detentionType === "secure-detention"
+        ? parseDate(row.Admission_Date)
+        : parseDate(row.ATD_Entry_Date);
+    const releaseDate =
+      detentionType === "secure-detention"
+        ? parseDate(row.Release_Date)
+        : parseDate(row.ATD_Exit_Date);
     const dob = parseDate(row.Date_of_Birth);
 
-    const age = getAgeAtAdmission(row.Date_of_Birth, row.Intake_Date);
+    const age = getAgeAtAdmission(
+      row.Date_of_Birth,
+      detentionType === "secure-detention"
+        ? parseDate(row.Admission_Date)
+        : parseDate(row.ATD_Entry_Date)
+    );
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
 
@@ -108,8 +125,11 @@ const analyzeData = (csvData, calculationType, year, groupBy = null) => {
         (d) => d.releaseDate && d.releaseDate.getFullYear() === year
       ).length;
     } else if (
-      ["medianLengthOfStay", "averageLengthOfStay"].includes(calculationType)
+      ["medianLengthOfStay", "averageLengthOfStay", "lengthOfStay"].includes(
+        calculationType
+      )
     ) {
+      //Count only stays within that year
       const stays = group
         .filter(
           (d) =>
@@ -121,11 +141,14 @@ const analyzeData = (csvData, calculationType, year, groupBy = null) => {
         .map((d) => differenceInCalendarDays(d.releaseDate, d.intakeDate));
 
       stays.sort((a, b) => a - b);
-      const median = stays.length ? stays[Math.floor(stays.length / 2)] : null;
-      const avg = stays.length
-        ? stays.reduce((a, b) => a + b, 0) / stays.length
+      const median = stays.length
+        ? Math.round(stays[Math.floor(stays.length / 2)] * 10) / 10
         : null;
-      results[key] = calculationType === "medianLengthOfStay" ? median : avg;
+      const avg = stays.length
+        ? Math.round((stays.reduce((a, b) => a + b, 0) / stays.length) * 10) /
+          10
+        : null;
+      results[key] = { median: median, average: avg };
     } else if (calculationType === "averageDailyPopulation") {
       const dayCounts = eachDayOfInterval({
         start: startDate,

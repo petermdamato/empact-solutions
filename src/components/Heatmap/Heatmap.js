@@ -10,8 +10,8 @@ const Heatmap = ({ data, xKey, yKey, datesRange, chartTitle }) => {
       return (
         entry[xKey] &&
         entry[yKey] &&
-        new Date(entry.Intake_Date) <= dates[1] &&
-        new Date(entry.Intake_Date) >= dates[0]
+        new Date(entry.Admission_Date) <= dates[1] &&
+        new Date(entry.Admission_Date) >= dates[0]
       );
     });
     const xSet = new Set();

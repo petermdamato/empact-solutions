@@ -8,7 +8,7 @@ const aggregateByDSTvActual = (
 
   // Filter records within intake range and exclude Unknown categories
   const filtered = data.filter((record) => {
-    const intakeDate = new Date(record.Intake_Date);
+    const intakeDate = new Date(record.Admission_Date);
     const category = record["DST v Actual comparison"] || "Unknown";
     return (
       intakeDate >= intakeStartDate &&

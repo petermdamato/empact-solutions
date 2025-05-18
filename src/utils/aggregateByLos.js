@@ -1,23 +1,30 @@
 import { dateDiff } from "./dateDiff";
 
-const aggregateByAgeGroup = (
+const aggregateByLos = (
   data,
   intakeStart = "2024-01-01",
-  intakeEnd = "2024-12-31"
+  intakeEnd = "2024-12-31",
+  detentionType
 ) => {
   const intakeStartDate = new Date(intakeStart);
   const intakeEndDate = new Date(intakeEnd);
   const today = new Date(); // Today's date for age calculation
 
-  // Filter by Intake_Date within the range
+  // Filter by Admission_Date within the range
   const filtered = data.filter((record) => {
-    const intakeDate = new Date(record.Intake_Date);
+    const intakeDate =
+      detentionType === "secure-detention"
+        ? new Date(record.Admission_Date)
+        : new Date(record.ATD_Entry_Date);
     return intakeDate >= intakeStartDate && intakeDate <= intakeEndDate;
   });
 
   // Classify as post-dispo or pre-dispo and calculate age group
   const classified = filtered.map((record) => {
-    const releaseDate = new Date(record.Release_Date);
+    const releaseDate =
+      detentionType === "secure-detention"
+        ? new Date(record.Release_Date)
+        : new Date(record.ATD_Exit_Date);
     const dispoStatus =
       releaseDate >= intakeStartDate && releaseDate <= intakeEndDate
         ? "post-dispo"
@@ -41,8 +48,8 @@ const aggregateByAgeGroup = (
       ? new Date(record.ATD_Exit_Date)
       : null;
 
-    const admissionDate = record.Intake_Date
-      ? new Date(record.Intake_Date)
+    const admissionDate = record.Admission_Date
+      ? new Date(record.Admission_Date)
       : record.ADT_Entry_Date
       ? new Date(record.ADT_Entry_Date)
       : null;
@@ -80,4 +87,4 @@ const aggregateByAgeGroup = (
   }));
 };
 
-export default aggregateByAgeGroup;
+export default aggregateByLos;

@@ -1,3 +1,5 @@
+import offenseMapFunction from "./offenseMapFunction";
+
 const aggregateByStatus = (
   data,
   selectedYear,
@@ -16,22 +18,22 @@ const aggregateByStatus = (
   const prevEndDate = new Date(intakeEnd);
   prevEndDate.setFullYear(intakeEndDate.getFullYear() - 1);
 
-  // Filter by Intake_Date within the range
+  // Filter by Admission_Date within the range
   const filtered = data.filter((record) => {
     const intakeDate = new Date(
       detentionType === "secure-detention"
-        ? record.Intake_Date
-        : record.ADT_Entry_Date
+        ? record.Admission_Date
+        : record.ATD_Entry_Date
     );
     return intakeDate >= intakeStartDate && intakeDate <= intakeEndDate;
   });
 
-  // Filter by Intake_Date within the range
+  // Filter by Admission_Date within the range
   const filteredPrevious = data.filter((record) => {
     const intakeDate = new Date(
       detentionType === "secure-detention"
-        ? record.Intake_Date
-        : record.ADT_Entry_Date
+        ? record.Admission_Date
+        : record.ATD_Entry_Date
     );
     return intakeDate >= prevStartDate && intakeDate <= prevEndDate;
   });
@@ -42,7 +44,7 @@ const aggregateByStatus = (
     const dispoStatus = record["Pre/post-dispo filter"];
 
     return {
-      Column: record[statusColumn],
+      Column: offenseMapFunction(record[statusColumn]),
       Dispo_Status: dispoStatus,
     };
   });

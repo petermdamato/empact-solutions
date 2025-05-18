@@ -14,8 +14,9 @@ import {
   analyzeAdmissionsOnly,
   analyzeEntriesByYear,
   dataAnalysisV2,
+  analyzeLengthByProgramType,
+  analyzeLengthByDispoStatus,
 } from "@/utils/aggFunctions";
-import { analyzeLengthByProgramType } from "@/utils/aggFunctions";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -123,8 +124,16 @@ export default function Overview() {
       setDataArray11([
         {
           title: "Statistics",
-          current: analyzeEntriesByYear(csvData, +selectedYear),
-          previous: analyzeEntriesByYear(csvData, +selectedYear - 1),
+          current: analyzeEntriesByYear(
+            csvData,
+            +selectedYear,
+            "alternative-to-detention"
+          ),
+          previous: analyzeEntriesByYear(
+            csvData,
+            +selectedYear - 1,
+            "alternative-to-detention"
+          ),
         },
       ]);
       setDataArray2(
@@ -152,21 +161,6 @@ export default function Overview() {
           +selectedYear,
           "Age",
           "alternative-to-detention"
-        )
-      );
-      console.log(
-        dataAnalysisV2(
-          csvData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "Age",
-          "alternative-to-detention"
-        ),
-        dataAnalysisV2(
-          csvData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "Age"
         )
       );
     } else {
@@ -308,15 +302,20 @@ export default function Overview() {
       });
 
       setDataArray17(byJurisdiction);
-      const detData = analyzeAdmissionsOnly(csvData, +selectedYear);
+
+      const byStatus = analyzeLengthByDispoStatus(csvData, +selectedYear);
       let overallArr = [];
 
-      Object.keys(detData.overall).forEach((source) => {
+      byStatus.forEach((status) => {
         overallArr.push({
-          category: source,
-          value: detData.overall[source],
+          category: status.category,
+          value:
+            calculationType === "average"
+              ? Math.round(status.averageLengthOfStay * 10) / 10
+              : status.medianLengthOfStay,
         });
       });
+
       const totalSum = overallArr.reduce(
         (accumulator, currentValue) => accumulator + currentValue.value,
         0

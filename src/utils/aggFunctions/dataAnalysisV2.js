@@ -70,9 +70,9 @@ function analyzeAdmissionsOnly(
     return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
   };
 
-  const getAgeBracket = (dob) => {
-    if (!dob) return "Unknown";
-    const age = (today - dob) / (365.25 * 24 * 60 * 60 * 1000);
+  const getAgeBracket = (age) => {
+    if (!age) return "Unknown";
+
     if (age <= 13) return "11-13";
     if (age <= 17) return "14-17";
     return "18+";
@@ -90,8 +90,10 @@ function analyzeAdmissionsOnly(
   ];
 
   const dispoTypes = ["Pre-dispo", "Post-dispo"];
+  const screenedType = ["Screened", "Not Screened", "Auto Hold"];
   const result = {
     overall: { "Pre-dispo": [], "Post-dispo": [] },
+    screened: { Screened: [], "Not Screened": [], "Auto Hold": [] },
     byGroup: {},
   };
 
@@ -101,14 +103,17 @@ function analyzeAdmissionsOnly(
 
   for (const row of rows) {
     const intake = parseDate(
-      programType === "secure-detention" ? row.Intake_Date : row.ATD_Entry_Date
+      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
     );
-    const dob = parseDate(
-      programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
-    );
+    const dob = parseDate(row.Date_of_Birth);
+
     const age = getAge(dob, intake);
     const dispo = dispoTypes.includes(row["Pre/post-dispo filter"])
       ? row["Pre/post-dispo filter"]
+      : "Unknown";
+
+    const screened = screenedType.includes(row["Screened/not screened"])
+      ? row["Screened/not screened"]
       : "Unknown";
 
     if (!isTargetYear(intake)) continue;
@@ -116,12 +121,14 @@ function analyzeAdmissionsOnly(
     if (!result.overall[dispo]) result.overall[dispo] = [];
     result.overall[dispo].push(age);
 
+    if (!result.screened[screened]) result.screened[screened] = [];
+    result.screened[screened].push(age);
     for (const group of groups) {
       let val;
       if (group === "RaceEthnicity") {
         val = row.Ethnicity === "Hispanic" ? "Hispanic" : row.Race || "Unknown";
       } else if (group === "AgeBracket") {
-        val = getAgeBracket(dob);
+        val = getAgeBracket(age);
       } else {
         val = row[group] || "Unknown";
       }
@@ -154,10 +161,15 @@ function analyzeAdmissionsOnly(
   const output = {
     overall: {},
     byGroup: {},
+    screened: {},
   };
 
   for (const dispo of Object.keys(result.overall)) {
     output.overall[dispo] = computeStats(result.overall[dispo]);
+  }
+
+  for (const scr of Object.keys(result.screened)) {
+    output.screened[scr] = computeStats(result.screened[scr]);
   }
 
   for (const group of groups) {
@@ -325,7 +337,7 @@ const analyzeData = (
   const grouped = csvData.reduce((acc, row) => {
     // Handle potentially missing or malformed data
     const intakeDate = parseDate(
-      programType === "secure-detention" ? row.Intake_Date : row.ATD_Entry_Date
+      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
     );
     const releaseDate = parseDate(
       programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
@@ -334,7 +346,7 @@ const analyzeData = (
     // Prepare derived fields
     const age = getAgeAtAdmission(
       row.Date_of_Birth,
-      programType === "secure-detention" ? row.Intake_Date : row.ATD_Entry_Date
+      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
     );
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";

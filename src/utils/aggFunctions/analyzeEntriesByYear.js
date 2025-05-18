@@ -1,3 +1,5 @@
+// Useful for looking at data over a time-period
+
 import { parseISO, differenceInCalendarDays } from "date-fns";
 
 const parseDate = (dateStr) => {
@@ -21,7 +23,11 @@ const median = (arr) => {
  * @param {number} year - The year to analyze
  * @returns {Object} - Entry stats for the year
  */
-const analyzeEntriesByYear = (data, year) => {
+const analyzeEntriesByYear = (
+  data,
+  year,
+  detentionType = "secure-detention"
+) => {
   const startOfYear = new Date(`${year}-01-01`);
   const endOfYear = new Date(`${year}-12-31`);
 
@@ -38,8 +44,14 @@ const analyzeEntriesByYear = (data, year) => {
   const unsuccessLengths = [];
 
   data.forEach((row) => {
-    const entryDate = parseDate(row.ATD_Entry_Date);
-    const exitDate = parseDate(row.ATD_Exit_Date);
+    const entryDate =
+      detentionType === "secure-detention"
+        ? parseDate(row.Admission_Date)
+        : parseDate(row.ATD_Entry_Date);
+    const exitDate =
+      detentionType === "secure-detention"
+        ? parseDate(row.Release_Date)
+        : parseDate(row.ATD_Exit_Date);
 
     if (entryDate && entryDate.getFullYear() === year - 1) {
       results.previousTotalEntries++;

@@ -17,7 +17,7 @@ const aggregateByStatuss = (
   // Function to filter and classify data by date range
   const processData = (startDate, endDate) => {
     const filtered = data.filter((record) => {
-      const intakeDate = new Date(record.Intake_Date);
+      const intakeDate = new Date(record.Admission_Date);
       return intakeDate >= startDate && intakeDate <= endDate;
     });
 

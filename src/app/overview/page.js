@@ -36,7 +36,7 @@ export default function Overview() {
     const uniqueYears = [
       ...new Set(
         csvData.map((row) => {
-          const date = new Date(row.Intake_Date);
+          const date = new Date(row.Admission_Date);
           return date.getFullYear();
         })
       ),

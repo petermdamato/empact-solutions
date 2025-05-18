@@ -17,8 +17,11 @@ const StackedBarChartGeneric = ({
   margin,
   chartTitle,
   context = "number",
-  breakdowns = ["pre", "post"], // dynamic fields to stack
+  breakdowns = ["pre", "post"],
   colorMapOverride = {},
+  filterVariable,
+  setFilterVariable,
+  groupByKey,
 }) => {
   const svgRef = useRef();
   const [parentWidth, setParentWidth] = useState(0);
@@ -31,12 +34,12 @@ const StackedBarChartGeneric = ({
       }
     });
 
-    if (svgRef.current && svgRef.current.parentElement) {
+    if (svgRef.current?.parentElement) {
       resizeObserver.observe(svgRef.current.parentElement);
     }
 
     return () => {
-      if (svgRef.current && svgRef.current.parentElement) {
+      if (svgRef.current?.parentElement) {
         resizeObserver.unobserve(svgRef.current.parentElement);
       }
     };
@@ -44,13 +47,14 @@ const StackedBarChartGeneric = ({
 
   useEffect(() => {
     if (!data || data.length === 0 || parentWidth === 0) return;
-    // Build dynamic color map
+
     const colorMap = {};
     breakdowns.forEach((key, i) => {
       colorMap[key] =
         colorMapOverride[key] ||
         defaultColorPalette[i % defaultColorPalette.length];
     });
+
     const tempSvg = d3
       .select(document.body)
       .append("svg")
@@ -77,12 +81,6 @@ const StackedBarChartGeneric = ({
     const innerWidth = parentWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Total for percentage calculations
-    const totalCount = data.reduce((acc, d) => {
-      return acc + breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0);
-    }, 0);
-
-    // Sort
     data = data.sort((a, b) => {
       const aSum = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
       const bSum = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
@@ -93,7 +91,6 @@ const StackedBarChartGeneric = ({
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Scales
     const getTotalValue = (d) =>
       breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0);
 
@@ -104,33 +101,73 @@ const StackedBarChartGeneric = ({
 
     const yScale = d3
       .scaleBand()
-      .domain(
-        data.map((d) => {
-          return d.category;
-        })
-      )
+      .domain(data.map((d) => d.category))
       .range([0, innerHeight])
       .padding(0.1);
 
     const colors = d3.schemeCategory10;
 
-    // Draw bars
-    data.forEach((d, i) => {
+    const handleClick = (event, d) => {
+      const selectedValue = d.category;
+      const currentKey = Object.keys(filterVariable || {})[0];
+      const currentValue = filterVariable?.[currentKey];
+
+      const isSameSelection =
+        currentKey === groupByKey && currentValue === selectedValue;
+
+      if (isSameSelection) {
+        setFilterVariable(null);
+      } else {
+        setFilterVariable({ [groupByKey]: selectedValue });
+      }
+    };
+
+    // Create layers for proper z-index ordering
+    const backgroundLayer = chart.append("g").attr("class", "background-layer");
+    const barsLayer = chart.append("g").attr("class", "bars-layer");
+    const labelsLayer = chart.append("g").attr("class", "labels-layer");
+    const axisLayer = chart.append("g").attr("class", "axis-layer");
+
+    // Background hoverable rects - Add them first to be behind everything
+    backgroundLayer
+      .selectAll(".row-background")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("class", "row-background")
+      .attr("x", -margin.left)
+      .attr("y", (d) => yScale(d.category))
+      .attr("width", parentWidth)
+      .attr("height", yScale.bandwidth())
+      .attr("fill", "transparent")
+      .style("cursor", "pointer")
+      .on("mouseover", function () {
+        d3.select(this).attr("fill", "#000").attr("fill-opacity", 0.05);
+      })
+      .on("mouseout", function () {
+        d3.select(this).attr("fill", "transparent");
+      })
+      .on("click", handleClick);
+
+    // Process rows for bars and labels
+    data.forEach((d) => {
       let xOffset = 0;
+
+      // Add bars
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
         const width = xScale(value);
 
-        // Draw breakdown bar
-        chart
+        barsLayer
           .append("rect")
           .attr("x", xOffset)
           .attr("y", yScale(d.category) + yScale.bandwidth() / 4)
           .attr("width", width)
           .attr("height", yScale.bandwidth() / 2)
-          .attr("fill", colorMap[key] || colors[bIndex % colors.length]);
+          .attr("fill", colorMap[key] || colors[bIndex % colors.length])
+          .style("pointer-events", "none");
 
-        // Add text only if it fits
+        // Only add label if text fits
         const labelText = value.toString();
         const tempText = chart
           .append("text")
@@ -142,7 +179,7 @@ const StackedBarChartGeneric = ({
         tempText.remove();
 
         if (textWidth + 4 < width) {
-          chart
+          labelsLayer
             .append("text")
             .attr("x", xOffset + width / 2)
             .attr("y", yScale(d.category) + yScale.bandwidth() / 2)
@@ -150,13 +187,17 @@ const StackedBarChartGeneric = ({
             .attr("text-anchor", "middle")
             .attr("fill", "white")
             .style("font-size", 10)
+            .style("user-select", "none")
+            .style("-webkit-user-select", "none")
+            .style("-ms-user-select", "none")
             .text(Math.round(labelText * 10) / 10);
         }
+
         xOffset += width;
       });
     });
 
-    // Title
+    // Add chart title
     chart
       .append("text")
       .attr("x", -margin.left + 20)
@@ -165,15 +206,25 @@ const StackedBarChartGeneric = ({
       .style("font-size", 14)
       .style("font-weight", "bold");
 
-    // Y axis
-    chart
+    // Add y-axis
+    axisLayer
       .append("g")
       .call(d3.axisLeft(yScale))
       .attr("class", "y-axis")
       .selectAll(".tick text")
       .text((d) => (d === "" ? "N/A" : d))
       .call(wrap, 96);
-  }, [data, height, margin, parentWidth, breakdowns, context]);
+  }, [
+    data,
+    height,
+    margin,
+    parentWidth,
+    breakdowns,
+    context,
+    filterVariable,
+    setFilterVariable,
+    groupByKey,
+  ]);
 
   return <svg ref={svgRef} width={parentWidth} height={height}></svg>;
 };

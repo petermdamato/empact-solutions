@@ -4,19 +4,22 @@ const aggregateByGender = (data, selectedYear, detentionType) => {
   const intakeStartDate = new Date(intakeStart);
   const intakeEndDate = new Date(intakeEnd);
 
-  // Filter by Intake_Date within the range
+  // Filter by Admission_Date within the range
   const filtered = data.filter((record) => {
     const intakeDate = new Date(
       detentionType === "secure-detention"
-        ? record.Intake_Date
-        : record.ADT_Entry_Date
+        ? record.Admission_Date
+        : record.ATD_Entry_Date
     );
     return intakeDate >= intakeStartDate && intakeDate <= intakeEndDate;
   });
 
   // Classify as post-dispo or pre-dispo
   const classified = filtered.map((record) => {
-    const releaseDate = new Date(record.Release_Date);
+    const releaseDate =
+      detentionType === "secure-detention"
+        ? new Date(record.Release_Date)
+        : new Date(record.ATD_Exit_Date);
     const dispoStatus =
       releaseDate >= intakeStartDate && releaseDate <= intakeEndDate
         ? "post-dispo"

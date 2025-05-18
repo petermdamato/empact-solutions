@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { dateDiff } from "./../../utils/dateDiff";
 
@@ -9,8 +9,8 @@ const calculateLengthOfStay = (record) => {
     ? new Date(record.ATD_Exit_Date)
     : null;
 
-  const admissionDate = record.Intake_Date
-    ? new Date(record.Intake_Date)
+  const admissionDate = record.Admission_Date
+    ? new Date(record.Admission_Date)
     : record.ADT_Entry_Date
     ? new Date(record.ADT_Entry_Date)
     : null;
@@ -20,10 +20,26 @@ const calculateLengthOfStay = (record) => {
     : null;
 };
 
-const getYear = (date) => {
-  const thisDate = new Date(date);
-  return thisDate.getFullYear();
+const colors = (
+  detentionType = "alternative-to-detention",
+  exploreType = "Overall Total"
+) => {
+  return detentionType === "alternative-to-detention"
+    ? {
+        1: "#006890",
+        0: "#ff7b00",
+      }
+    : exploreType === "Pre/post-dispo"
+    ? {
+        pre: "#006890",
+        post: "#ff7b00",
+      }
+    : {
+        all: "#006890",
+      };
 };
+
+const getYear = (date) => new Date(date).getFullYear();
 
 const getAverage = (arr) => {
   if (arr.length === 0) return null;
@@ -33,46 +49,60 @@ const getAverage = (arr) => {
 
 const getMedian = (arr) => {
   if (arr.length === 0) return null;
-
   const sorted = [...arr].sort(
     (a, b) => calculateLengthOfStay(a) - calculateLengthOfStay(b)
   );
-
   const mid = Math.floor(sorted.length / 2);
-
-  if (sorted.length % 2 === 0) {
-    return (
-      (calculateLengthOfStay(sorted[mid - 1]) +
+  return sorted.length % 2 === 0
+    ? (calculateLengthOfStay(sorted[mid - 1]) +
         calculateLengthOfStay(sorted[mid])) /
-      2
-    );
-  } else {
-    return calculateLengthOfStay(sorted[mid]);
-  }
+        2
+    : calculateLengthOfStay(sorted[mid]);
 };
 
-const DistributionChart = (records, year = 2024, type = "secure-detention") => {
-  if (!records.data || records.data.length === 0) return;
-  const data = records.data
-    .filter(
-      (record) =>
+const DistributionChart = (records) => {
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(600); // default fallback
+  const colorScale = colors(records.detentionType, records.exploreType);
+
+  // Resize observer to detect container size
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) observer.unobserve(containerRef.current);
+    };
+  }, [records]);
+
+  const margin = { top: 10, right: 10, bottom: 10, left: 10 };
+  const height = 400;
+  const width = containerWidth;
+
+  if (!records.data || records.data.length === 0) return null;
+  const dataCopy = [...records.data];
+  const data = dataCopy
+    .filter((record) => {
+      return (
         getYear(
-          type === "secure-detention"
+          records.detentionType === "secure-detention"
             ? record.Admission_Date
-            : record.ADT_Entry_Date
-        ) === year && calculateLengthOfStay(record)
-    )
+            : record.ATD_Entry_Date
+        ) === +records.selectedYear && calculateLengthOfStay(record)
+      );
+    })
     .sort((a, b) => calculateLengthOfStay(a) - calculateLengthOfStay(b));
 
-  const margin = { top: 10, right: 10, bottom: 10, left: 10 },
-    width = 600 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-
   const innerWidth = width - margin.left - margin.right;
-
   const innerHeight = height - margin.top - margin.bottom;
 
-  // Scales
   const xScale = d3
     .scaleBand()
     .domain(data.map((d) => d.Youth_ID + "-" + d.Referral_ID))
@@ -85,64 +115,75 @@ const DistributionChart = (records, year = 2024, type = "secure-detention") => {
     .range([innerHeight, 0]);
 
   return (
-    <svg width={width} height={height}>
-      <g transform={`translate(${margin.left},${margin.top})`}>
-        {/* Bars */}
-        {data.map((d) => (
+    <div ref={containerRef} style={{ width: "100%" }}>
+      <svg width={width} height={height}>
+        <g transform={`translate(${margin.left},${margin.top})`}>
+          {data.map((d) => {
+            return (
+              <rect
+                key={d.Youth_ID + "-" + d.Referral_ID}
+                x={xScale(d.Youth_ID + "-" + d.Referral_ID)}
+                y={yScale(calculateLengthOfStay(d))}
+                width={xScale.bandwidth()}
+                height={innerHeight - yScale(calculateLengthOfStay(d))}
+                fill={
+                  colorScale[
+                    records.detentionType === "alternative-to-detention"
+                      ? d.ATD_Successful_Exit
+                      : records.exploreType === "Pre/post-dispo"
+                      ? d["Pre/post-dispo filter"].includes("Pre")
+                        ? "pre"
+                        : "post"
+                      : "all"
+                  ]
+                }
+                rx={4}
+              />
+            );
+          })}
+
+          {/* Median line */}
           <rect
-            key={d.Youth_ID + "-" + d.Referral_ID}
-            x={xScale(d.Youth_ID + "-" + d.Referral_ID)}
-            y={yScale(calculateLengthOfStay(d))}
-            width={1}
-            height={innerHeight - yScale(calculateLengthOfStay(d))}
-            fill="steelblue"
+            x={0}
+            y={yScale(getMedian(data))}
+            width={innerWidth}
+            height={2}
+            fill="black"
             rx={4}
           />
-        ))}
-      </g>
-      <g transform={`translate(${margin.left},${margin.top})`}>
-        <rect
-          key={"median-rect"}
-          x={0}
-          y={yScale(getMedian(data))}
-          width={innerWidth}
-          height={2}
-          fill="black"
-          rx={4}
-        />
-        <text
-          key={"median-rect-text"}
-          x={10}
-          y={
-            yScale(getMedian(data)) +
-            (getMedian(data) >= getAverage(data) ? -28 : 16)
-          }
-          fill="black"
-        >
-          Median: {Math.round(getMedian(data))} days
-        </text>
-        <rect
-          key={"average-rect"}
-          x={0}
-          y={yScale(getAverage(data))}
-          width={innerWidth}
-          height={2}
-          fill="black"
-          rx={4}
-        />
-        <text
-          key={"average-rect-text"}
-          x={10}
-          y={
-            yScale(getMedian(data)) +
-            (getMedian(data) < getAverage(data) ? -28 : 16)
-          }
-          fill="black"
-        >
-          Average: {Math.round(getAverage(data))} days
-        </text>
-      </g>
-    </svg>
+          <text
+            x={10}
+            y={
+              yScale(getMedian(data)) +
+              (getMedian(data) >= getAverage(data) ? -28 : 16)
+            }
+            fill="black"
+          >
+            Median: {Math.round(getMedian(data))} days
+          </text>
+
+          {/* Average line */}
+          <rect
+            x={0}
+            y={yScale(getAverage(data))}
+            width={innerWidth}
+            height={2}
+            fill="black"
+            rx={4}
+          />
+          <text
+            x={10}
+            y={
+              yScale(getMedian(data)) +
+              (getMedian(data) < getAverage(data) ? -28 : 16)
+            }
+            fill="black"
+          >
+            Average: {Math.round(getAverage(data))} days
+          </text>
+        </g>
+      </svg>
+    </div>
   );
 };
 

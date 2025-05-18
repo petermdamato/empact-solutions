@@ -1,3 +1,4 @@
+import offenseMapFunction from "./offenseMapFunction";
 const aggregateMedianByStatus = (
   data,
   selectedYear,
@@ -11,11 +12,11 @@ const aggregateMedianByStatus = (
 
   const getIntakeDate = (record) =>
     detentionType === "secure-detention"
-      ? record.Intake_Date
-        ? new Date(record.Intake_Date)
+      ? record.Admission_Date
+        ? new Date(record.Admission_Date)
         : null
-      : record.ADT_Entry_Date
-      ? new Date(record.ADT_Entry_Date)
+      : record.ATD_Entry_Date
+      ? new Date(record.ATD_Entry_Date)
       : null;
 
   const getReleaseDate = (record) =>
@@ -23,8 +24,8 @@ const aggregateMedianByStatus = (
       ? record.Release_Date
         ? new Date(record.Release_Date)
         : null
-      : record.ADT_Exit_Date
-      ? new Date(record.ADT_Exit_Date)
+      : record.ATD_Exit_Date
+      ? new Date(record.ATD_Exit_Date)
       : null;
 
   const releasedThisYear = data.filter((record) => {
@@ -67,7 +68,13 @@ const aggregateMedianByStatus = (
     if (stayLength == null || isNaN(stayLength)) return;
 
     const dispoStatus = record["Pre/post-dispo filter"]?.toLowerCase();
-    const category = record[statusColumn];
+    let category;
+
+    if (statusColumn === "OffenseCategory") {
+      category = offenseMapFunction(record[statusColumn]);
+    } else {
+      category = record[statusColumn];
+    }
 
     if (dispoStatus === "pre-dispo") {
       preStayLengths.push(stayLength);
@@ -103,15 +110,15 @@ const aggregateMedianByStatus = (
     ([category, { pre, post, all }]) => ({
       category,
       pre: {
-        median: calculateMedian(pre),
+        median: Math.round(calculateMedian(pre) * 10) / 10,
         count: pre.length,
       },
       post: {
-        median: calculateMedian(post),
+        median: Math.round(calculateMedian(post) * 10) / 10,
         count: post.length,
       },
       all: {
-        median: calculateMedian(all),
+        median: Math.round(calculateMedian(all) * 10) / 10,
         count: all.length,
       },
     })
@@ -120,20 +127,20 @@ const aggregateMedianByStatus = (
   return {
     overall: {
       pre: {
-        median: calculateMedian(preStayLengths),
+        median: Math.round(calculateMedian(preStayLengths) * 10) / 10,
         count: preStayLengths.length,
       },
       post: {
-        median: calculateMedian(postStayLengths),
+        median: Math.round(calculateMedian(postStayLengths) * 10) / 10,
         count: postStayLengths.length,
       },
       all: {
-        median: calculateMedian(statusAllStayLengths),
+        median: Math.round(calculateMedian(statusAllStayLengths) * 10) / 10,
         count: statusAllStayLengths.length,
       },
     },
     previousPeriod: {
-      median: prevPeriodMedian,
+      median: Math.round(prevPeriodMedian * 10) / 10,
       count: prevPeriodStayLengths.length,
     },
     byStatus: statusResults,

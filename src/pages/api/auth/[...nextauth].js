@@ -9,6 +9,12 @@ const users = [
     email: "john@example.com",
     password: "password123", // NEVER store passwords like this in production
   },
+  {
+    id: "2",
+    name: "Peter D'Amato",
+    email: "petermdamato@gmail.com",
+    password: "password123", // NEVER store passwords like this in production
+  },
 ];
 
 // Define the NextAuth configuration
@@ -38,6 +44,7 @@ const authOptions = {
   },
   pages: {
     signIn: "/auth/signin", // Your custom sign-in page
+    signOut: "/auth/signout", // Your custom sign-in page
   },
   secret: process.env.NEXTAUTH_SECRET, // Ensure your secret is set
 };

@@ -6,3 +6,20 @@ line {
   fill: none;
   stroke: none;
 }
+
+.noselect {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
+}
+
+/* For SVG text elements specifically */
+svg text {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

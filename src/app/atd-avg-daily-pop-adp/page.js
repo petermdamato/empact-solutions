@@ -11,11 +11,11 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
-  analyzeAdmissionsOnly,
   analyzeEntriesByYear,
   dataAnalysisV2,
+  analyzeDailyPopByProgramType,
+  analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
-import { analyzeDailyPopByProgramType } from "@/utils/aggFunctions";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -91,17 +91,11 @@ export default function Overview() {
   const [selectedYear, setSelectedYear] = useState(2024);
 
   const [incarcerationType] = useState("ATD Utilization");
-  const [calculationType, setCalculationType] = useState("average");
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
-
-  const [dataArray1, setDataArray1] = useState([]);
-  const [dataArray2, setDataArray2] = useState([]);
-  const [dataArray3, setDataArray3] = useState([]);
-  const [dataArray4, setDataArray4] = useState([]);
 
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
@@ -112,7 +106,6 @@ export default function Overview() {
   const [dataArray17, setDataArray17] = useState([]);
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
-  const [dataArray20, setDataArray20] = useState([]);
 
   // Race array 2
   // Gender array 3
@@ -139,33 +132,6 @@ export default function Overview() {
           ).All,
         },
       ]);
-      setDataArray2(
-        dataAnalysisV2(
-          csvData,
-          "averageDailyPopulation",
-          +selectedYear,
-          "RaceEthnicity",
-          "alternative-to-detention"
-        )
-      );
-      setDataArray3(
-        dataAnalysisV2(
-          csvData,
-          "averageDailyPopulation",
-          +selectedYear,
-          "Gender",
-          "alternative-to-detention"
-        )
-      );
-      setDataArray4(
-        dataAnalysisV2(
-          csvData,
-          "averageDailyPopulation",
-          +selectedYear,
-          "Age",
-          "alternative-to-detention"
-        )
-      );
     } else {
       const intermediate = csvData.filter(
         (entry) => entry.Facility === programType
@@ -199,15 +165,6 @@ export default function Overview() {
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].current) {
       // Set overall
-      console.log(
-        dataAnalysisV2(
-          csvData,
-          "averageDailyPopulation",
-          +selectedYear,
-          null,
-          "alternative-to-detention"
-        )
-      );
       const byProgram = Object.entries(
         analyzeDailyPopByProgramType(csvData, +selectedYear)
       ).map(([program, value]) => {
@@ -217,6 +174,7 @@ export default function Overview() {
         };
       });
       setDataArray12(byProgram);
+
       const byRaceEthnicity = Object.entries(
         dataAnalysisV2(
           csvData,
@@ -318,28 +276,30 @@ export default function Overview() {
       });
 
       setDataArray17(byJurisdiction);
-      const detData = analyzeAdmissionsOnly(csvData, +selectedYear);
-      let overallArr = [];
 
-      Object.keys(detData.overall).forEach((source) => {
-        overallArr.push({
-          category: source,
-          value: detData.overall[source],
-        });
+      const byDispoStatus = Object.entries(
+        analyzeDailyPopByDispoStatus(csvData, +selectedYear)
+      ).map(([dispStatus, value]) => {
+        return {
+          category: dispStatus,
+          value: Math.round(value * 10) / 10,
+        };
       });
-      const totalSum = overallArr.reduce(
+
+      const totalSum = byDispoStatus.reduce(
         (accumulator, currentValue) => accumulator + currentValue.value,
         0
       );
 
-      overallArr.map((entry) => {
+      byDispoStatus.map((entry) => {
         entry.percentage = entry.value / totalSum;
         return entry;
       });
 
-      setDataArray19(overallArr);
+      setDataArray19(byDispoStatus);
     }
   }, [dataArray11]);
+
   return (
     // Top-level container
     <div
@@ -367,7 +327,7 @@ export default function Overview() {
         >
           <Header
             title={`${incarcerationType}`}
-            subtitle={`Average Daily Population of Stay - All Programs`}
+            subtitle={`Average Daily Population - All Programs`}
             dekWithYear={`Showing ADP in ATDs for ${selectedYear}`}
           >
             <Selector
@@ -433,7 +393,7 @@ export default function Overview() {
                     year={selectedYear}
                     groupByKey={"Pre/post-dispo filter"}
                     type={"alternative-to-detention"}
-                    title={"ADP by Pre/Post-Dispo"}
+                    chartTitle={"ADP by Pre/Post-Dispo"}
                   />
                 </ResponsiveContainer>
               </div>

@@ -1,538 +1,691 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar/Sidebar";
-import Header from "@/components/Header/Header";
-import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
-import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
-import ChartCard from "@/components/ChartCard/ChartCard";
-import PieChart from "@/components/PieChart/PieChartV2";
-import Selector from "@/components/Selector/Selector";
-import { useCSV } from "@/context/CSVContext";
-import { ResponsiveContainer } from "recharts";
+import React, { useRef, useEffect, useState } from "react";
+import { select } from "d3-selection";
+import { scaleLinear, scaleTime } from "d3-scale";
+import { extent, max, min } from "d3-array";
 import {
-  analyzeAdmissionsOnly,
-  analyzeEntriesByYear,
-} from "@/utils/aggFunctions";
-import "./styles.css";
+  line,
+  curveLinear,
+  symbol,
+  symbolCircle,
+  symbolSquare,
+  symbolTriangle2,
+} from "d3-shape";
+import { symbolHexagon } from "d3-symbol-extra";
+import { parseISO, formatISO, subMonths, addMonths } from "date-fns";
+import XAxisStylized from "./XAxisStylized";
+import { raceChartLegend } from "../utils/constants";
+import findVaryingAttribute from "../utils/findVaryingAttribute";
 
-const parseDateYear = (dateStr) => {
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
+const baseKeys = [
+  "source_id",
+  "metric_id",
+  "geo_type",
+  "geo_id",
+  "geo_name",
+  "geom",
+  "date",
+  "total",
+];
+const raceGroupKeys = ["black", "white", "other", "asian", "hispanic", "total"];
 
-  return isNaN(year) ? null : year;
-};
-const groupReasons = (data) => {
-  const result = {
-    "New Offense": {},
-    Technical: {},
-  };
+const LineChart = ({ data, styles, compareBy, minHeight = 300 }) => {
+  const svgRef = useRef(null);
+  const containerRef = useRef(null);
+  const [sizeDimensions, setSizeDimensions] = useState({
+    width: 0,
+    height: minHeight,
+  });
+  const [ghostedData, setGhostedData] = useState([]);
+  const [tickNumber] = useState(10);
+  const [axisHeight] = useState(22);
 
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
-const groupOffenseCategories = (data) => {
-  const result = {
-    Felony: {},
-    Misdemeanor: {},
-    "Status Offense": {},
-    Technical: {},
-  };
-
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "Felony";
-    } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
-    } else if (label === "Status Offense") {
-      group = "Status Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
-export default function Overview() {
-  const { csvData } = useCSV();
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const [incarcerationType] = useState("ATD Utilization");
-  const [calculationType, setCalculationType] = useState("average");
-  const [programType, setProgramType] = useState("All Program Types");
-  const [yearsArray, setYearsArray] = useState([2024]);
-  const [programTypeArray, setProgramTypeArray] = useState([
-    "All Program Types",
-  ]);
-
-  const [dataArray1, setDataArray1] = useState([]);
-  const [dataArray2, setDataArray2] = useState([]);
-  const [dataArray3, setDataArray3] = useState([]);
-  const [dataArray4, setDataArray4] = useState([]);
-
-  const [dataArray11, setDataArray11] = useState([]);
-  const [dataArray12, setDataArray12] = useState([]);
-  const [dataArray13, setDataArray13] = useState([]);
-  const [dataArray14, setDataArray14] = useState([]);
-  const [dataArray15, setDataArray15] = useState([]);
-  const [dataArray16, setDataArray16] = useState([]);
-  const [dataArray17, setDataArray17] = useState([]);
-  const [dataArray18, setDataArray18] = useState([]);
-  const [dataArray19, setDataArray19] = useState([]);
+  const margin = { top: 40, right: 20, bottom: 20, left: 20 };
 
   useEffect(() => {
-    if (programType === "All Program Types") {
-      setDataArray11([
-        {
-          title: "Entries by Successfulness",
-          header: analyzeEntriesByYear(csvData, +selectedYear),
-          body: analyzeEntriesByYear(csvData, +selectedYear),
-        },
-      ]);
-    } else {
-      const intermediate = csvData.filter(
-        (entry) => entry.Facility === programType
-      );
+    const element = containerRef.current;
+    if (!element) return;
 
-      setDataArray11([
-        {
-          title: "Entries by Successfulness",
-          header: analyzeEntriesByYear(intermediate, +selectedYear),
-          body: analyzeEntriesByYear(intermediate, +selectedYear),
-        },
-      ]);
-    }
-  }, [csvData, selectedYear, programType]);
+    const observer = new ResizeObserver((entries) => {
+      const { width } = entries[0].contentRect;
+      setSizeDimensions((prev) => ({ width, height: prev.height }));
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    setYearsArray(
-      [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
-        .filter((entry) => entry !== null)
-        .sort((a, b) => a - b)
+    if (!data || data.length === 0) return;
+
+    // Parse all dates in original data
+    const parsedData = data.map((d) => ({
+      ...d,
+      date: parseISO(d.date),
+    }));
+
+    const first = parsedData[0];
+    const last = parsedData[parsedData.length - 1];
+
+    // Add flourish by extending start and end dates
+    const ghosted = [
+      { ...first, date: subMonths(first.date, 1) },
+      ...parsedData,
+      { ...last, date: addMonths(last.date, 1) },
+    ];
+
+    setGhostedData(ghosted);
+  }, [data]);
+
+  // Helper function to check for label collisions
+  const checkLabelCollision = (newLabel, existingLabels, padding = 10) => {
+    return existingLabels.some(
+      (label) =>
+        Math.abs(label.x - newLabel.x) < padding &&
+        Math.abs(label.y - newLabel.y) < padding
     );
-    let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
-      .filter((entry) => entry !== null && entry !== "")
-      .sort((a, b) => a - b);
-
-    const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
-
-    setProgramTypeArray(programTypeArrayFinal);
-  }, [csvData]);
+  };
 
   useEffect(() => {
-    if (dataArray1.length > 0 && dataArray1[0].body?.exitsByProgramType) {
-      const byProgramType = Object.entries(
-        dataArray1[0].body?.exitsByProgramType
-      ).map(([program, values]) => ({
-        category: program,
-        ...values,
-      }));
-      // Set overall
-      setDataArray2(byProgramType);
-      let chartArray = [];
-      let chartObj = {
-        category: programType,
-        successful: dataArray1[0].body?.successfulExits,
-        unsuccessful: dataArray1[0].body?.unsuccessfulExits,
-      };
-      chartArray.push(chartObj);
+    if (!ghostedData || ghostedData.length === 0 || sizeDimensions.width === 0)
+      return;
 
-      setDataArray3(chartArray);
-      // Set LOS data
-      let chartArrayLOS = [];
-      let chartObjLOS = {
-        category: programType,
-        total:
-          calculationType === "average"
-            ? dataArray1[0].body?.successfulAvgLengthOfStay +
-              dataArray1[0].body?.unsuccessfulAvgLengthOfStay
-            : dataArray1[0].body?.successfulMedianLengthOfStay +
-              dataArray1[0].body?.unsuccessfulMedianLengthOfStay,
-        successful:
-          calculationType === "average"
-            ? Math.round(dataArray1[0].body?.successfulAvgLengthOfStay * 10) /
-              10
-            : Math.round(
-                dataArray1[0].body?.successfulMedianLengthOfStay * 10
-              ) / 10,
-        unsuccessful:
-          calculationType === "average"
-            ? Math.round(dataArray1[0].body?.unsuccessfulAvgLengthOfStay * 10) /
-              10
-            : Math.round(
-                dataArray1[0].body?.unsuccessfulMedianLengthOfStay * 10
-              ) / 10,
-      };
-      chartArrayLOS.push(chartObjLOS);
+    const width = sizeDimensions.width;
+    const height = sizeDimensions.height - axisHeight;
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
-      setDataArray4(chartArrayLOS);
-    }
-  }, [dataArray1, calculationType]);
+    const xScale = scaleTime()
+      .domain(extent(ghostedData, (d) => d.date))
+      .range([0, innerWidth]);
 
-  useEffect(() => {
-    if (dataArray11.length > 0 && dataArray11[0].body?.entriesByProgramType) {
-      const byProgramType = Object.entries(
-        dataArray11[0].body?.entriesByProgramType
-      ).map(([program, values]) => ({
-        category: program,
-        ...values,
-      }));
-      const detData = analyzeAdmissionsOnly(csvData, +selectedYear);
+    const raceKeys = raceChartLegend.map((race) =>
+      race.label === "all" ? "total" : race.label.toLowerCase()
+    );
 
-      // Set overall
+    const yMax = max(ghostedData, (d) => max(raceKeys.map((race) => d[race])));
+    const yMin = min(ghostedData, (d) => min(raceKeys.map((race) => d[race])));
 
-      const byRaceEthnicity = Object.entries(detData.byGroup.RaceEthnicity).map(
-        ([race, values]) => ({
-          category: race,
-          ...values,
-        })
-      );
-      setDataArray12(byProgramType);
+    const yScale = scaleLinear().domain([yMin, yMax]).range([innerHeight, 0]);
 
-      setDataArray13(byRaceEthnicity);
+    const svg = select(svgRef.current);
+    svg.selectAll("*").remove();
 
-      const byGender = Object.entries(detData.byGroup.Gender).map(
-        ([gender, values]) => ({
-          category: gender,
-          ...values,
-        })
-      );
+    // Create a group for all graphical elements (lines, symbols)
+    const graphicsGroup = svg
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-      setDataArray14(byGender);
+    // Create a separate group for all text elements that will be rendered on top
+    const textGroup = svg
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-      const byAge = Object.entries(detData.byGroup.AgeBracket).map(
-        ([age, values]) => ({
-          category: age,
-          ...values,
-        })
-      );
+    const dataMask = ghostedData.map((d) => ({
+      ...d,
+      ...(d.onOff === "off" && {
+        black: null,
+        white: null,
+        asian: null,
+        hispanic: null,
+        total: null,
+      }),
+    }));
 
-      setDataArray15(byAge);
+    // Store all labels to check for collisions
+    const labels = [];
 
-      const categories = groupOffenseCategories(
-        detData.byGroup.OffenseCategory
-      );
-      const byOffenseCategory = Object.entries(categories).map(
-        ([offense, values]) => ({
-          category: offense,
-          ...values,
-        })
-      );
+    if (compareBy === "Race/Ethnicity" || !compareBy) {
+      raceChartLegend.forEach((race) => {
+        const raceKey =
+          race.label === "all" ? "total" : race.label.toLowerCase();
+        const hasData = ghostedData.some((d) => d[raceKey] != null);
+        if (!hasData) return;
 
-      setDataArray16(byOffenseCategory);
+        const raceLookup = raceKey === "total" ? "all" : raceKey;
 
-      const byReasons = groupReasons(detData.byGroup.OffenseCategory);
-      const groupedByReasons = Object.entries(byReasons).map(
-        ([offense, values]) => ({
-          category: offense,
-          ...values,
-        })
-      );
+        const raceColor =
+          raceChartLegend.find((i) => i.label === raceLookup)?.color ?? "green";
+        const raceSymbol =
+          raceChartLegend.find((i) => i.label === raceLookup)?.shape ??
+          symbolCircle;
 
-      setDataArray18(groupedByReasons);
+        const linePath = line()
+          .defined((d) => d[raceKey] != null)
+          .x((d) => xScale(d.date))
+          .y((d) => yScale(d[raceKey]))
+          .curve(curveLinear);
 
-      const byJurisdiction = Object.entries(
-        detData.byGroup.Referral_Source
-      ).map(([source, values]) => ({
-        category: source,
-        ...values,
-      }));
+        const onData = ghostedData.filter((d) => d.onOff !== "off");
+        const firstOnX = xScale(onData[1]?.date ?? onData[0]?.date ?? 0);
+        const lastOnX = xScale(
+          onData[onData.length - 2]?.date ??
+            onData[onData.length - 1]?.date ??
+            0
+        );
 
-      setDataArray17(byJurisdiction);
+        graphicsGroup
+          .append("defs")
+          .append("clipPath")
+          .attr("id", `ghost-clip-${raceKey}`)
+          .append("rect")
+          .attr("x", firstOnX)
+          .attr("y", -margin.top)
+          .attr("width", lastOnX - firstOnX)
+          .attr("height", height);
 
-      let overallArr = [];
+        graphicsGroup
+          .append("path")
+          .datum(ghostedData)
+          .attr("fill", "none")
+          .attr("stroke", raceColor)
+          .attr("stroke-linecap", "square")
+          .attr("stroke-width", 10)
+          .attr("d", linePath);
 
-      Object.keys(detData.overall).forEach((source) => {
-        overallArr.push({
-          category: source,
-          value: detData.overall[source],
-        });
+        graphicsGroup
+          .append("path")
+          .datum(dataMask)
+          .attr("fill", "none")
+          .attr("stroke", "white")
+          .attr("stroke-width", 7)
+          .attr("stroke-linecap", "square")
+          .attr("d", linePath);
+
+        graphicsGroup
+          .append("path")
+          .datum(dataMask)
+          .attr("fill", "none")
+          .attr("stroke", raceColor)
+          .attr("stroke-width", 7)
+          .attr("stroke-linecap", "square")
+          .attr("d", linePath)
+          .attr("clip-path", `url(#ghost-clip-${raceKey})`);
+
+        // Draw min/max markers
+        const shapeGenerator = symbol()
+          .type(raceSymbol)
+          .size(raceKey === "black" ? 240 : 200);
+
+        const path = shapeGenerator();
+
+        const minRecord = ghostedData.reduce((acc, record) => {
+          const val = record[raceKey];
+          if (val == null) return acc;
+          if (
+            acc == null ||
+            val < acc.value ||
+            (val === acc.value && record.date > acc.date)
+          ) {
+            return { value: val, date: record.date };
+          }
+          return acc;
+        }, null);
+
+        const maxRecord = ghostedData.reduce((acc, record) => {
+          const val = record[raceKey];
+          if (val == null) return acc;
+          if (
+            acc == null ||
+            val > acc.value ||
+            (val === acc.value && record.date > acc.date)
+          ) {
+            return { value: val, date: record.date };
+          }
+          return acc;
+        }, null);
+
+        if (minRecord) {
+          const minX = xScale(minRecord.date);
+          const minY = yScale(minRecord.value);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", "white")
+            .attr("transform", `translate(${minX},${minY}) scale(1.5)`)
+            .attr("d", path);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", raceColor)
+            .attr("transform", `translate(${minX},${minY})`)
+            .attr("d", path);
+
+          // Add label for min value (only for black and total)
+          if (raceKey === "black" || raceKey === "total") {
+            const labelText = `${minRecord.value.toFixed(1)}`;
+            const labelX = minX;
+            const labelY = minY - 15; // Position above the point
+
+            // Try different positions if there's a collision
+            let finalLabelY = labelY;
+            let finalLabelX = labelX;
+            let anchor = "middle";
+            let attempts = 0;
+            const maxAttempts = 4;
+
+            while (attempts < maxAttempts) {
+              const testLabel = {
+                x: finalLabelX,
+                y: finalLabelY,
+                width: labelText.length * 6,
+                height: 12,
+              };
+
+              if (!checkLabelCollision(testLabel, labels)) {
+                break;
+              }
+
+              attempts++;
+              switch (attempts) {
+                case 1:
+                  finalLabelY = minY + 25; // Try below
+                  break;
+                case 2:
+                  finalLabelX = minX - 30; // Try left
+                  anchor = "end";
+                  break;
+                case 3:
+                  finalLabelX = minX + 30; // Try right
+                  anchor = "start";
+                  break;
+                default:
+                  finalLabelY = minY - 30; // Try further above
+              }
+            }
+
+            if (attempts < maxAttempts) {
+              labels.push({
+                x: finalLabelX,
+                y: finalLabelY,
+                width: labelText.length * 6,
+                height: 12,
+              });
+
+              // Add white glow effect by drawing multiple strokes
+              for (let i = 3; i > 0; i--) {
+                textGroup
+                  .append("text")
+                  .attr("x", finalLabelX)
+                  .attr("y", finalLabelY)
+                  .attr("text-anchor", anchor)
+                  .attr("font-size", "18px")
+                  .attr("fill", "white")
+                  .attr("stroke", "white")
+                  .attr("stroke-width", i)
+                  .attr("stroke-opacity", 0.5)
+                  .attr("font-weight", "bold")
+                  .text(labelText);
+              }
+
+              // Add the main text on top
+              textGroup
+                .append("text")
+                .attr("x", finalLabelX)
+                .attr("y", finalLabelY)
+                .attr("text-anchor", anchor)
+                .attr("font-size", "18px")
+                .attr("fill", raceColor)
+                .attr("font-weight", "bold")
+                .text(labelText);
+            }
+          }
+        }
+
+        if (maxRecord) {
+          const maxX = xScale(maxRecord.date);
+          const maxY = yScale(maxRecord.value);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", "white")
+            .attr("transform", `translate(${maxX},${maxY}) scale(1.5)`)
+            .attr("d", path);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", raceColor)
+            .attr("transform", `translate(${maxX},${maxY})`)
+            .attr("d", path);
+
+          // Add label for max value (only for black and total)
+          if (raceKey === "black" || raceKey === "total") {
+            const labelText = `${maxRecord.value.toFixed(1)}`;
+            const labelX = maxX;
+            const labelY = maxY - 15; // Position above the point
+
+            // Try different positions if there's a collision
+            let finalLabelY = labelY;
+            let finalLabelX = labelX;
+            let anchor = "middle";
+            let attempts = 0;
+            const maxAttempts = 4;
+
+            while (attempts < maxAttempts) {
+              const testLabel = {
+                x: finalLabelX,
+                y: finalLabelY,
+                width: labelText.length * 6,
+                height: 12,
+              };
+
+              if (!checkLabelCollision(testLabel, labels)) {
+                break;
+              }
+
+              attempts++;
+              switch (attempts) {
+                case 1:
+                  finalLabelY = maxY + 25; // Try below
+                  break;
+                case 2:
+                  finalLabelX = maxX - 30; // Try left
+                  anchor = "end";
+                  break;
+                case 3:
+                  finalLabelX = maxX + 30; // Try right
+                  anchor = "start";
+                  break;
+                default:
+                  finalLabelY = maxY - 30; // Try further above
+              }
+            }
+
+            if (attempts < maxAttempts) {
+              labels.push({
+                x: finalLabelX,
+                y: finalLabelY,
+                width: labelText.length * 6,
+                height: 12,
+              });
+
+              // Add white glow effect by drawing multiple strokes
+              for (let i = 3; i > 0; i--) {
+                textGroup
+                  .append("text")
+                  .attr("x", finalLabelX)
+                  .attr("y", finalLabelY)
+                  .attr("text-anchor", anchor)
+                  .attr("font-size", "18px")
+                  .attr("fill", "white")
+                  .attr("stroke", "white")
+                  .attr("stroke-width", i)
+                  .attr("stroke-opacity", 0.5)
+                  .attr("font-weight", "bold")
+                  .text(labelText);
+              }
+
+              // Add the main text on top
+              textGroup
+                .append("text")
+                .attr("x", finalLabelX)
+                .attr("y", finalLabelY)
+                .attr("text-anchor", anchor)
+                .attr("font-size", "18px")
+                .attr("fill", raceColor)
+                .attr("font-weight", "bold")
+                .text(labelText);
+            }
+          }
+        }
       });
-      const totalSum = overallArr.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.value,
-        0
+    } else {
+      const varyingKey = findVaryingAttribute(
+        ghostedData,
+        raceGroupKeys,
+        baseKeys
       );
 
-      overallArr.map((entry) => {
-        entry.percentage = entry.value / totalSum;
-        return entry;
-      });
+      const compareValues = [...new Set(ghostedData.map((d) => d[varyingKey]))];
 
-      setDataArray19(overallArr);
+      compareValues.forEach((val, idx) => {
+        const filteredData = ghostedData.filter((d) => d[varyingKey] === val);
+        const color = styles?.[val]?.color || `hsl(${idx * 60}, 70%, 50%)`; // fallback color
+        const symbolShape = symbolCircle;
+
+        const linePath = line()
+          .defined((d) => d.total != null)
+          .x((d) => xScale(d.date))
+          .y((d) => yScale(d.total))
+          .curve(curveLinear);
+
+        graphicsGroup
+          .append("path")
+          .datum(filteredData)
+          .attr("fill", "none")
+          .attr("stroke", color)
+          .attr("stroke-linecap", "square")
+          .attr("stroke-width", 7)
+          .attr("d", linePath);
+
+        // Optional: draw min/max markers for 'total'
+        const minRecord = filteredData.reduce(
+          (acc, d) => (acc == null || d.total < acc.total ? d : acc),
+          null
+        );
+        const maxRecord = filteredData.reduce(
+          (acc, d) => (acc == null || d.total > acc.total ? d : acc),
+          null
+        );
+
+        const shapeGen = symbol().type(symbolShape).size(200);
+        const path = shapeGen();
+
+        if (minRecord) {
+          const minX = xScale(minRecord.date);
+          const minY = yScale(minRecord.total);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", "white")
+            .attr("transform", `translate(${minX},${minY}) scale(1.5)`)
+            .attr("d", path);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", color)
+            .attr("transform", `translate(${minX},${minY})`)
+            .attr("d", path);
+
+          // Add label for min value
+          const labelText = `${minRecord.total.toFixed(1)}`;
+          const labelX = minX;
+          const labelY = minY - 15; // Position above the point
+
+          // Try different positions if there's a collision
+          let finalLabelY = labelY;
+          let finalLabelX = labelX;
+          let anchor = "middle";
+          let attempts = 0;
+          const maxAttempts = 4;
+
+          while (attempts < maxAttempts) {
+            const testLabel = {
+              x: finalLabelX,
+              y: finalLabelY,
+              width: labelText.length * 6,
+              height: 12,
+            };
+
+            if (!checkLabelCollision(testLabel, labels)) {
+              break;
+            }
+
+            attempts++;
+            switch (attempts) {
+              case 1:
+                finalLabelY = minY + 25; // Try below
+                break;
+              case 2:
+                finalLabelX = minX - 30; // Try left
+                anchor = "end";
+                break;
+              case 3:
+                finalLabelX = minX + 30; // Try right
+                anchor = "start";
+                break;
+              default:
+                finalLabelY = minY - 30; // Try further above
+            }
+          }
+
+          if (attempts < maxAttempts) {
+            labels.push({
+              x: finalLabelX,
+              y: finalLabelY,
+              width: labelText.length * 6,
+              height: 12,
+            });
+
+            // Add white glow effect by drawing multiple strokes
+            for (let i = 3; i > 0; i--) {
+              textGroup
+                .append("text")
+                .attr("x", finalLabelX)
+                .attr("y", finalLabelY)
+                .attr("text-anchor", anchor)
+                .attr("font-size", "18px")
+                .attr("fill", "white")
+                .attr("stroke", "white")
+                .attr("stroke-width", i)
+                .attr("stroke-opacity", 0.5)
+                .attr("font-weight", "bold")
+                .text(labelText);
+            }
+
+            // Add the main text on top
+            textGroup
+              .append("text")
+              .attr("x", finalLabelX)
+              .attr("y", finalLabelY)
+              .attr("text-anchor", anchor)
+              .attr("font-size", "18px")
+              .attr("fill", color)
+              .attr("font-weight", "bold")
+              .text(labelText);
+          }
+        }
+
+        if (maxRecord) {
+          const maxX = xScale(maxRecord.date);
+          const maxY = yScale(maxRecord.total);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", "white")
+            .attr("transform", `translate(${maxX},${maxY}) scale(1.5)`)
+            .attr("d", path);
+
+          graphicsGroup
+            .append("path")
+            .attr("fill", color)
+            .attr("transform", `translate(${maxX},${maxY})`)
+            .attr("d", path);
+
+          // Add label for max value
+          const labelText = `${maxRecord.total.toFixed(1)}`;
+          const labelX = maxX;
+          const labelY = maxY - 15; // Position above the point
+
+          // Try different positions if there's a collision
+          let finalLabelY = labelY;
+          let finalLabelX = labelX;
+          let anchor = "middle";
+          let attempts = 0;
+          const maxAttempts = 4;
+
+          while (attempts < maxAttempts) {
+            const testLabel = {
+              x: finalLabelX,
+              y: finalLabelY,
+              width: labelText.length * 6,
+              height: 12,
+            };
+
+            if (!checkLabelCollision(testLabel, labels)) {
+              break;
+            }
+
+            attempts++;
+            switch (attempts) {
+              case 1:
+                finalLabelY = maxY + 25; // Try below
+                break;
+              case 2:
+                finalLabelX = maxX - 30; // Try left
+                anchor = "end";
+                break;
+              case 3:
+                finalLabelX = maxX + 30; // Try right
+                anchor = "start";
+                break;
+              default:
+                finalLabelY = maxY - 30; // Try further above
+            }
+          }
+
+          if (attempts < maxAttempts) {
+            labels.push({
+              x: finalLabelX,
+              y: finalLabelY,
+              width: labelText.length * 6,
+              height: 12,
+            });
+
+            // Add white glow effect by drawing multiple strokes
+            for (let i = 3; i > 0; i--) {
+              textGroup
+                .append("text")
+                .attr("x", finalLabelX)
+                .attr("y", finalLabelY)
+                .attr("text-anchor", anchor)
+                .attr("font-size", "18px")
+                .attr("fill", "white")
+                .attr("stroke", "white")
+                .attr("stroke-width", i)
+                .attr("stroke-opacity", 0.5)
+                .attr("font-weight", "bold")
+                .text(labelText);
+            }
+
+            // Add the main text on top
+            textGroup
+              .append("text")
+              .attr("x", finalLabelX)
+              .attr("y", finalLabelY)
+              .attr("text-anchor", anchor)
+              .attr("font-size", "18px")
+              .attr("fill", color)
+              .attr("font-weight", "bold")
+              .text(labelText);
+          }
+        }
+      });
     }
-  }, [dataArray11, calculationType]);
+  }, [ghostedData, styles, sizeDimensions]);
+
   return (
-    // Top-level container
     <div
-      style={{ display: "flex", height: "100vh", backgroundColor: "#f5f7fa" }}
+      ref={containerRef}
+      style={{
+        width: "100%",
+        height: `${sizeDimensions.height}px`,
+        overflow: "hidden",
+      }}
     >
-      <Sidebar />
-
-      {/* Main content area */}
-      <div
-        style={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "auto",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            height: "60px",
-            padding: "0 16px",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Header
-            title={`${incarcerationType}`}
-            subtitle={`Entries - All Programs`}
-            dekWithYear={`Showing entries to ATDs for ${selectedYear}`}
-          >
-            <Selector
-              values={yearsArray}
-              variable={"Year"}
-              selectedValue={selectedYear}
-              setValue={setSelectedYear}
-            />
-          </Header>
-        </div>
-
-        {/* Charts */}
-        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
-          {/* Column 1 */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-            }}
-          >
-            {/* Change Statistics */}
-            <ChartCard width="100%">
-              <div style={{ maxHeight: "60px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ChangeStatistics
-                    data={[
-                      dataArray11[0]?.body?.totalEntries,
-                      dataArray11[0]?.body?.previousTotalEntries,
-                    ]}
-                  />
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-
-            {/* Entries by ATD Type */}
-            <ChartCard width="100%">
-              <div style={{ height: "400px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray12.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray12}
-                      breakdowns={["total"]}
-                      height={400}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by ATD Program Type"}
-                      colorMapOverride={{
-                        total: "#5b6069",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-            {/* Pie Chart */}
-            <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray19}
-                    year={selectedYear}
-                    groupByKey={"Pre/post-dispo filter"}
-                    type={"alternative-to-detention"}
-                    title={"Entries by Pre/Post-Dispo"}
-                  />
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-          </div>
-
-          {/* Column 2 */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-            }}
-          >
-            {/* Entries by ATD Type */}
-            <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray13.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray13}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={300}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Race/Ethnicity"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-            {/* Entries by Gender */}
-            <ChartCard width="100%">
-              <div style={{ height: "200px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray14.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray14}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Gender"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-            {/* Entries by Age */}
-            <ChartCard width="100%">
-              <div style={{ height: "200px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray15.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray15}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Age"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-          </div>
-          {/* Column 3 */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-            }}
-          >
-            {/* Entries by Reason */}
-            <ChartCard width="100%">
-              <div style={{ height: "260px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray18.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray18}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Reason for Detention"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-            {/* Entries by Category */}
-            <ChartCard width="100%">
-              <div style={{ height: "260px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray16.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray16}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Offense Category (pre-dispo)"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-
-            {/* Entries by Jurisdiction */}
-            <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray17.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray17}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={300}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Jurisdiction"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                    />
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-          </div>
-        </div>
-      </div>
+      <svg
+        ref={svgRef}
+        width={sizeDimensions.width}
+        height={sizeDimensions.height - axisHeight}
+      />
+      <XAxisStylized
+        data={ghostedData}
+        width={sizeDimensions.width}
+        margin={margin}
+        height={axisHeight}
+        tickNumber={tickNumber}
+      />
     </div>
   );
-}
+};
+
+export default LineChart;

@@ -9,9 +9,9 @@ const aggregateByAgeGroup = (
   const intakeEndDate = new Date(intakeEnd);
   const today = new Date(); // Today's date for age calculation
 
-  // Filter by Intake_Date within the range
+  // Filter by Admission_Date within the range
   const filtered = data.filter((record) => {
-    const intakeDate = new Date(record.Intake_Date);
+    const intakeDate = new Date(record.Admission_Date);
     return intakeDate >= intakeStartDate && intakeDate <= intakeEndDate;
   });
 
@@ -36,8 +36,8 @@ const aggregateByAgeGroup = (
 
     // Calculate age
     const birthDate = new Date(record.Date_of_Birth);
-    const admissionDate = record.Intake_Date
-      ? new Date(record.Intake_Date)
+    const admissionDate = record.Admission_Date
+      ? new Date(record.Admission_Date)
       : record.ADT_Entry_Date
       ? new Date(record.ADT_Entry_Date)
       : null;

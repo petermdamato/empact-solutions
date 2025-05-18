@@ -17,6 +17,8 @@
 }
 
 .line-chart-header {
+  display: flex !important;
+  justify-content: space-around;
   background: rgb(230, 230, 230);
   align-items: center;
   padding: 8px 2px 2px;
@@ -24,6 +26,8 @@
   margin-bottom: 8px;
 }
 
+.line-chart-header {
+}
 .line-chart-title {
   margin: 0;
   text-align: center;

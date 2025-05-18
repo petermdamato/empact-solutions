@@ -8,6 +8,7 @@ import DateRangeSlider from "@/components/DateRangeSlider/DateRangeSlider";
 import { useEffect, useState } from "react";
 import "./styles.css";
 import { aggregateByComparison } from "@/utils";
+import RecordsTableDST from "@/components/RecordsTable/RecordsTableDST";
 
 export default function Overview() {
   const { csvData } = useCSV();
@@ -15,9 +16,17 @@ export default function Overview() {
   const [datesData, setDatesData] = useState([]);
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
-
   useEffect(() => {
-    setDatesData(csvData);
+    setDatesData(
+      csvData.filter((entry) => {
+        const intake = new Date(entry.Admission_Date);
+        const lowerDate = new Date(datesRange[0]);
+        const upperDate = new Date(datesRange[1]);
+        return intake >= lowerDate && intake <= upperDate;
+      })
+    );
+  }, [datesRange]);
+  useEffect(() => {
     setDataArray1([
       {
         title: "categories",
@@ -35,7 +44,11 @@ export default function Overview() {
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
-          <Header title="Secure Detention Utilization" subtitle="Snapshot" />
+          <Header
+            title="Secure Detention Utilization"
+            subtitle="Detention Screening"
+            dekWithYear="DST Recommendation Restrictiveness Compared to Actual Decision"
+          />
           <div
             style={{
               position: "absolute",
@@ -45,28 +58,49 @@ export default function Overview() {
             }}
           >
             <DateRangeSlider
-              records={datesData}
+              records={csvData}
               accessor={(d) => d.Admission_Date}
               setDatesRange={setDatesRange}
             />
           </div>
           <div>
             {dataArray1 && (
-              <TileContainer
-                datesRange={datesRange}
-                data={[
-                  {
-                    title: "Actual Decision Compared to DST",
-                    data: dataArray1,
-                    charts: ["column", "heatmap"],
-                    chartTitles: [
-                      "Recommended Restrictivness Compared to Actual Decision",
-                      "Actual Decision Compared to DST Decision",
-                    ],
-                    keysArray: [[], ["Intake Decision", "DST Recommendation"]],
-                  },
-                ]}
-              />
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flexGrow: 1,
+                }}
+              >
+                <TileContainer
+                  datesRange={datesRange}
+                  data={[
+                    {
+                      title: "Actual Decision Compared to DST",
+                      data: dataArray1,
+                      charts: ["column", "heatmap"],
+                      chartTitles: [
+                        "Recommended Restrictivness Compared to Actual Decision",
+                        "Actual Decision Compared to DST Decision",
+                      ],
+                      keysArray: [
+                        [],
+                        ["Intake Decision", "DST Recommendation"],
+                      ],
+                    },
+                  ]}
+                />
+                <div
+                  style={{
+                    flex: 1,
+                    overflow: "clip",
+                    marginTop: "16px",
+                    maxHeight: "500px",
+                  }}
+                >
+                  <RecordsTableDST data={datesData} />
+                </div>
+              </div>
             )}
           </div>
         </div>

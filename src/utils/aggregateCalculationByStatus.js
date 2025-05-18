@@ -1,3 +1,5 @@
+import offenseMapFunction from "./offenseMapFunction";
+
 const aggregateCalculationByStatus = (
   data,
   selectedYear,
@@ -14,11 +16,11 @@ const aggregateCalculationByStatus = (
 
   const getIntakeDate = (record) =>
     detentionType === "secure-detention"
-      ? record.Intake_Date
-        ? new Date(record.Intake_Date)
+      ? record.Admission_Date
+        ? new Date(record.Admission_Date)
         : null
-      : record.ADT_Entry_Date
-      ? new Date(record.ADT_Entry_Date)
+      : record.ATD_Entry_Date
+      ? new Date(record.ATD_Entry_Date)
       : null;
 
   const getReleaseDate = (record) =>
@@ -26,8 +28,8 @@ const aggregateCalculationByStatus = (
       ? record.Release_Date
         ? new Date(record.Release_Date)
         : null
-      : record.ADT_Exit_Date
-      ? new Date(record.ADT_Exit_Date)
+      : record.ATD_Exit_Date
+      ? new Date(record.ATD_Exit_Date)
       : null;
 
   // Filter records where the release date occurred in the selected year
@@ -78,24 +80,44 @@ const aggregateCalculationByStatus = (
 
     const category = record[statusColumn];
     const dispoStatus = record["Pre/post-dispo filter"];
-
-    if (!isNaN(stayLengthDays) && !result[category]) {
-      result[category] = {
-        post: 0,
-        pre: 0,
-        daysPre: 0,
-        daysPost: 0,
-      };
-    }
-    if (!isNaN(stayLengthDays) && dispoStatus.toLowerCase() === "pre-dispo") {
-      result[category].pre += 1;
-      result[category].daysPre += stayLengthDays;
-    } else if (
-      !isNaN(stayLengthDays) &&
-      dispoStatus.toLowerCase() === "post-dispo"
-    ) {
-      result[category].post += 1;
-      result[category].daysPost += stayLengthDays;
+    if (statusColumn === "OffenseCategory") {
+      if (!isNaN(stayLengthDays) && !result[offenseMapFunction(category)]) {
+        result[offenseMapFunction(category)] = {
+          post: 0,
+          pre: 0,
+          daysPre: 0,
+          daysPost: 0,
+        };
+      }
+      if (!isNaN(stayLengthDays) && dispoStatus.toLowerCase() === "pre-dispo") {
+        result[offenseMapFunction(category)].pre += 1;
+        result[offenseMapFunction(category)].daysPre += stayLengthDays;
+      } else if (
+        !isNaN(stayLengthDays) &&
+        dispoStatus.toLowerCase() === "post-dispo"
+      ) {
+        result[offenseMapFunction(category)].post += 1;
+        result[offenseMapFunction(category)].daysPost += stayLengthDays;
+      }
+    } else {
+      if (!isNaN(stayLengthDays) && !result[category]) {
+        result[category] = {
+          post: 0,
+          pre: 0,
+          daysPre: 0,
+          daysPost: 0,
+        };
+      }
+      if (!isNaN(stayLengthDays) && dispoStatus.toLowerCase() === "pre-dispo") {
+        result[category].pre += 1;
+        result[category].daysPre += stayLengthDays;
+      } else if (
+        !isNaN(stayLengthDays) &&
+        dispoStatus.toLowerCase() === "post-dispo"
+      ) {
+        result[category].post += 1;
+        result[category].daysPost += stayLengthDays;
+      }
     }
   });
 

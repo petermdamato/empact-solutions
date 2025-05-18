@@ -6,13 +6,6 @@ import { useCSV } from "@/context/CSVContext";
 import PillContainer from "@/components/PillContainer/PillContainer";
 import { useEffect, useState } from "react";
 import "./styles.css";
-import {
-  aggregateByGender,
-  aggregateByRace,
-  aggregateByStatus,
-  aggregatePrePost,
-  aggregateByAgeGroup,
-} from "@/utils";
 
 import { dataAnalysis } from "@/utils/aggFunctions";
 
@@ -23,6 +16,7 @@ export default function Overview() {
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
   const [dataArray4, setDataArray4] = useState([]);
+  const [detentionType] = useState("secure-detention");
   const [selectedYear, setSelectedYear] = useState(2024);
   const [yearsArray, setYearsArray] = useState([]);
 
@@ -34,7 +28,7 @@ export default function Overview() {
     const uniqueYears = [
       ...new Set(
         csvData.map((row) => {
-          const date = new Date(row.Intake_Date);
+          const date = new Date(row.Admission_Date);
           return date.getFullYear();
         })
       ),
@@ -50,26 +44,49 @@ export default function Overview() {
       [
         {
           category: "Gender",
-          header: dataAnalysis(csvData, "countAdmissions", selectedYear),
+          header: dataAnalysis(
+            csvData,
+            "countAdmissions",
+            selectedYear,
+            detentionType
+          ),
           body: dataAnalysis(
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "Gender"
           ),
         },
         {
           category: "Age at admission",
-          header: dataAnalysis(csvData, "countAdmissions", selectedYear),
-          body: dataAnalysis(csvData, "countAdmissions", selectedYear, "Age"),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(csvData, "countAdmissions", selectedYear),
+          header: dataAnalysis(
+            csvData,
+            "countAdmissions",
+            selectedYear,
+            detentionType
+          ),
           body: dataAnalysis(
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
+            "Age"
+          ),
+        },
+        {
+          category: "Race/ethnicity",
+          header: dataAnalysis(
+            csvData,
+            "countAdmissions",
+            selectedYear,
+            detentionType
+          ),
+          body: dataAnalysis(
+            csvData,
+            "countAdmissions",
+            selectedYear,
+            detentionType,
             "RaceEthnicity"
           ),
         },
@@ -79,12 +96,14 @@ export default function Overview() {
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -94,12 +113,14 @@ export default function Overview() {
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -109,12 +130,14 @@ export default function Overview() {
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "countAdmissions",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -124,21 +147,49 @@ export default function Overview() {
       [
         {
           category: "Gender",
-          header: dataAnalysis(csvData, "countReleases", selectedYear),
-          body: dataAnalysis(csvData, "countReleases", selectedYear, "Gender"),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(csvData, "countReleases", selectedYear),
-          body: dataAnalysis(csvData, "countReleases", selectedYear, "Age"),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(csvData, "countReleases", selectedYear),
+          header: dataAnalysis(
+            csvData,
+            "countReleases",
+            selectedYear,
+            detentionType
+          ),
           body: dataAnalysis(
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
+            "Gender"
+          ),
+        },
+        {
+          category: "Age at admission",
+          header: dataAnalysis(
+            csvData,
+            "countReleases",
+            selectedYear,
+            detentionType
+          ),
+          body: dataAnalysis(
+            csvData,
+            "countReleases",
+            selectedYear,
+            detentionType,
+            "Age"
+          ),
+        },
+        {
+          category: "Race/ethnicity",
+          header: dataAnalysis(
+            csvData,
+            "countReleases",
+            selectedYear,
+            detentionType
+          ),
+          body: dataAnalysis(
+            csvData,
+            "countReleases",
+            selectedYear,
+            detentionType,
             "RaceEthnicity"
           ),
         },
@@ -148,12 +199,14 @@ export default function Overview() {
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -163,12 +216,14 @@ export default function Overview() {
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -178,12 +233,117 @@ export default function Overview() {
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "countReleases",
             selectedYear,
+            detentionType,
+            "OffenseCategory"
+          ),
+        },
+      ],
+    ]);
+    setDataArray3([
+      [
+        {
+          category: "Gender",
+          header: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType
+          ),
+          body: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "Gender"
+          ),
+        },
+        {
+          category: "Age at admission",
+          header: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType
+          ),
+          body: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "Age"
+          ),
+        },
+        {
+          category: "Race/ethnicity",
+          header: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType
+          ),
+          body: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "RaceEthnicity"
+          ),
+        },
+        {
+          category: "New offenses (pre-dispo)",
+          header: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "OffenseOverall"
+          ),
+          body: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "OffenseCategory"
+          ),
+        },
+        {
+          category: "Technicals (pre-dispo)",
+          header: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "OffenseOverall"
+          ),
+          body: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "OffenseCategory"
+          ),
+        },
+        {
+          category: "Post-disposition",
+          header: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
+            "OffenseOverall"
+          ),
+          body: dataAnalysis(
+            csvData,
+            "lengthOfStay",
+            selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -193,31 +353,49 @@ export default function Overview() {
       [
         {
           category: "Gender",
-          header: dataAnalysis(csvData, "averageDailyPopulation", selectedYear),
+          header: dataAnalysis(
+            csvData,
+            "averageDailyPopulation",
+            selectedYear,
+            detentionType
+          ),
           body: dataAnalysis(
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "Gender"
           ),
         },
         {
           category: "Age at admission",
-          header: dataAnalysis(csvData, "averageDailyPopulation", selectedYear),
+          header: dataAnalysis(
+            csvData,
+            "averageDailyPopulation",
+            selectedYear,
+            detentionType
+          ),
           body: dataAnalysis(
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "Age"
           ),
         },
         {
           category: "Race/ethnicity",
-          header: dataAnalysis(csvData, "averageDailyPopulation", selectedYear),
+          header: dataAnalysis(
+            csvData,
+            "averageDailyPopulation",
+            selectedYear,
+            detentionType
+          ),
           body: dataAnalysis(
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "RaceEthnicity"
           ),
         },
@@ -227,12 +405,14 @@ export default function Overview() {
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -242,12 +422,14 @@ export default function Overview() {
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
@@ -257,18 +439,20 @@ export default function Overview() {
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "OffenseOverall"
           ),
           body: dataAnalysis(
             csvData,
             "averageDailyPopulation",
             selectedYear,
+            detentionType,
             "OffenseCategory"
           ),
         },
       ],
     ]);
-  }, [csvData]);
+  }, [csvData, selectedYear]);
 
   return (
     <div className="max-w-xl mx-auto mt-10">
@@ -277,10 +461,13 @@ export default function Overview() {
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
           <Header
             title="Secure Detention Utilization"
-            subtitle="Snapshot"
-            year={2024}
+            subtitle="Table"
+            selectedYear={selectedYear}
+            onSelectChange={onSelectChange}
+            dropdownOptions={yearsArray}
+            useDropdown
           />
-          {dataArray1 && dataArray4 && (
+          {dataArray1 && dataArray4 && dataArray2 && dataArray3 && (
             <PillContainer
               data={[
                 {
@@ -297,7 +484,7 @@ export default function Overview() {
                 },
                 {
                   title: "LOS",
-                  data: dataArray1,
+                  data: dataArray3,
                   charts: ["table"],
                   chartTitles: ["Table"],
                 },

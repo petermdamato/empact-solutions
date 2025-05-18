@@ -35,8 +35,8 @@ const calculateLengthOfStay = (record) => {
     ? new Date(record.ATD_Exit_Date)
     : null;
 
-  const admissionDate = record.Intake_Date
-    ? new Date(record.Intake_Date)
+  const admissionDate = record.Admission_Date
+    ? new Date(record.Admission_Date)
     : record.ADT_Entry_Date
     ? new Date(record.ADT_Entry_Date)
     : null;
