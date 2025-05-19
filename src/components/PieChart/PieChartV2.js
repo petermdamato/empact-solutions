@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import "./PieChart.css";
 
 const PieChart = ({
   records = [],
@@ -13,6 +14,7 @@ const PieChart = ({
 
   const radius = size / 2;
   const color = ["#5b6069", "#d3d3d3"];
+  const svgRef = useRef();
 
   const pieData = d3.pie().value((d) => d.value)(records);
   const arcGen = d3
@@ -63,14 +65,33 @@ const PieChart = ({
     if (isSameSelection) {
       setFilterVariable(null);
     } else {
+      console.log(groupByKey, selectedValue);
       setFilterVariable({ [groupByKey]: selectedValue });
     }
   };
 
+  // Tooltip mouse events
+  const handleMouseOver = (event, d) => {
+    const tooltip = d3.select("#pie-tooltip");
+    tooltip
+      .style("opacity", 1)
+      .html(
+        `<strong>${d.data.category}</strong><br/>Value: ${
+          d.data.value
+        }<br/>Percentage: ${Math.round(d.data.percentage * 1000) / 10}%`
+      )
+      .style("left", event.pageX + 10 + "px")
+      .style("top", event.pageY + 10 + "px");
+  };
+
+  const handleMouseOut = () => {
+    d3.select("#pie-tooltip").style("opacity", 0);
+  };
+
   return (
-    <div className="p-4 bg-white rounded-2xl shadow-md inline-block">
+    <div className="p-4 bg-white rounded-2xl shadow-md inline-block relative">
       <div className="text-center font-semibold mb-2">{chartTitle}</div>
-      <svg width={size} height={size}>
+      <svg ref={svgRef} width={size} height={size}>
         <g transform={`translate(${radius},${radius})`}>
           {pieData.map((d, i) => {
             return (
@@ -82,6 +103,8 @@ const PieChart = ({
                   stroke="white"
                   strokeWidth={1.5}
                   onClick={() => handleClick(d)}
+                  onMouseMove={(e) => handleMouseOver(e, d)}
+                  onMouseOut={handleMouseOut}
                 />
                 <text
                   data-label-index={i}
@@ -127,6 +150,20 @@ const PieChart = ({
           })}
         </g>
       </svg>
+      <div
+        id="pie-tooltip"
+        className="tooltip"
+        style={{
+          position: "absolute",
+          pointerEvents: "none",
+          opacity: 0,
+          background: "rgba(0, 0, 0, 0.8)",
+          color: "white",
+          padding: "8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+        }}
+      ></div>
     </div>
   );
 };

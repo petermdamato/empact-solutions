@@ -131,7 +131,8 @@ const DistributionChart = (records) => {
                     records.detentionType === "alternative-to-detention"
                       ? d.ATD_Successful_Exit
                       : records.exploreType === "Pre/post-dispo"
-                      ? d["Pre/post-dispo filter"].includes("Pre")
+                      ? d["Post-Dispo Stay Reason"] === null ||
+                        d["Post-Dispo Stay Reason"] === ""
                         ? "pre"
                         : "post"
                       : "all"

@@ -86,13 +86,19 @@ const StackedColumnChart = ({
 
   finalData.forEach((d) => {
     const days = dateDiffInDays(
-      detentionType === "secure-detention" ? d.Admission_Date : d.ATD_Entry_Date,
+      detentionType === "secure-detention"
+        ? d.Admission_Date
+        : d.ATD_Entry_Date,
       detentionType === "secure-detention" ? d.Release_Date : d.ATD_Exit_Date
     );
     const bucket = getLengthOfStayBucket(days);
 
     const exit = d.ATD_Successful_Exit === "1" ? "1" : "0";
-    const dispo = d["Pre/post-dispo filter"] === "Pre-dispo" ? "pre" : "post";
+    // const dispo = d["Pre/post-dispo filter"] === "Pre-dispo" ? "pre" : "post";
+    const dispo =
+      d["Post-Dispo Stay Reason"] === null || d["Post-Dispo Stay Reason"] === ""
+        ? "pre"
+        : "post";
     if (detentionType === "alternative-to-detention") {
       if (!grouped[bucket]) grouped[bucket] = { 0: 0, 1: 0 };
       grouped[bucket][exit]++;

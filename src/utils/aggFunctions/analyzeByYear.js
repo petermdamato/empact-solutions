@@ -22,7 +22,11 @@ function analyzeByYear(
     if (!byDispo) {
       return record.ATD_Successful_Exit === "1" ? "successful" : "unsuccessful";
     }
-    return record["Pre/post-dispo filter"] === "Pre-dispo" ? "pre" : "post";
+    // return record["Pre/post-dispo filter"] === "Pre-dispo" ? "pre" : "post";
+    return record["Post-Dispo Stay Reason"] === null ||
+      record["Post-Dispo Stay Reason"] === ""
+      ? "pre"
+      : "post";
   };
 
   const yearRange = (start, end) => {

@@ -67,7 +67,13 @@ const aggregateMedianByStatus = (
     const stayLength = getStayLength(record);
     if (stayLength == null || isNaN(stayLength)) return;
 
-    const dispoStatus = record["Pre/post-dispo filter"]?.toLowerCase();
+    // const dispoStatus = record["Pre/post-dispo filter"]?.toLowerCase();
+    const dispoStatus =
+      record["Post-Dispo Stay Reason"] === null ||
+      record["Post-Dispo Stay Reason"] === ""
+        ? "pre-dispo"
+        : "post-dispo";
+
     let category;
 
     if (statusColumn === "OffenseCategory") {

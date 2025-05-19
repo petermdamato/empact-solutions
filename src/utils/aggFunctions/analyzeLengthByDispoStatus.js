@@ -35,7 +35,13 @@ const analyzeLengthByDispoStatus = (
       +getYear(intake) === +selectedYear &&
       +getYear(release) === +selectedYear
     ) {
-      const dispStatus = row["Pre/post-dispo filter"] || "Unknown";
+      // const dispStatus = row["Pre/post-dispo filter"] || "Unknown";
+      const dispStatus =
+        row["Post-Dispo Stay Reason"] === null ||
+        row["Post-Dispo Stay Reason"] === ""
+          ? "Pre-dispo"
+          : "Post-dispo";
+
       const los = differenceInCalendarDays(release, intake);
 
       if (!dispoGroups[dispStatus]) dispoGroups[dispStatus] = [];

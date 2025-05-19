@@ -48,6 +48,12 @@ const StackedBarChartGeneric = ({
   useEffect(() => {
     if (!data || data.length === 0 || parentWidth === 0) return;
 
+    const filteredData = data.filter(
+      (d) => breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0) > 0
+    );
+
+    if (filteredData.length === 0) return;
+
     const colorMap = {};
     breakdowns.forEach((key, i) => {
       colorMap[key] =
@@ -62,7 +68,7 @@ const StackedBarChartGeneric = ({
       .style("visibility", "hidden");
 
     let maxLabelWidth = 0;
-    data.forEach((d) => {
+    filteredData.forEach((d) => {
       const text = tempSvg
         .append("text")
         .text(d.category)
@@ -81,7 +87,7 @@ const StackedBarChartGeneric = ({
     const innerWidth = parentWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    data = data.sort((a, b) => {
+    const finalFilteredData = filteredData.sort((a, b) => {
       const aSum = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
       const bSum = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
       return bSum - aSum;
@@ -96,12 +102,12 @@ const StackedBarChartGeneric = ({
 
     const xScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, getTotalValue)])
+      .domain([0, d3.max(finalFilteredData, getTotalValue)])
       .range([0, innerWidth]);
 
     const yScale = d3
       .scaleBand()
-      .domain(data.map((d) => d.category))
+      .domain(finalFilteredData.map((d) => d.category))
       .range([0, innerHeight])
       .padding(0.1);
 
@@ -131,7 +137,7 @@ const StackedBarChartGeneric = ({
     // Background hoverable rects - Add them first to be behind everything
     backgroundLayer
       .selectAll(".row-background")
-      .data(data)
+      .data(finalFilteredData)
       .enter()
       .append("rect")
       .attr("class", "row-background")
@@ -141,7 +147,7 @@ const StackedBarChartGeneric = ({
       .attr("height", yScale.bandwidth())
       .attr("fill", "transparent")
       .style("cursor", "pointer")
-      .on("mouseover", function () {
+      .on("mouseover", function (event) {
         d3.select(this).attr("fill", "#000").attr("fill-opacity", 0.05);
       })
       .on("mouseout", function () {
@@ -149,11 +155,11 @@ const StackedBarChartGeneric = ({
       })
       .on("click", handleClick);
 
-    // Process rows for bars and labels
-    data.forEach((d) => {
+    const tooltip = d3.select("#tooltip");
+
+    finalFilteredData.forEach((d) => {
       let xOffset = 0;
 
-      // Add bars
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
         const width = xScale(value);
@@ -165,9 +171,19 @@ const StackedBarChartGeneric = ({
           .attr("width", width)
           .attr("height", yScale.bandwidth() / 2)
           .attr("fill", colorMap[key] || colors[bIndex % colors.length])
-          .style("pointer-events", "none");
+          .style("cursor", "default")
+          .on("mousemove", function (event) {
+            tooltip
+              .style("opacity", 1)
+              .html(`<strong>${d.category}</strong><br/>${key}: ${value}`)
+              .style("left", event.pageX + 10 + "px")
+              .style("top", event.pageY + 10 + "px");
+          })
+          .on("mouseout", () => {
+            tooltip.style("opacity", 0);
+          });
 
-        // Only add label if text fits
+        // Label logic...
         const labelText = value.toString();
         const tempText = chart
           .append("text")
@@ -188,8 +204,6 @@ const StackedBarChartGeneric = ({
             .attr("fill", "white")
             .style("font-size", 10)
             .style("user-select", "none")
-            .style("-webkit-user-select", "none")
-            .style("-ms-user-select", "none")
             .text(Math.round(labelText * 10) / 10);
         }
 
@@ -226,7 +240,16 @@ const StackedBarChartGeneric = ({
     groupByKey,
   ]);
 
-  return <svg ref={svgRef} width={parentWidth} height={height}></svg>;
+  return (
+    <>
+      <svg ref={svgRef} width={parentWidth} height={height}></svg>
+      <div
+        id="tooltip"
+        className="tooltip"
+        style={{ position: "absolute", pointerEvents: "none", opacity: 0 }}
+      ></div>
+    </>
+  );
 };
 
 export default StackedBarChartGeneric;

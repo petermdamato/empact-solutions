@@ -16,6 +16,11 @@ import {
   analyzeDailyPopByProgramType,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
+import {
+  chooseCategoryV2 as chooseCategory,
+  categorizeRaceEthnicity,
+  categorizeAge,
+} from "@/utils/categories";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -24,73 +29,13 @@ const parseDateYear = (dateStr) => {
 
   return isNaN(year) ? null : year;
 };
-const groupReasons = (data) => {
-  const result = {
-    "New Offense": {},
-    Technical: {},
-  };
 
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
-const groupOffenseCategories = (data) => {
-  const result = {
-    Felony: {},
-    Misdemeanor: {},
-    "Status Offense": {},
-    Technical: {},
-  };
-
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "Felony";
-    } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
-    } else if (label === "Status Offense") {
-      group = "Status Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
 export default function Overview() {
   const { csvData } = useCSV();
   const [selectedYear, setSelectedYear] = useState(2024);
-
-  const [incarcerationType] = useState("ATD Utilization");
+  const [filterVariable, setFilterVariable] = useState(null);
+  const [finalData, setFinalData] = useState(csvData);
+  const [incarcerationType] = useState("alternative-to-detention");
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
@@ -107,9 +52,46 @@ export default function Overview() {
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
 
-  // Race array 2
-  // Gender array 3
-  // Age array 4
+  useEffect(() => {
+    if (filterVariable && Object.keys(filterVariable).length > 0) {
+      const [key, value] = Object.entries(filterVariable)[0];
+
+      if (key === "Race/Ethnicity") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) =>
+              categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
+              value
+          )
+        );
+      } else if (key === "Age") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => categorizeAge(record, incarcerationType) === value
+          )
+        );
+      } else if (
+        key === "Gender" ||
+        key === "Screened/not screened" ||
+        key === "Pre/post-dispo filter" ||
+        key === "Facility"
+      ) {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => record[key] === value
+          )
+        );
+      } else {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => chooseCategory(record, key) === value
+          )
+        );
+      }
+    } else {
+      setFinalData(csvData);
+    }
+  }, [filterVariable, csvData]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -117,14 +99,14 @@ export default function Overview() {
         {
           title: "Statistics",
           current: dataAnalysisV2(
-            csvData,
+            finalData,
             "averageDailyPopulation",
             +selectedYear,
             null,
             "alternative-to-detention"
           ).All,
           previous: dataAnalysisV2(
-            csvData,
+            finalData,
             "averageDailyPopulation",
             +selectedYear - 1,
             null,
@@ -133,7 +115,7 @@ export default function Overview() {
         },
       ]);
     } else {
-      const intermediate = csvData.filter(
+      const intermediate = finalData.filter(
         (entry) => entry.Facility === programType
       );
 
@@ -145,7 +127,7 @@ export default function Overview() {
         },
       ]);
     }
-  }, [csvData, selectedYear, programType]);
+  }, [finalData, selectedYear, programType, filterVariable]);
 
   useEffect(() => {
     setYearsArray(
@@ -153,20 +135,20 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
+    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
       .filter((entry) => entry !== null && entry !== "")
       .sort((a, b) => a - b);
 
     const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
 
     setProgramTypeArray(programTypeArrayFinal);
-  }, [csvData]);
+  }, [finalData]);
 
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].current) {
       // Set overall
       const byProgram = Object.entries(
-        analyzeDailyPopByProgramType(csvData, +selectedYear)
+        analyzeDailyPopByProgramType(finalData, +selectedYear)
       ).map(([program, value]) => {
         return {
           category: program,
@@ -177,7 +159,7 @@ export default function Overview() {
 
       const byRaceEthnicity = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           "averageDailyPopulation",
           +selectedYear,
           "RaceEthnicity",
@@ -194,7 +176,7 @@ export default function Overview() {
 
       const byGender = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           "averageDailyPopulation",
           +selectedYear,
           "Gender",
@@ -211,10 +193,10 @@ export default function Overview() {
 
       const byAge = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           "averageDailyPopulation",
           +selectedYear,
-          "Gender",
+          "Age",
           "alternative-to-detention"
         )
       ).map(([age, value]) => {
@@ -228,7 +210,7 @@ export default function Overview() {
 
       const categories = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           "averageDailyPopulation",
           +selectedYear,
           "SimplifiedOffense",
@@ -245,7 +227,7 @@ export default function Overview() {
 
       const byReasons = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           "averageDailyPopulation",
           +selectedYear,
           "OffenseOverall",
@@ -262,7 +244,7 @@ export default function Overview() {
 
       const byJurisdiction = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           "averageDailyPopulation",
           +selectedYear,
           "simplifiedReferralSource",
@@ -278,7 +260,7 @@ export default function Overview() {
       setDataArray17(byJurisdiction);
 
       const byDispoStatus = Object.entries(
-        analyzeDailyPopByDispoStatus(csvData, +selectedYear)
+        analyzeDailyPopByDispoStatus(finalData, +selectedYear)
       ).map(([dispStatus, value]) => {
         return {
           category: dispStatus,
@@ -326,7 +308,11 @@ export default function Overview() {
           }}
         >
           <Header
-            title={`${incarcerationType}`}
+            title={`${
+              incarcerationType === "alternative-to-detention"
+                ? "ATD Utilization"
+                : incarcerationType
+            }`}
             subtitle={`Average Daily Population - All Programs`}
             dekWithYear={`Showing ADP in ATDs for ${selectedYear}`}
           >
@@ -379,6 +365,9 @@ export default function Overview() {
                       colorMapOverride={{
                         averageDailyPopulation: "#5b6069",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Facility"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -394,6 +383,8 @@ export default function Overview() {
                     groupByKey={"Pre/post-dispo filter"}
                     type={"alternative-to-detention"}
                     chartTitle={"ADP by Pre/Post-Dispo"}
+                    filterVariable={filterVariable}
+                    setFilterVariable={setFilterVariable}
                   />
                 </ResponsiveContainer>
               </div>
@@ -424,6 +415,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Race/Ethnicity"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -444,6 +438,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Gender"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -464,6 +461,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Age"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -494,6 +494,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Reason for Detention"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -514,6 +517,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Category"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -535,6 +541,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Jurisdiction"}
                     />
                   )}
                 </ResponsiveContainer>

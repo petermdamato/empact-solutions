@@ -52,8 +52,8 @@ const getAgeAtAdmission = (dob, intake) => {
       ? 1
       : 0);
 
-  if (age >= 11 && age <= 13) return "11–13";
-  if (age >= 14 && age <= 17) return "14–17";
+  if (age >= 11 && age <= 13) return "11-13";
+  if (age >= 14 && age <= 17) return "14-17";
   if (age >= 18) return "18+";
   return "Unknown";
 };

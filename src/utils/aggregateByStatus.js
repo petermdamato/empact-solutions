@@ -41,7 +41,12 @@ const aggregateByStatus = (
   // Classify as post-dispo or pre-dispo
   const classified = filtered.map((record) => {
     const releaseDate = new Date(record.Release_Date);
-    const dispoStatus = record["Pre/post-dispo filter"];
+    // const dispoStatus = record["Pre/post-dispo filter"];
+    const dispoStatus =
+      record["Post-Dispo Stay Reason"] === null ||
+      record["Post-Dispo Stay Reason"] === ""
+        ? "Pre-dispo"
+        : "Post-dispo";
 
     return {
       Column: offenseMapFunction(record[statusColumn]),

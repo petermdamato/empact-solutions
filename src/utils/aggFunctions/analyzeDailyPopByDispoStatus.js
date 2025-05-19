@@ -17,7 +17,13 @@ function analyzeDailyPopByDispoStatus(
   // Group data by dispo status
   const dispoGroups = {};
   data.forEach((row) => {
-    const dispStatus = row["Pre/post-dispo filter"] || "Unknown";
+    // const dispStatus = row["Pre/post-dispo filter"] || "Unknown";
+    const dispStatus =
+      row["Post-Dispo Stay Reason"] === null ||
+      row["Post-Dispo Stay Reason"] === ""
+        ? "Pre-dispo"
+        : "Post-dispo";
+
     const entry =
       detentionType === "alternative-to-detention"
         ? row.ATD_Entry_Date

@@ -11,12 +11,16 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
-  analyzeAdmissionsOnly,
   analyzeEntriesByYear,
   dataAnalysisV2,
   analyzeLengthByProgramType,
   analyzeLengthByDispoStatus,
 } from "@/utils/aggFunctions";
+import {
+  chooseCategoryV2 as chooseCategory,
+  categorizeRaceEthnicity,
+  categorizeAge,
+} from "@/utils/categories";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -25,84 +29,19 @@ const parseDateYear = (dateStr) => {
 
   return isNaN(year) ? null : year;
 };
-const groupReasons = (data) => {
-  const result = {
-    "New Offense": {},
-    Technical: {},
-  };
 
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
-const groupOffenseCategories = (data) => {
-  const result = {
-    Felony: {},
-    Misdemeanor: {},
-    "Status Offense": {},
-    Technical: {},
-  };
-
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "Felony";
-    } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
-    } else if (label === "Status Offense") {
-      group = "Status Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
 export default function Overview() {
   const { csvData } = useCSV();
   const [selectedYear, setSelectedYear] = useState(2024);
-
-  const [incarcerationType] = useState("ATD Utilization");
+  const [filterVariable, setFilterVariable] = useState(null);
+  const [finalData, setFinalData] = useState(csvData);
+  const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType, setCalculationType] = useState("average");
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
-
-  const [dataArray1, setDataArray1] = useState([]);
-  const [dataArray2, setDataArray2] = useState([]);
-  const [dataArray3, setDataArray3] = useState([]);
-  const [dataArray4, setDataArray4] = useState([]);
 
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
@@ -113,11 +52,60 @@ export default function Overview() {
   const [dataArray17, setDataArray17] = useState([]);
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
-  const [dataArray20, setDataArray20] = useState([]);
 
-  // Race array 2
-  // Gender array 3
-  // Age array 4
+  // Pull in for the filter of types
+  useEffect(() => {
+    if (filterVariable && Object.keys(filterVariable).length > 0) {
+      const [key, value] = Object.entries(filterVariable)[0];
+      if (key === "Race/Ethnicity") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) =>
+              categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
+              value
+          )
+        );
+      } else if (key === "Age") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => categorizeAge(record, incarcerationType) === value
+          )
+        );
+      } else if (key === "Gender" || key === "Screened/not screened") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => record[key] === value
+          )
+        );
+      } else if (key === "Pre/post-dispo filter") {
+        if (value === "Pre-dispo") {
+          setFinalData(
+            JSON.parse(JSON.stringify(csvData)).filter(
+              (record) =>
+                record["Post-Dispo Stay Reason"] === null ||
+                record["Post-Dispo Stay Reason"] === ""
+            )
+          );
+        } else {
+          setFinalData(
+            JSON.parse(JSON.stringify(csvData)).filter(
+              (record) =>
+                record["Post-Dispo Stay Reason"] &&
+                record["Post-Dispo Stay Reason"].length > 0
+            )
+          );
+        }
+      } else {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => chooseCategory(record, key) === value
+          )
+        );
+      }
+    } else {
+      setFinalData(csvData);
+    }
+  }, [filterVariable, csvData]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -125,46 +113,19 @@ export default function Overview() {
         {
           title: "Statistics",
           current: analyzeEntriesByYear(
-            csvData,
+            finalData,
             +selectedYear,
             "alternative-to-detention"
           ),
           previous: analyzeEntriesByYear(
-            csvData,
+            finalData,
             +selectedYear - 1,
             "alternative-to-detention"
           ),
         },
       ]);
-      setDataArray2(
-        dataAnalysisV2(
-          csvData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "RaceEthnicity",
-          "alternative-to-detention"
-        )
-      );
-      setDataArray3(
-        dataAnalysisV2(
-          csvData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "Gender",
-          "alternative-to-detention"
-        )
-      );
-      setDataArray4(
-        dataAnalysisV2(
-          csvData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "Age",
-          "alternative-to-detention"
-        )
-      );
     } else {
-      const intermediate = csvData.filter(
+      const intermediate = finalData.filter(
         (entry) => entry.Facility === programType
       );
 
@@ -176,7 +137,7 @@ export default function Overview() {
         },
       ]);
     }
-  }, [csvData, selectedYear, programType]);
+  }, [finalData, selectedYear, programType, filterVariable]);
 
   useEffect(() => {
     setYearsArray(
@@ -184,14 +145,14 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
+    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
       .filter((entry) => entry !== null && entry !== "")
       .sort((a, b) => a - b);
 
     const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
 
     setProgramTypeArray(programTypeArrayFinal);
-  }, [csvData]);
+  }, [finalData]);
 
   useEffect(() => {
     if (
@@ -199,11 +160,11 @@ export default function Overview() {
       dataArray11[0].current?.entriesByProgramType
     ) {
       // Set overall
-      setDataArray12(analyzeLengthByProgramType(csvData, +selectedYear));
+      setDataArray12(analyzeLengthByProgramType(finalData, +selectedYear));
 
       const byRaceEthnicity = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
           "RaceEthnicity",
@@ -220,7 +181,7 @@ export default function Overview() {
 
       const byGender = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
           "Gender",
@@ -237,7 +198,7 @@ export default function Overview() {
 
       const byAge = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
           "Age",
@@ -254,7 +215,7 @@ export default function Overview() {
 
       const categories = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
           "SimplifiedOffense",
@@ -271,7 +232,7 @@ export default function Overview() {
 
       const byReasons = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
           "OffenseOverall",
@@ -288,7 +249,7 @@ export default function Overview() {
 
       const byJurisdiction = Object.entries(
         dataAnalysisV2(
-          csvData,
+          finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
           "simplifiedReferralSource",
@@ -303,7 +264,7 @@ export default function Overview() {
 
       setDataArray17(byJurisdiction);
 
-      const byStatus = analyzeLengthByDispoStatus(csvData, +selectedYear);
+      const byStatus = analyzeLengthByDispoStatus(finalData, +selectedYear);
       let overallArr = [];
 
       byStatus.forEach((status) => {
@@ -355,7 +316,11 @@ export default function Overview() {
           }}
         >
           <Header
-            title={`${incarcerationType}`}
+            title={`${
+              incarcerationType === "alternative-to-detention"
+                ? "ATD Utilization"
+                : incarcerationType
+            }`}
             subtitle={`Average Length of Stay - All Programs`}
             dekWithYear={`Showing LOS in ATDs for ${selectedYear}`}
           >
@@ -426,6 +391,9 @@ export default function Overview() {
                         averageLengthOfStay: "#5b6069",
                         medianLengthOfStay: "#5b6069",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Facility"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -441,6 +409,8 @@ export default function Overview() {
                     groupByKey={"Pre/post-dispo filter"}
                     type={"alternative-to-detention"}
                     title={"LOS by Pre/Post-Dispo"}
+                    filterVariable={filterVariable}
+                    setFilterVariable={setFilterVariable}
                   />
                 </ResponsiveContainer>
               </div>
@@ -471,6 +441,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Race/Ethnicity"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -491,6 +464,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Gender"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -515,6 +491,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Age"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -545,6 +524,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Reason for Detention"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -565,6 +547,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Category"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -586,6 +571,9 @@ export default function Overview() {
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Jurisdiction"}
                     />
                   )}
                 </ResponsiveContainer>

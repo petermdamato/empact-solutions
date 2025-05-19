@@ -23,8 +23,10 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const [finalData, setFinalData] = useState(csvData);
+  const [filterVariable, setFilterVariable] = useState(null);
   const [selectedYear, setSelectedYear] = useState(2024);
-  const [incarcerationType] = useState("ATD Utilization");
+  const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType, setCalculationType] = useState("average");
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
@@ -39,16 +41,31 @@ export default function Overview() {
   const [dataArray5, setDataArray5] = useState([]);
 
   useEffect(() => {
+    if (filterVariable && Object.keys(filterVariable).length > 0) {
+      const [key, value] = Object.entries(filterVariable)[0];
+      if (key === "Facility") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter(
+            (record) => record[key] === value
+          )
+        );
+      }
+    } else {
+      setFinalData(csvData);
+    }
+  }, [filterVariable, csvData]);
+
+  useEffect(() => {
     if (programType === "All Program Types") {
       setDataArray1([
         {
           title: "Exits by Successfulness",
-          header: analyzeExitsByYear(csvData, +selectedYear),
-          body: analyzeExitsByYear(csvData, +selectedYear),
+          header: analyzeExitsByYear(finalData, +selectedYear),
+          body: analyzeExitsByYear(finalData, +selectedYear),
         },
       ]);
     } else {
-      const intermediate = csvData.filter(
+      const intermediate = finalData.filter(
         (entry) => entry.Facility === programType
       );
 
@@ -63,20 +80,20 @@ export default function Overview() {
 
     setDataArray5(
       programType === "All Program Types"
-        ? csvData.filter((record) => {
+        ? finalData.filter((record) => {
             return (
               record.ATD_Exit_Date &&
               parseDateYear(record.ATD_Exit_Date) === +selectedYear
             );
           })
-        : csvData.filter(
+        : finalData.filter(
             (record) =>
               record.Facility === programType &&
               record.ATD_Exit_Date &&
               parseDateYear(record.ATD_Exit_Date) === +selectedYear
           )
     );
-  }, [csvData, selectedYear, programType]);
+  }, [finalData, selectedYear, programType]);
 
   useEffect(() => {
     setYearsArray(
@@ -84,14 +101,14 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
+    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
       .filter((entry) => entry !== null && entry !== "")
       .sort((a, b) => a - b);
 
     const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
 
     setProgramTypeArray(programTypeArrayFinal);
-  }, [csvData]);
+  }, [finalData]);
 
   useEffect(() => {
     if (dataArray1.length > 0 && dataArray1[0].body?.exitsByProgramType) {
@@ -169,7 +186,11 @@ export default function Overview() {
           }}
         >
           <Header
-            title={`${incarcerationType}`}
+            title={`${
+              incarcerationType === "alternative-to-detention"
+                ? "ATD Utilization"
+                : incarcerationType
+            }`}
             subtitle={`Exits - ${programType}`}
             dekWithYear={`Showing exits to ATDs for ${selectedYear}`}
           >
@@ -228,6 +249,9 @@ export default function Overview() {
                         successful: "#5b6069",
                         unsuccessful: "#d3d3d3",
                       }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Facility"}
                     />
                   )}
                 </ResponsiveContainer>

@@ -49,7 +49,12 @@ const aggregatePopulationByStatus = (
       } else {
         category = record[statusColumn];
       }
-      const dispoStatus = record["Pre/post-dispo filter"];
+      // const dispoStatus = record["Pre/post-dispo filter"];
+      const dispoStatus =
+        record["Post-Dispo Stay Reason"] === null ||
+        record["Post-Dispo Stay Reason"] === ""
+          ? "Pre-dispo"
+          : "Post-dispo";
 
       if (!intake || !dispoStatus) return;
 

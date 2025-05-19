@@ -103,14 +103,21 @@ function analyzeAdmissionsOnly(
 
   for (const row of rows) {
     const intake = parseDate(
-      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
+      programType === "secure-detention"
+        ? row.Admission_Date
+        : row.ATD_Entry_Date
     );
     const dob = parseDate(row.Date_of_Birth);
 
     const age = getAge(dob, intake);
-    const dispo = dispoTypes.includes(row["Pre/post-dispo filter"])
-      ? row["Pre/post-dispo filter"]
-      : "Unknown";
+    // const dispo = dispoTypes.includes(row["Pre/post-dispo filter"])
+    // ? row["Pre/post-dispo filter"]
+    // : "Unknown";
+    const dispo =
+      row["Post-Dispo Stay Reason"] === null ||
+      row["Post-Dispo Stay Reason"] === ""
+        ? "Pre-dispo"
+        : "Post-dispo";
 
     const screened = screenedType.includes(row["Screened/not screened"])
       ? row["Screened/not screened"]
@@ -250,8 +257,8 @@ const getAgeAtAdmission = (dob, intake) => {
       ? 1
       : 0);
 
-  if (age >= 11 && age <= 13) return "11–13";
-  if (age >= 14 && age <= 17) return "14–17";
+  if (age >= 11 && age <= 13) return "11-13";
+  if (age >= 14 && age <= 17) return "14-17";
   if (age >= 18) return "18+";
   return "Unknown";
 };
@@ -302,7 +309,6 @@ const analyzeData = (
     };
   }
 
-  // Convert year to number if it's a string
   year = parseInt(year, 10);
   if (isNaN(year)) {
     return { error: "Year must be a valid number" };
@@ -333,28 +339,37 @@ const analyzeData = (
   const startDate = new Date(`${year}-01-01`);
   const endDate = new Date(`${year}-12-31`);
 
-  // Group data according to the specified groupBy
+  // Helper to calculate median
+  const median = (arr) => {
+    if (arr.length === 0) return null;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid];
+  };
+
+  // Group data
   const grouped = csvData.reduce((acc, row) => {
-    // Handle potentially missing or malformed data
-    const intakeDate = parseDate(
-      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
+    const entryDate = parseDate(
+      programType === "secure-detention"
+        ? row.Admission_Date
+        : row.ATD_Entry_Date
     );
-    const releaseDate = parseDate(
+    const exitDate = parseDate(
       programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
     );
 
+    // Skip if entry date is invalid or not in target year
+    if (!entryDate || entryDate.getFullYear() !== year) return acc;
+
     // Prepare derived fields
-    const age = getAgeAtAdmission(
-      row.Date_of_Birth,
-      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
-    );
+    const age = getAgeAtAdmission(row.Date_of_Birth, entryDate);
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
     const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
       row.OffenseCategory
     );
-
-    // Get facility and referral source with defaults for missing data
     const facility = row.Facility || "Unknown";
     const referralSource = row.Referral_Source || "Unknown";
 
@@ -392,106 +407,48 @@ const analyzeData = (
         key = "All";
     }
 
-    if (!acc[key]) acc[key] = [];
-    acc[key].push({
-      ...row,
-      intakeDate,
-      releaseDate,
-      age,
-      raceEth,
-      offenseOverall,
-      simplifiedOffenseCategory,
-      facility,
-      referralSource,
-    });
+    if (!acc[key]) {
+      acc[key] = {
+        entries: 0,
+        lengthsOfStay: [],
+      };
+    }
+
+    acc[key].entries++;
+
+    // Calculate length of stay if exit date is valid
+    if (exitDate && !isNaN(exitDate)) {
+      const lengthOfStay = differenceInCalendarDays(exitDate, entryDate);
+      if (lengthOfStay >= 0) {
+        acc[key].lengthsOfStay.push(lengthOfStay);
+      }
+    }
+
     return acc;
   }, {});
 
   // Calculate metrics for each group
   for (const [key, group] of Object.entries(grouped)) {
-    // Track if we have valid data for this calculation
-    let hasValidData = false;
-
     if (calculationType === "countAdmissions") {
-      const admissions = group.filter((d) => {
-        return d.intakeDate && d.intakeDate.getFullYear() === year;
-      });
-      results[key] = admissions.length;
-      hasValidData = true;
+      results[key] = group.entries;
+    } else if (calculationType === "averageLengthOfStay") {
+      results[key] =
+        group.lengthsOfStay.length > 0
+          ? group.lengthsOfStay.reduce((sum, days) => sum + days, 0) /
+            group.lengthsOfStay.length
+          : null;
+    } else if (calculationType === "medianLengthOfStay") {
+      results[key] = median(group.lengthsOfStay);
     } else if (calculationType === "countReleases") {
-      const releases = group.filter(
-        (d) => d.releaseDate && d.releaseDate.getFullYear() === year
-      );
-      results[key] = releases.length;
-      hasValidData = true;
-    } else if (
-      ["medianLengthOfStay", "averageLengthOfStay"].includes(calculationType)
-    ) {
-      const stays = group
-        .filter(
-          (d) =>
-            d.intakeDate &&
-            d.releaseDate &&
-            // For length of stay calculations, consider all stays that either started or ended in the target year
-            (d.intakeDate.getFullYear() === year ||
-              d.releaseDate.getFullYear() === year)
-        )
-        .map((d) => differenceInCalendarDays(d.releaseDate, d.intakeDate));
-
-      if (stays.length > 0) {
-        hasValidData = true;
-
-        if (calculationType === "medianLengthOfStay") {
-          // Sort stays for median calculation
-          stays.sort((a, b) => a - b);
-          // Handle even and odd number of stays
-          const middle = Math.floor(stays.length / 2);
-          results[key] =
-            stays.length % 2 === 0
-              ? (stays[middle - 1] + stays[middle]) / 2
-              : stays[middle];
-        } else {
-          // Average length of stay
-          results[key] =
-            stays.reduce((sum, days) => sum + days, 0) / stays.length;
-        }
-      } else {
-        results[key] = null; // No valid stays
-      }
+      // Not implemented in analyzeEntriesByYear; you can add logic here if needed
+      results[key] = null;
     } else if (calculationType === "averageDailyPopulation") {
-      // Create an array of dates within the interval
-      const allDays = eachDayOfInterval({
-        start: startDate,
-        end: endDate,
-      });
-
-      // For each day, count how many people were present
-      const dayCounts = allDays.map((day) => {
-        return group.filter((person) => {
-          return (
-            person.intakeDate &&
-            person.intakeDate <= day &&
-            (!person.releaseDate || person.releaseDate >= day)
-          );
-        }).length;
-      });
-
-      if (dayCounts.length > 0) {
-        hasValidData = true;
-        const totalCount = dayCounts.reduce((sum, count) => sum + count, 0);
-        results[key] = totalCount / dayCounts.length;
-      } else {
-        results[key] = 0; // No population on any day
-      }
-    }
-
-    // If we didn't get valid data for this calculation, set to null
-    if (!hasValidData) {
+      // Not implemented in analyzeEntriesByYear; you can add logic here if needed
       results[key] = null;
     }
   }
 
-  // Format results as requested in options
+  // Round results if requested
   if (options.round) {
     for (const key in results) {
       if (results[key] !== null && typeof results[key] === "number") {
