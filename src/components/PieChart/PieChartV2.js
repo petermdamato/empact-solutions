@@ -16,16 +16,17 @@ const PieChart = ({
   const svgRef = useRef();
   const pathRefs = useRef([]);
 
-  // Early return only after all hooks have been called
-  if (!records || records.length === 0) return null;
-
-  const pieData = d3.pie().value((d) => d.value)(records);
+  // Default pieData and arcGen, even if records is empty
+  const pieData = d3.pie().value((d) => d.value)(records || []);
   const arcGen = d3
     .arc()
     .innerRadius(0)
     .outerRadius(radius - 10);
 
+  // Effects (hooks must go above early return)
   useEffect(() => {
+    if (!records || records.length === 0) return;
+
     pathRefs.current.forEach((path, i) => {
       if (path) {
         d3.select(path)
@@ -34,7 +35,7 @@ const PieChart = ({
           .attrTween("d", function () {
             const previous = this._current || pieData[i];
             const interpolate = d3.interpolate(previous, pieData[i]);
-            this._current = interpolate(1); // store for next transition
+            this._current = interpolate(1);
             return (t) => arcGen(interpolate(t));
           });
       }
@@ -42,6 +43,8 @@ const PieChart = ({
   }, [records]);
 
   useEffect(() => {
+    if (!records || records.length === 0) return;
+
     pieData.forEach((d, i) => {
       const isSelected =
         !filterVariable?.[groupByKey] ||
@@ -54,6 +57,10 @@ const PieChart = ({
     });
   }, [filterVariable, records]);
 
+  // Early return now comes AFTER hooks
+  if (!records || records.length === 0) return null;
+
+  // Event handlers
   const handleClick = (data) => {
     const selectedValue = data.data.category;
     const currentKey = Object.keys(filterVariable || {})[0];
@@ -65,7 +72,6 @@ const PieChart = ({
     if (isSameSelection) {
       setFilterVariable(null);
     } else {
-      console.log(groupByKey, selectedValue);
       setFilterVariable({ [groupByKey]: selectedValue });
     }
   };
@@ -92,61 +98,59 @@ const PieChart = ({
       <div className="text-center font-semibold mb-2">{chartTitle}</div>
       <svg ref={svgRef} width={size} height={size}>
         <g transform={`translate(${radius},${radius})`}>
-          {pieData.map((d, i) => {
-            return (
-              <g key={i}>
-                <path
-                  ref={(el) => (pathRefs.current[i] = el)}
-                  d={arcGen(d)}
-                  fill={color[i]}
-                  stroke="white"
-                  strokeWidth={1.5}
-                  onClick={() => handleClick(d)}
-                  onMouseMove={(e) => handleMouseOver(e, d)}
-                  onMouseOut={handleMouseOut}
-                />
-                <text
-                  data-label-index={i}
-                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                    arcGen.centroid(d)[1]
-                  })`}
-                  textAnchor="start"
-                  alignmentBaseline="middle"
-                  fontSize={14}
-                  fill="#fff"
-                  fontWeight="bold"
-                >
-                  {d.data.category}
-                </text>
-                <text
-                  data-label-index={i}
-                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                    arcGen.centroid(d)[1] + 16
-                  })`}
-                  textAnchor="start"
-                  alignmentBaseline="middle"
-                  fontSize={12}
-                  fontWeight="bold"
-                  fill="#fff"
-                >
-                  {d.data.value}
-                </text>
-                <text
-                  data-label-index={i}
-                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                    arcGen.centroid(d)[1] + 32
-                  })`}
-                  textAnchor="start"
-                  alignmentBaseline="middle"
-                  fontSize={12}
-                  fontWeight="bold"
-                  fill="#fff"
-                >
-                  {Math.round(d.data.percentage * 1000) / 10}%
-                </text>
-              </g>
-            );
-          })}
+          {pieData.map((d, i) => (
+            <g key={i}>
+              <path
+                ref={(el) => (pathRefs.current[i] = el)}
+                d={arcGen(d)}
+                fill={color[i]}
+                stroke="white"
+                strokeWidth={1.5}
+                onClick={() => handleClick(d)}
+                onMouseMove={(e) => handleMouseOver(e, d)}
+                onMouseOut={handleMouseOut}
+              />
+              <text
+                data-label-index={i}
+                transform={`translate(${arcGen.centroid(d)[0] + 4},${
+                  arcGen.centroid(d)[1]
+                })`}
+                textAnchor="start"
+                alignmentBaseline="middle"
+                fontSize={14}
+                fill="#fff"
+                fontWeight="bold"
+              >
+                {d.data.category}
+              </text>
+              <text
+                data-label-index={i}
+                transform={`translate(${arcGen.centroid(d)[0] + 4},${
+                  arcGen.centroid(d)[1] + 16
+                })`}
+                textAnchor="start"
+                alignmentBaseline="middle"
+                fontSize={12}
+                fontWeight="bold"
+                fill="#fff"
+              >
+                {d.data.value}
+              </text>
+              <text
+                data-label-index={i}
+                transform={`translate(${arcGen.centroid(d)[0] + 4},${
+                  arcGen.centroid(d)[1] + 32
+                })`}
+                textAnchor="start"
+                alignmentBaseline="middle"
+                fontSize={12}
+                fontWeight="bold"
+                fill="#fff"
+              >
+                {Math.round(d.data.percentage * 1000) / 10}%
+              </text>
+            </g>
+          ))}
         </g>
       </svg>
       <div
