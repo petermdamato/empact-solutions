@@ -10,20 +10,20 @@ const PieChart = ({
   setFilterVariable,
   filterVariable,
 }) => {
-  if (!records || records.length === 0) return null;
-
+  // All hooks must be called unconditionally at the top
   const radius = size / 2;
   const color = ["#5b6069", "#d3d3d3"];
   const svgRef = useRef();
+  const pathRefs = useRef([]);
+
+  // Early return only after all hooks have been called
+  if (!records || records.length === 0) return null;
 
   const pieData = d3.pie().value((d) => d.value)(records);
   const arcGen = d3
     .arc()
     .innerRadius(0)
     .outerRadius(radius - 10);
-
-  // Refs to hold path elements for transition
-  const pathRefs = useRef([]);
 
   useEffect(() => {
     pathRefs.current.forEach((path, i) => {
@@ -70,7 +70,6 @@ const PieChart = ({
     }
   };
 
-  // Tooltip mouse events
   const handleMouseOver = (event, d) => {
     const tooltip = d3.select("#pie-tooltip");
     tooltip

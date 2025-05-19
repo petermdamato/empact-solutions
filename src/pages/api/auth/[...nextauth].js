@@ -15,6 +15,12 @@ const users = [
     email: "petermdamato@gmail.com",
     password: "password123", // NEVER store passwords like this in production
   },
+  {
+    id: "3",
+    name: "Test",
+    email: "test@test.com",
+    password: "password123", // NEVER store passwords like this in production
+  },
 ];
 
 // Define the NextAuth configuration

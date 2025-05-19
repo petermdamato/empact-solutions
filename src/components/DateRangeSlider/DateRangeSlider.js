@@ -16,27 +16,36 @@ const getMinMaxDates = (data, dateAccessor) => {
 };
 
 const DateRangeSlider = ({
-  records,
+  records = [],
   dateAccessor = (d) => d.Admission_Date,
   setDatesRange,
   type = "secure-detention",
 }) => {
-  if (!records || records.length === 0) return null;
+  // Filter data first (before any hooks)
+  const filteredData = useMemo(() => {
+    return records.filter((record) =>
+      type === "secure-detention"
+        ? record.Admission_Date && !isNaN(new Date(record.Admission_Date))
+        : record.ADT_Entry_Date && !isNaN(new Date(record.ADT_Entry_Date))
+    );
+  }, [records, type]);
 
-  const data = records.filter((record) =>
-    type === "secure-detention"
-      ? record.Admission_Date && !isNaN(new Date(record.Admission_Date))
-      : record.ADT_Entry_Date && !isNaN(new Date(record.ADT_Entry_Date))
-  );
-
+  // Get min/max dates using useMemo
   const [minDate, maxDate] = useMemo(
-    () => getMinMaxDates(data, dateAccessor),
-    [data]
+    () => getMinMaxDates(filteredData, dateAccessor),
+    [filteredData, dateAccessor]
   );
 
-  if (!minDate || !maxDate) return null;
+  // Initialize state (must be before any conditional returns)
+  const [range, setRange] = useState(() => [
+    minDate ? minDate.getTime() : 0,
+    maxDate ? maxDate.getTime() : 0,
+  ]);
 
-  const [range, setRange] = useState([minDate.getTime(), maxDate.getTime()]);
+  // Early return if no valid data
+  if (!records || records.length === 0 || !minDate || !maxDate) {
+    return null;
+  }
 
   const handleChange = (_, newValue) => {
     setRange(newValue);

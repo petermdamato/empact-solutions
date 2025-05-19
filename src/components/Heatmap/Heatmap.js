@@ -2,9 +2,16 @@ import React, { useMemo } from "react";
 import "./Heatmap.css";
 
 const Heatmap = ({ data, xKey, yKey, datesRange, chartTitle }) => {
-  if (!data || data.length === 0) return null;
-
   const { xLabels, yLabels, counts, maxCount } = useMemo(() => {
+    if (!data || data.length === 0) {
+      return {
+        xLabels: [],
+        yLabels: [],
+        counts: {},
+        maxCount: 0,
+      };
+    }
+
     const dates = datesRange.map((date) => new Date(date));
     const finalData = data.filter((entry) => {
       return (
@@ -14,6 +21,7 @@ const Heatmap = ({ data, xKey, yKey, datesRange, chartTitle }) => {
         new Date(entry.Admission_Date) >= dates[0]
       );
     });
+
     const xSet = new Set();
     const ySet = new Set();
     const countMap = {};
@@ -43,6 +51,14 @@ const Heatmap = ({ data, xKey, yKey, datesRange, chartTitle }) => {
     };
   }, [data, xKey, yKey, datesRange]);
 
+  if (
+    !data ||
+    data.length === 0 ||
+    xLabels.length === 0 ||
+    yLabels.length === 0
+  )
+    return null;
+
   const getColor = (count) => {
     if (!count) return "rgb(255, 255, 255)";
     const blueIntensity = count / maxCount;
@@ -59,23 +75,17 @@ const Heatmap = ({ data, xKey, yKey, datesRange, chartTitle }) => {
           gridTemplateColumns: `auto repeat(${xLabels.length}, 1fr)`,
         }}
       >
-        {/* Top-left corner empty cell */}
         <div className="heatmap-corner" />
 
-        {/* X-axis labels */}
         {xLabels.map((x) => (
           <div key={x} className="heatmap-label x-label">
             {x}
           </div>
         ))}
 
-        {/* Rows with Y-labels and cells */}
         {yLabels.map((y) => (
           <React.Fragment key={y}>
-            {/* Y-axis label */}
             <div className="heatmap-label y-label">{y}</div>
-
-            {/* Data cells */}
             {xLabels.map((x) => {
               const count = counts[`${x}|${y}`] || 0;
               return (
