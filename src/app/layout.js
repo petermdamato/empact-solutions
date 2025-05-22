@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { CSVProvider } from "@/context/CSVContext";
+import { SidebarProvider } from "@/context/SidebarContext";
 import SessionWrapper from "@/components/SessionWrapper/SessionWrapper";
 import "./globals.css";
 
@@ -20,10 +21,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <SessionWrapper>
-          <CSVProvider>{children}</CSVProvider>
+          <CSVProvider>
+            <SidebarProvider>{children}</SidebarProvider>
+          </CSVProvider>
         </SessionWrapper>
       </body>
     </html>

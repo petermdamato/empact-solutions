@@ -5,7 +5,8 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 import dataTypes from "../utils/dataTypes";
-import "./CSVUploader.css"; // Import the CSS file
+import { read, utils } from "xlsx";
+import "./CSVUploader.css";
 import Link from "next/link";
 
 export default function CSVUploader() {
@@ -14,23 +15,31 @@ export default function CSVUploader() {
   const [csvUploaded, setCsvUploaded] = useState(false);
 
   const validateCSV = (data) => {
-    const missingOrMismatched = [];
+    const errorCounts = {}; // { 'column|error': count }
+    const missingColumns = new Set();
 
     data.forEach((row, rowIndex) => {
       Object.keys(dataTypes).forEach((column) => {
+        const expected = dataTypes[column];
+        const value = row[column];
+
         if (!(column in row) && rowIndex === 0) {
-          missingOrMismatched.push({
-            column,
-            error: "Missing column",
-          });
-        } else if (rowIndex !== 0) {
-          const expectedType = dataTypes[column];
-          const value = row[column];
+          // Mark missing columns to report later
+          missingColumns.add(column);
+          return;
+        }
+
+        if (
+          rowIndex !== 0 &&
+          value !== undefined &&
+          value !== null &&
+          expected
+        ) {
+          if (!value || value === "") return;
+
           let actualType;
 
-          if (!value) return;
-
-          if (!isNaN(value) && value.trim() !== "") {
+          if (!isNaN(value) && String(value).trim() !== "") {
             actualType = "number";
           } else if (
             value.toLowerCase() === "true" ||
@@ -41,47 +50,76 @@ export default function CSVUploader() {
             actualType = "string";
           }
 
-          if (
-            actualType !== expectedType &&
-            !missingOrMismatched.some((item) => item["column"] === column)
-          ) {
-            missingOrMismatched.push({
-              column,
-              error: `Expected ${expectedType}, got ${actualType}`,
-            });
+          const expectedTypes = Array.isArray(expected) ? expected : [expected];
+          if (!expectedTypes.includes(actualType)) {
+            // For format errors, append "# errors" to error message
+            const errorMsg = `Expected ${expectedTypes.join(
+              " or "
+            )}, got ${actualType}`;
+            const key = `${column}|${errorMsg}`;
+            errorCounts[key] = (errorCounts[key] || 0) + 1;
           }
         }
       });
     });
 
-    setErrors(missingOrMismatched);
-    setValidationErrors(missingOrMismatched);
+    // Build issues array
+    const issues = [];
 
-    setCsvUploaded(missingOrMismatched.length === 0);
+    // Add missing column errors, count as "Column missing"
+    missingColumns.forEach((column) => {
+      issues.push({ column, error: "Missing column", count: "Column missing" });
+    });
+
+    // Add format errors with counts
+    Object.entries(errorCounts).forEach(([key, count]) => {
+      const [column, error] = key.split("|");
+      issues.push({ column, error, count });
+    });
+
+    setErrors(issues);
+    setValidationErrors(issues);
+    setCsvUploaded(issues.length === 0);
+    return issues;
   };
 
   const onDrop = useCallback(
     (acceptedFiles) => {
       const file = acceptedFiles[0];
+      if (!file) return;
 
-      if (file && file.type === "text/csv") {
-        const reader = new FileReader();
+      const reader = new FileReader();
 
-        reader.onload = ({ target }) => {
-          const text = target.result;
-          Papa.parse(text, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (result) => {
-              setCsvData(result.data);
-              validateCSV(result.data);
-            },
-          });
+      reader.onload = async ({ target }) => {
+        const data = target.result;
+
+        const handleParsedData = (parsedData) => {
+          const validationErrors = validateCSV(parsedData);
+          if (validationErrors.length === 0) {
+            setCsvData(parsedData);
+          }
         };
 
+        if (file.name.endsWith(".csv")) {
+          Papa.parse(data, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (result) => handleParsedData(result.data),
+          });
+        } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+          const workbook = read(data, { type: "binary" });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = utils.sheet_to_json(worksheet, { defval: "" });
+          handleParsedData(jsonData);
+        } else {
+          alert("Unsupported file format. Please upload a CSV or XLSX file.");
+        }
+      };
+
+      if (file.name.endsWith(".csv")) {
         reader.readAsText(file);
       } else {
-        alert("Please upload a valid CSV file.");
+        reader.readAsBinaryString(file);
       }
     },
     [setCsvData]
@@ -89,7 +127,13 @@ export default function CSVUploader() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "text/csv": [".csv"] },
+    accept: {
+      "text/csv": [".csv"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+      "application/vnd.ms-excel": [".xls"],
+    },
   });
 
   return (
@@ -99,7 +143,7 @@ export default function CSVUploader() {
         {isDragActive ? (
           <p>Drop the file here...</p>
         ) : (
-          <p>Drop CSV file here or click to upload.</p>
+          <p>Drop CSV or XLSX file here or click to upload.</p>
         )}
       </div>
 
@@ -119,6 +163,7 @@ export default function CSVUploader() {
               <tr>
                 <th>Column</th>
                 <th>Error</th>
+                <th>Count</th>
               </tr>
             </thead>
             <tbody>
@@ -126,6 +171,7 @@ export default function CSVUploader() {
                 <tr key={index}>
                   <td>{err.column}</td>
                   <td>{err.error}</td>
+                  <td>{`${err.count} error${err.count > 1 ? "s" : ""}`}</td>
                 </tr>
               ))}
             </tbody>

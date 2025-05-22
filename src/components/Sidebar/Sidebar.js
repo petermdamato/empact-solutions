@@ -3,6 +3,7 @@ import { Tooltip } from "@mui/material";
 import "./Sidebar.css";
 import Link from "next/link";
 import { useCSV } from "@/context/CSVContext";
+import { useSidebar } from "@/context/SidebarContext";
 
 // const ViewContext = createContext();
 
@@ -56,14 +57,7 @@ const Sidebar = () => {
   const { csvData } = useCSV();
   const [selectedMenu, setSelectedMenu] = useState("User Guide");
   const [selectedElement, setSelectedElement] = useState("Overview");
-  const [openMenus, setOpenMenus] = useState({});
-
-  const toggleMenu = (label) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
-  };
+  const { openMenus, toggleMenu } = useSidebar();
 
   const handleSelect = (label, menuElement = "") => {
     const navElement = menuElement

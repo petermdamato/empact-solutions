@@ -111,7 +111,7 @@ export default function Overview() {
               statusDataCalculations.previousPeriodCount,
             ],
             // The statistic and change stat calculations (currently only mapped as average)
-            ["post", "pre"].map((key) => ({
+            ["pre", "post"].map((key) => ({
               label: key === "pre" ? "Pre-dispo" : "Post-dispo",
               value: columnAggCalculations[key],
               days: columnAggCalculations[
@@ -126,7 +126,7 @@ export default function Overview() {
               statusDataMedian.previousPeriod.median,
             ],
             // The statistic and change stat calculations (currently only mapped as average)
-            ["post", "pre"].map((key) => ({
+            ["pre", "post"].map((key) => ({
               label: key === "pre" ? "Pre-dispo" : "Post-dispo",
               value: statusDataMedian.overall[key].count,
               days: statusDataMedian.overall[key].median,
@@ -163,7 +163,7 @@ export default function Overview() {
         ) / 10,
         statusDataPopulation.previousPeriodCount,
       ],
-      ["post", "pre"].map((key) => ({
+      ["pre", "post"].map((key) => ({
         label: key === "pre" ? "Pre-dispo" : "Post-dispo",
         value: columnAggPopulations[key],
         days: isLeapYear(selectedYear) ? 366 : 365,
@@ -174,7 +174,7 @@ export default function Overview() {
         return entry;
       }),
     ]);
-    console.log(dataArray4);
+    console.log(dataArray1);
   }, [csvData, selectedYear, calculation]);
 
   return (

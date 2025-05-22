@@ -10,7 +10,7 @@ const TableComponent = ({ data }) => {
   useEffect(() => {
     if (!data) return;
   }, [data]);
-  console.log(data[5].body);
+
   return (
     <div>
       {data.map((section, index) => (
@@ -81,7 +81,6 @@ const TableComponent = ({ data }) => {
                   );
                 })
                 .map((category, catIndex) => {
-                  console.log(category);
                   const value = section.body[category];
                   const total =
                     section.category.includes("New offenses") ||

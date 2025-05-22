@@ -21,9 +21,10 @@ const aggregateByRace = (data, selectedYear, detentionType) => {
         ? new Date(record.Release_Date)
         : new Date(record.ATD_Exit_Date);
     const dispoStatus =
-      releaseDate >= intakeStartDate && releaseDate <= intakeEndDate
-        ? "post-dispo"
-        : "pre-dispo";
+      record["Post-Dispo Stay Reason"] === null ||
+      record["Post-Dispo Stay Reason"] === ""
+        ? "pre-dispo"
+        : "post-dispo";
 
     return {
       Race: record.Race,
