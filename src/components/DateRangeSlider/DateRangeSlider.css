@@ -1,0 +1,4 @@
+.dates-layer {
+  display: flex;
+  justify-content: space-between;
+}

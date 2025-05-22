@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { format } from "date-fns";
 import Slider from "@mui/material/Slider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import "./DateRangeSlider.css";
 
 const getMinMaxDates = (data, dateAccessor) => {
   const dates = data
@@ -21,7 +25,6 @@ const DateRangeSlider = ({
   setDatesRange,
   type = "secure-detention",
 }) => {
-  // Filter data first (before any hooks)
   const filteredData = useMemo(() => {
     return records.filter((record) =>
       type === "secure-detention"
@@ -30,24 +33,21 @@ const DateRangeSlider = ({
     );
   }, [records, type]);
 
-  // Get min/max dates using useMemo
   const [minDate, maxDate] = useMemo(
     () => getMinMaxDates(filteredData, dateAccessor),
     [filteredData, dateAccessor]
   );
 
-  // Initialize state (must be before any conditional returns)
   const [range, setRange] = useState(() => [
     minDate ? minDate.getTime() : 0,
     maxDate ? maxDate.getTime() : 0,
   ]);
 
-  // Early return if no valid data
   if (!records || records.length === 0 || !minDate || !maxDate) {
     return null;
   }
 
-  const handleChange = (_, newValue) => {
+  const handleSliderChange = (_, newValue) => {
     setRange(newValue);
     if (setDatesRange) {
       setDatesRange([
@@ -57,26 +57,83 @@ const DateRangeSlider = ({
     }
   };
 
-  const formatDate = (timestamp) => format(new Date(timestamp), "yyyy-MM-dd");
+  const updateStartDate = (date) => {
+    const newStart = date.getTime();
+    const newRange = [newStart, range[1]];
+    setRange(newRange);
+    setDatesRange?.([
+      new Date(newRange[0]).toISOString().split("T")[0],
+      new Date(newRange[1]).toISOString().split("T")[0],
+    ]);
+  };
+
+  const updateEndDate = (date) => {
+    const newEnd = date.getTime();
+    const newRange = [range[0], newEnd];
+    setRange(newRange);
+    setDatesRange?.([
+      new Date(newRange[0]).toISOString().split("T")[0],
+      new Date(newRange[1]).toISOString().split("T")[0],
+    ]);
+  };
 
   return (
     <div className="p-4 bg-white rounded-xl shadow-md">
-      <div className="flex justify-between mb-2 text-sm text-gray-700">
-        <span>{formatDate(range[0])}</span>
-        <span>{formatDate(range[1])}</span>
-      </div>
       <Slider
         value={range}
-        onChange={handleChange}
+        onChange={handleSliderChange}
         min={minDate.getTime()}
         max={maxDate.getTime()}
         step={24 * 60 * 60 * 1000} // one day
         valueLabelDisplay="off"
-        marks={[
-          { value: minDate.getTime(), label: formatDate(minDate) },
-          { value: maxDate.getTime(), label: formatDate(maxDate) },
-        ]}
+        marks={[]} // removes labels under the slider
       />
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <div
+          className="dates-layer"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "16px",
+            marginBottom: "16px",
+          }}
+        >
+          <DatePicker
+            label="Start Date"
+            value={new Date(range[0])}
+            onChange={(date) => date && updateStartDate(date)}
+            minDate={minDate}
+            maxDate={maxDate}
+            slotProps={{
+              textField: {
+                size: "small",
+                sx: {
+                  "& .MuiInputBase-input": {
+                    padding: "6px 8px",
+                  },
+                },
+              },
+            }}
+          />
+          <DatePicker
+            label="End Date"
+            value={new Date(range[1])}
+            onChange={(date) => date && updateEndDate(date)}
+            minDate={minDate}
+            maxDate={maxDate}
+            slotProps={{
+              textField: {
+                size: "small",
+                sx: {
+                  "& .MuiInputBase-input": {
+                    padding: "6px 8px",
+                  },
+                },
+              },
+            }}
+          />
+        </div>
+      </LocalizationProvider>
     </div>
   );
 };
