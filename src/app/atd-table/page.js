@@ -12,7 +12,7 @@ import { dataAnalysis } from "@/utils/aggFunctions";
 
 export default function Overview() {
   const { csvData } = useCSV();
-
+  const [loading, setLoading] = useState(true);
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
@@ -48,614 +48,1228 @@ export default function Overview() {
 
     setProgramTypeArray(programTypeArrayFinal);
   }, [csvData]);
-
   useEffect(() => {
-    setDataArray1([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
-            ),
-            "countAdmissions",
+    setLoading(true);
+    setTimeout(() => {
+      const updatedDataArray1 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
 
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+              selectedYear,
+              detentionType
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "Gender"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "Age"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
-    setDataArray2([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+        ],
+      ];
+      const updatedDataArray2 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "Gender"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "Age"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
-    setDataArray3([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+        ],
+      ];
+      const updatedDataArray3 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "Gender"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "Age"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
-    setDataArray4([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+        ],
+      ];
+      const updatedDataArray4 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "Gender"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "Age"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData.filter(
-              (entry) =>
-                programType === "All Program Types" ||
-                entry.Facility === programType
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
             ),
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
+            body: dataAnalysis(
+              csvData.filter(
+                (entry) =>
+                  programType === "All Program Types" ||
+                  entry.Facility === programType
+              ),
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+        ],
+      ];
+      setDataArray1(updatedDataArray1);
+      setDataArray2(updatedDataArray2);
+      setDataArray3(updatedDataArray3);
+      setDataArray4(updatedDataArray4);
+      setLoading(false);
+    }, 0);
   }, [csvData, selectedYear, programType]);
+  // useEffect(() => {
+  //   setDataArray1([
+  //     [
+  //       {
+  //         category: "Gender",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "Gender"
+  //         ),
+  //       },
+  //       {
+  //         category: "Age at admission",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "Age"
+  //         ),
+  //       },
+  //       {
+  //         category: "Race/ethnicity",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "RaceEthnicity"
+  //         ),
+  //       },
+  //       {
+  //         category: "New offenses (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Technicals (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Post-disposition",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countAdmissions",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //     ],
+  //   ]);
+  //   setDataArray2([
+  //     [
+  //       {
+  //         category: "Gender",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "Gender"
+  //         ),
+  //       },
+  //       {
+  //         category: "Age at admission",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "Age"
+  //         ),
+  //       },
+  //       {
+  //         category: "Race/ethnicity",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "RaceEthnicity"
+  //         ),
+  //       },
+  //       {
+  //         category: "New offenses (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Technicals (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Post-disposition",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "countReleases",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //     ],
+  //   ]);
+  //   setDataArray3([
+  //     [
+  //       {
+  //         category: "Gender",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "Gender"
+  //         ),
+  //       },
+  //       {
+  //         category: "Age at admission",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "Age"
+  //         ),
+  //       },
+  //       {
+  //         category: "Race/ethnicity",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "RaceEthnicity"
+  //         ),
+  //       },
+  //       {
+  //         category: "New offenses (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Technicals (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Post-disposition",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "lengthOfStay",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //     ],
+  //   ]);
+  //   setDataArray4([
+  //     [
+  //       {
+  //         category: "Gender",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "Gender"
+  //         ),
+  //       },
+  //       {
+  //         category: "Age at admission",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "Age"
+  //         ),
+  //       },
+  //       {
+  //         category: "Race/ethnicity",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "RaceEthnicity"
+  //         ),
+  //       },
+  //       {
+  //         category: "New offenses (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Technicals (pre-dispo)",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //       {
+  //         category: "Post-disposition",
+  //         header: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseOverall"
+  //         ),
+  //         body: dataAnalysis(
+  //           csvData.filter(
+  //             (entry) =>
+  //               programType === "All Program Types" ||
+  //               entry.Facility === programType
+  //           ),
+  //           "averageDailyPopulation",
+  //           selectedYear,
+  //           detentionType,
+  //           "OffenseCategory"
+  //         ),
+  //       },
+  //     ],
+  //   ]);
+  // }, [csvData, selectedYear, programType]);
 
   return (
     <div className="max-w-xl mx-auto mt-10">
@@ -677,7 +1291,11 @@ export default function Overview() {
               setValue={setProgramType}
             />
           </Header>
-          {dataArray1 && dataArray2 && dataArray3 && dataArray4 && (
+          {loading ? (
+            <div className="spinner-container">
+              <div className="spinner" />
+            </div>
+          ) : (
             <PillContainer
               data={[
                 {

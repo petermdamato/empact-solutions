@@ -19,6 +19,7 @@ export default function Overview() {
   const [detentionType] = useState("secure-detention");
   const [selectedYear, setSelectedYear] = useState(2024);
   const [yearsArray, setYearsArray] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const onSelectChange = (e) => {
     setSelectedYear(e.target.value);
@@ -40,418 +41,430 @@ export default function Overview() {
   }, [csvData]);
 
   useEffect(() => {
-    setDataArray1([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countAdmissions",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
-    setDataArray2([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "countReleases",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
-    setDataArray3([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "lengthOfStay",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
-    setDataArray4([
-      [
-        {
-          category: "Gender",
-          header: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "Gender"
-          ),
-        },
-        {
-          category: "Age at admission",
-          header: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "Age"
-          ),
-        },
-        {
-          category: "Race/ethnicity",
-          header: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType
-          ),
-          body: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "RaceEthnicity"
-          ),
-        },
-        {
-          category: "New offenses (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Technicals (pre-dispo)",
-          header: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-        {
-          category: "Post-disposition",
-          header: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseOverall"
-          ),
-          body: dataAnalysis(
-            csvData,
-            "averageDailyPopulation",
-            selectedYear,
-            detentionType,
-            "OffenseCategory"
-          ),
-        },
-      ],
-    ]);
+    setLoading(true);
+    setTimeout(() => {
+      const updatedDataArray1 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "Gender"
+            ),
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "Age"
+            ),
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
+            ),
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countAdmissions",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+        ],
+      ];
+
+      const updatedDataArray2 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "Gender"
+            ),
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "Age"
+            ),
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
+            ),
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "countReleases",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+        ],
+      ];
+
+      const updatedDataArray3 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "Gender"
+            ),
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "Age"
+            ),
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
+            ),
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "lengthOfStay",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+        ],
+      ];
+
+      const updatedDataArray4 = [
+        [
+          {
+            category: "Gender",
+            header: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "Gender"
+            ),
+          },
+          {
+            category: "Age at admission",
+            header: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "Age"
+            ),
+          },
+          {
+            category: "Race/ethnicity",
+            header: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType
+            ),
+            body: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "RaceEthnicity"
+            ),
+          },
+          {
+            category: "New offenses (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Technicals (pre-dispo)",
+            header: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+          {
+            category: "Post-disposition",
+            header: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseOverall"
+            ),
+            body: dataAnalysis(
+              csvData,
+              "averageDailyPopulation",
+              selectedYear,
+              detentionType,
+              "OffenseCategory"
+            ),
+          },
+        ],
+      ];
+
+      setDataArray1(updatedDataArray1);
+      setDataArray2(updatedDataArray2);
+      setDataArray3(updatedDataArray3);
+      setDataArray4(updatedDataArray4);
+      setLoading(false);
+    }, 0);
   }, [csvData, selectedYear]);
 
   return (
@@ -467,7 +480,11 @@ export default function Overview() {
             dropdownOptions={yearsArray}
             useDropdown
           />
-          {dataArray1 && dataArray4 && dataArray2 && dataArray3 && (
+          {loading ? (
+            <div className="spinner-container">
+              <div className="spinner" />
+            </div>
+          ) : (
             <PillContainer
               data={[
                 {

@@ -1,22 +1,10 @@
-import React, { useState } from "react";
+"use client";
+import React from "react";
 import { Tooltip } from "@mui/material";
 import "./Sidebar.css";
 import Link from "next/link";
 import { useCSV } from "@/context/CSVContext";
 import { useSidebar } from "@/context/SidebarContext";
-
-// const ViewContext = createContext();
-
-// export const ContextManager = ({ children }) => {
-//   const [currentView, setCurrentView] = useState("User Guide");
-//   return (
-//     <ViewContext.Provider value={{ currentView, setCurrentView }}>
-//       {children}
-//     </ViewContext.Provider>
-//   );
-// };
-
-// const useView = () => useContext(ViewContext);
 
 const menuItems = [
   { label: "User Guide", access: "Active" },
@@ -28,7 +16,6 @@ const menuItems = [
       "Overview",
       "Table",
       "Admissions",
-      // "Releases",
       "Detention Screening",
       "Length of Stay (LOS)",
       "Avg Daily Pop (ADP)",
@@ -55,11 +42,16 @@ const menuItems = [
 
 const Sidebar = () => {
   const { csvData } = useCSV();
-  const [selectedMenu, setSelectedMenu] = useState("User Guide");
-  const [selectedElement, setSelectedElement] = useState("Overview");
-  const { openMenus, toggleMenu } = useSidebar();
+  const {
+    openMenus,
+    toggleMenu,
+    selectedMenu,
+    selectedElement,
+    selectedSubItemLabel,
+    selectMenu,
+  } = useSidebar();
 
-  const handleSelect = (label, menuElement = "") => {
+  const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
       .replace("(", "")
       .replace(")", "")
@@ -67,8 +59,7 @@ const Sidebar = () => {
       .toLowerCase();
 
     if (menuElement.length > 0) {
-      setSelectedMenu(label);
-      setSelectedElement(navElement);
+      selectMenu(label, navElement, subItemLabel);
     }
   };
 
@@ -76,8 +67,8 @@ const Sidebar = () => {
     <div className="sidebar">
       <div className="header">
         <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
-        <h1>Secure Detention Dashboard</h1>
-        <h2>{selectedMenu}</h2>
+        <h1>{selectedMenu}</h1>
+        <h2>{selectedSubItemLabel || selectedElement}</h2>
       </div>
       <nav>
         <ul>
@@ -108,7 +99,7 @@ const Sidebar = () => {
               {item.subItems ? (
                 <button
                   onClick={(e) => {
-                    // e.stopPropagation();
+                    e.stopPropagation();
                     toggleMenu(item.label);
                   }}
                 >
@@ -121,9 +112,11 @@ const Sidebar = () => {
                 </button>
               ) : (
                 <Link
-                  href={`\\${item.label
-                    .toLocaleLowerCase()
-                    .replaceAll(" ", "-")}`}
+                  href={`/${item.label
+                    .toLowerCase()
+                    .replaceAll(" ", "-")
+                    .replace("(", "")
+                    .replace(")", "")}`}
                 >
                   <button>{item.label}</button>
                 </Link>
@@ -134,16 +127,20 @@ const Sidebar = () => {
                     <li
                       key={subItem}
                       className={`${
-                        `${item.label}-${subItem
+                        `${item.label}-${subItem}`
                           .replace("(", "")
                           .replace(")", "")
-                          .replaceAll(" ", "-")}`.toLowerCase() ===
-                        selectedElement
+                          .replaceAll(" ", "-")
+                          .toLowerCase() === selectedElement
                           ? "active"
                           : "single"
                       }`}
                       onClick={() =>
-                        handleSelect(item.label, `${item.label}-${subItem}`)
+                        handleSelect(
+                          item.label,
+                          `${item.label}-${subItem}`,
+                          subItem
+                        )
                       }
                     >
                       <Link
