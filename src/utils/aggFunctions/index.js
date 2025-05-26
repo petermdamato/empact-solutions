@@ -5,6 +5,7 @@ export {
   analyzeReasonForDetention,
   analyzeAdmissionsOnly,
 } from "./dataAnalysisV2";
+export { default as dataAnalysisV3 } from "./dataAnalysisV3";
 export { default as analyzeExitsByYear } from "./analyzeExitsByYear";
 export { default as analyzeEntriesByYear } from "./analyzeEntriesByYear";
 export { default as analyzeLengthByProgramType } from "./analyzeLengthByProgramType";

@@ -11,8 +11,7 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
-  analyzeEntriesByYear,
-  dataAnalysisV2,
+  dataAnalysisV3,
   analyzeDailyPopByScreenedStatus,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
@@ -162,14 +161,14 @@ export default function Overview() {
     setDataArray11([
       {
         title: "Statistics",
-        current: dataAnalysisV2(
+        current: dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
           null,
           "secure-detention"
         ).All,
-        previous: dataAnalysisV2(
+        previous: dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear - 1,
@@ -179,7 +178,7 @@ export default function Overview() {
       },
     ]);
     console.log(
-      dataAnalysisV2(
+      dataAnalysisV3(
         finalData,
         "averageDailyPopulation",
         +selectedYear,
@@ -198,10 +197,9 @@ export default function Overview() {
   }, [finalData]);
 
   useEffect(() => {
-    if (true === false) {
-      // if (dataArray11.length > 0 && dataArray11[0].current) {
+    if (dataArray11.length > 0 && dataArray11[0].current) {
       const byRaceEthnicity = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -218,7 +216,7 @@ export default function Overview() {
       setDataArray13(byRaceEthnicity);
 
       const byGender = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -235,7 +233,7 @@ export default function Overview() {
       setDataArray14(byGender);
 
       const byAge = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -252,7 +250,7 @@ export default function Overview() {
       setDataArray15(byAge);
 
       const categories = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -269,7 +267,7 @@ export default function Overview() {
       setDataArray16(categories);
 
       const byReasons = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -286,7 +284,7 @@ export default function Overview() {
       setDataArray18(byReasons);
 
       const byJurisdiction = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,

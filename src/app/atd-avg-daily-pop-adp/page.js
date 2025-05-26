@@ -12,7 +12,7 @@ import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeEntriesByYear,
-  dataAnalysisV2,
+  dataAnalysisV3,
   analyzeDailyPopByProgramType,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
@@ -98,14 +98,14 @@ export default function Overview() {
       setDataArray11([
         {
           title: "Statistics",
-          current: dataAnalysisV2(
+          current: dataAnalysisV3(
             finalData,
             "averageDailyPopulation",
             +selectedYear,
             null,
             "alternative-to-detention"
           ).All,
-          previous: dataAnalysisV2(
+          previous: dataAnalysisV3(
             finalData,
             "averageDailyPopulation",
             +selectedYear - 1,
@@ -158,7 +158,7 @@ export default function Overview() {
       setDataArray12(byProgram);
 
       const byRaceEthnicity = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -175,7 +175,7 @@ export default function Overview() {
       setDataArray13(byRaceEthnicity);
 
       const byGender = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -192,7 +192,7 @@ export default function Overview() {
       setDataArray14(byGender);
 
       const byAge = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -209,7 +209,7 @@ export default function Overview() {
       setDataArray15(byAge);
 
       const categories = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -226,7 +226,7 @@ export default function Overview() {
       setDataArray16(categories);
 
       const byReasons = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -243,7 +243,7 @@ export default function Overview() {
       setDataArray18(byReasons);
 
       const byJurisdiction = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
