@@ -2,18 +2,20 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { dateDiff } from "./../../utils/dateDiff";
 
-const calculateLengthOfStay = (record) => {
-  const exitDate = record.Release_Date
-    ? new Date(record.Release_Date)
-    : record.ATD_Exit_Date
-    ? new Date(record.ATD_Exit_Date)
-    : null;
+const calculateLengthOfStay = (record, detentionType) => {
+  const exitDate =
+    detentionType === "secure-detention" && record.Release_Date
+      ? new Date(record.Release_Date)
+      : record.ATD_Exit_Date
+      ? new Date(record.ATD_Exit_Date)
+      : null;
 
-  const admissionDate = record.Admission_Date
-    ? new Date(record.Admission_Date)
-    : record.ADT_Entry_Date
-    ? new Date(record.ADT_Entry_Date)
-    : null;
+  const admissionDate =
+    detentionType === "secure-detention" && record.Admission_Date
+      ? new Date(record.Admission_Date)
+      : record.ATD_Entry_Date
+      ? new Date(record.ATD_Entry_Date)
+      : null;
 
   return admissionDate && exitDate
     ? Math.ceil(dateDiff(admissionDate, exitDate, "days"))
@@ -41,23 +43,28 @@ const colors = (
 
 const getYear = (date) => new Date(date).getFullYear();
 
-const getAverage = (arr) => {
+const getAverage = (arr, detentionType) => {
   if (arr.length === 0) return null;
-  const sum = arr.reduce((acc, val) => acc + calculateLengthOfStay(val), 0);
+  const sum = arr.reduce(
+    (acc, val) => acc + calculateLengthOfStay(val, detentionType),
+    0
+  );
   return sum / arr.length;
 };
 
-const getMedian = (arr) => {
+const getMedian = (arr, detentionType) => {
   if (arr.length === 0) return null;
   const sorted = [...arr].sort(
-    (a, b) => calculateLengthOfStay(a) - calculateLengthOfStay(b)
+    (a, b) =>
+      calculateLengthOfStay(a, detentionType) -
+      calculateLengthOfStay(b, detentionType)
   );
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 === 0
-    ? (calculateLengthOfStay(sorted[mid - 1]) +
-        calculateLengthOfStay(sorted[mid])) /
+    ? (calculateLengthOfStay(sorted[mid - 1], detentionType) +
+        calculateLengthOfStay(sorted[mid], detentionType)) /
         2
-    : calculateLengthOfStay(sorted[mid]);
+    : calculateLengthOfStay(sorted[mid], detentionType);
 };
 
 const DistributionChart = (records) => {
@@ -95,10 +102,15 @@ const DistributionChart = (records) => {
           records.detentionType === "secure-detention"
             ? record.Admission_Date
             : record.ATD_Entry_Date
-        ) === +records.selectedYear && calculateLengthOfStay(record)
+        ) === +records.selectedYear &&
+        calculateLengthOfStay(record, records.detentionType)
       );
     })
-    .sort((a, b) => calculateLengthOfStay(a) - calculateLengthOfStay(b));
+    .sort(
+      (a, b) =>
+        calculateLengthOfStay(a, records.detentionType) -
+        calculateLengthOfStay(b, records.detentionType)
+    );
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -111,7 +123,10 @@ const DistributionChart = (records) => {
 
   const yScale = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => calculateLengthOfStay(d))])
+    .domain([
+      0,
+      d3.max(data, (d) => calculateLengthOfStay(d, records.detentionType)),
+    ])
     .range([innerHeight, 0]);
 
   return (
@@ -123,9 +138,12 @@ const DistributionChart = (records) => {
               <rect
                 key={d.Youth_ID + "-" + d.Referral_ID}
                 x={xScale(d.Youth_ID + "-" + d.Referral_ID)}
-                y={yScale(calculateLengthOfStay(d))}
+                y={yScale(calculateLengthOfStay(d, records.detentionType))}
                 width={xScale.bandwidth()}
-                height={innerHeight - yScale(calculateLengthOfStay(d))}
+                height={
+                  innerHeight -
+                  yScale(calculateLengthOfStay(d, records.detentionType))
+                }
                 fill={
                   colorScale[
                     records.detentionType === "alternative-to-detention"
@@ -146,7 +164,7 @@ const DistributionChart = (records) => {
           {/* Median line */}
           <rect
             x={0}
-            y={yScale(getMedian(data))}
+            y={yScale(getMedian(data, records.detentionType))}
             width={innerWidth}
             height={2}
             fill="black"
@@ -155,18 +173,21 @@ const DistributionChart = (records) => {
           <text
             x={10}
             y={
-              yScale(getMedian(data)) +
-              (getMedian(data) >= getAverage(data) ? -28 : 16)
+              yScale(getMedian(data, records.detentionType)) +
+              (getMedian(data, records.detentionType) >=
+              getAverage(data, records.detentionType)
+                ? -28
+                : 16)
             }
             fill="black"
           >
-            Median: {Math.round(getMedian(data))} days
+            Median: {Math.round(getMedian(data, records.detentionType))} days
           </text>
 
           {/* Average line */}
           <rect
             x={0}
-            y={yScale(getAverage(data))}
+            y={yScale(getAverage(data, records.detentionType))}
             width={innerWidth}
             height={2}
             fill="black"
@@ -175,12 +196,15 @@ const DistributionChart = (records) => {
           <text
             x={10}
             y={
-              yScale(getMedian(data)) +
-              (getMedian(data) < getAverage(data) ? -28 : 16)
+              yScale(getMedian(data, records.detentionType)) +
+              (getMedian(data, records.detentionType) <
+              getAverage(data, records.detentionType)
+                ? -28
+                : 16)
             }
             fill="black"
           >
-            Average: {Math.round(getAverage(data))} days
+            Average: {Math.round(getAverage(data, records.detentionType))} days
           </text>
         </g>
       </svg>

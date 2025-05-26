@@ -92,11 +92,7 @@ export default function Overview() {
   const [filterVariable, setFilterVariable] = useState(null);
   const [finalData, setFinalData] = useState(csvData);
   const [incarcerationType] = useState("Secure Detention");
-  const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
-  const [programTypeArray, setProgramTypeArray] = useState([
-    "All Program Types",
-  ]);
 
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
@@ -163,40 +159,35 @@ export default function Overview() {
   }, [filterVariable, csvData]);
 
   useEffect(() => {
-    if (programType === "All Program Types") {
-      setDataArray11([
-        {
-          title: "Statistics",
-          current: dataAnalysisV2(
-            finalData,
-            "averageDailyPopulation",
-            +selectedYear,
-            null,
-            "secure-detention"
-          ).All,
-          previous: dataAnalysisV2(
-            finalData,
-            "averageDailyPopulation",
-            +selectedYear - 1,
-            null,
-            "secure-detention"
-          ).All,
-        },
-      ]);
-    } else {
-      const intermediate = finalData.filter(
-        (entry) => entry.Facility === programType
-      );
-
-      setDataArray11([
-        {
-          title: "Average Daily Population",
-          header: analyzeEntriesByYear(intermediate, +selectedYear),
-          current: analyzeEntriesByYear(intermediate, +selectedYear),
-        },
-      ]);
-    }
-  }, [finalData, selectedYear, programType, filterVariable]);
+    setDataArray11([
+      {
+        title: "Statistics",
+        current: dataAnalysisV2(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear,
+          null,
+          "secure-detention"
+        ).All,
+        previous: dataAnalysisV2(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear - 1,
+          null,
+          "secure-detention"
+        ).All,
+      },
+    ]);
+    console.log(
+      dataAnalysisV2(
+        finalData,
+        "averageDailyPopulation",
+        +selectedYear,
+        null,
+        "secure-detention"
+      )
+    );
+  }, [finalData, selectedYear, filterVariable]);
 
   useEffect(() => {
     setYearsArray(
@@ -204,17 +195,11 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
-      .filter((entry) => entry !== null && entry !== "")
-      .sort((a, b) => a - b);
-
-    const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
-
-    setProgramTypeArray(programTypeArrayFinal);
   }, [finalData]);
 
   useEffect(() => {
-    if (dataArray11.length > 0 && dataArray11[0].current) {
+    if (true === false) {
+      // if (dataArray11.length > 0 && dataArray11[0].current) {
       const byRaceEthnicity = Object.entries(
         dataAnalysisV2(
           finalData,
