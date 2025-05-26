@@ -11,11 +11,15 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
-  analyzeEntriesByYear,
-  dataAnalysisV2,
+  dataAnalysisV3,
   analyzeDailyPopByScreenedStatus,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
+import {
+  chooseCategoryV2 as chooseCategory,
+  categorizeRaceEthnicity,
+  categorizeAge,
+} from "@/utils/categories";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -24,79 +28,14 @@ const parseDateYear = (dateStr) => {
 
   return isNaN(year) ? null : year;
 };
-const groupReasons = (data) => {
-  const result = {
-    "New Offense": {},
-    Technical: {},
-  };
 
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
-const groupOffenseCategories = (data) => {
-  const result = {
-    Felony: {},
-    Misdemeanor: {},
-    "Status Offense": {},
-    Technical: {},
-  };
-
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "Felony";
-    } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
-    } else if (label === "Status Offense") {
-      group = "Status Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
 export default function Overview() {
   const { csvData } = useCSV();
   const [selectedYear, setSelectedYear] = useState(2024);
   const [filterVariable, setFilterVariable] = useState(null);
   const [finalData, setFinalData] = useState(csvData);
   const [incarcerationType] = useState("Secure Detention");
-  const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
-  const [programTypeArray, setProgramTypeArray] = useState([
-    "All Program Types",
-  ]);
 
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
@@ -114,11 +53,16 @@ export default function Overview() {
       const [key, value] = Object.entries(filterVariable)[0];
       if (key === "Race/Ethnicity") {
         setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) =>
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            console.log(
+              categorizeRaceEthnicity(record["Race"], record["Ethnicity"]),
+              value
+            );
+            return (
               categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
               value
-          )
+            );
+          })
         );
       } else if (key === "Age") {
         setFinalData(
@@ -163,40 +107,35 @@ export default function Overview() {
   }, [filterVariable, csvData]);
 
   useEffect(() => {
-    if (programType === "All Program Types") {
-      setDataArray11([
-        {
-          title: "Statistics",
-          current: dataAnalysisV2(
-            finalData,
-            "averageDailyPopulation",
-            +selectedYear,
-            null,
-            "secure-detention"
-          ).All,
-          previous: dataAnalysisV2(
-            finalData,
-            "averageDailyPopulation",
-            +selectedYear - 1,
-            null,
-            "secure-detention"
-          ).All,
-        },
-      ]);
-    } else {
-      const intermediate = finalData.filter(
-        (entry) => entry.Facility === programType
-      );
-
-      setDataArray11([
-        {
-          title: "Average Daily Population",
-          header: analyzeEntriesByYear(intermediate, +selectedYear),
-          current: analyzeEntriesByYear(intermediate, +selectedYear),
-        },
-      ]);
-    }
-  }, [finalData, selectedYear, programType, filterVariable]);
+    setDataArray11([
+      {
+        title: "Statistics",
+        current: dataAnalysisV3(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear,
+          null,
+          "secure-detention"
+        ).All,
+        previous: dataAnalysisV3(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear - 1,
+          null,
+          "secure-detention"
+        ).All,
+      },
+    ]);
+    console.log(
+      dataAnalysisV3(
+        finalData,
+        "averageDailyPopulation",
+        +selectedYear,
+        null,
+        "secure-detention"
+      )
+    );
+  }, [finalData, selectedYear, filterVariable]);
 
   useEffect(() => {
     setYearsArray(
@@ -204,19 +143,12 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
-      .filter((entry) => entry !== null && entry !== "")
-      .sort((a, b) => a - b);
-
-    const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
-
-    setProgramTypeArray(programTypeArrayFinal);
   }, [finalData]);
 
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].current) {
       const byRaceEthnicity = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -233,7 +165,7 @@ export default function Overview() {
       setDataArray13(byRaceEthnicity);
 
       const byGender = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -250,7 +182,7 @@ export default function Overview() {
       setDataArray14(byGender);
 
       const byAge = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -267,7 +199,7 @@ export default function Overview() {
       setDataArray15(byAge);
 
       const categories = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -284,7 +216,7 @@ export default function Overview() {
       setDataArray16(categories);
 
       const byReasons = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,
@@ -301,7 +233,7 @@ export default function Overview() {
       setDataArray18(byReasons);
 
       const byJurisdiction = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisV3(
           finalData,
           "averageDailyPopulation",
           +selectedYear,

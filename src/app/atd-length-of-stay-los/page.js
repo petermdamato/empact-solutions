@@ -71,7 +71,11 @@ export default function Overview() {
             (record) => categorizeAge(record, incarcerationType) === value
           )
         );
-      } else if (key === "Gender" || key === "Screened/not screened") {
+      } else if (
+        key === "Gender" ||
+        key === "Screened/not screened" ||
+        key === "Facility"
+      ) {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(
             (record) => record[key] === value
@@ -264,7 +268,11 @@ export default function Overview() {
 
       setDataArray17(byJurisdiction);
 
-      const byStatus = analyzeLengthByDispoStatus(finalData, +selectedYear);
+      const byStatus = analyzeLengthByDispoStatus(
+        finalData,
+        +selectedYear,
+        "alternative-to-detention"
+      );
       let overallArr = [];
 
       byStatus.forEach((status) => {

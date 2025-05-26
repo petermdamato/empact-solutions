@@ -101,7 +101,9 @@ function analyzeAdmissionsOnly(
 
   for (const row of rows) {
     const intake = parseDate(
-      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
+      programType === "secure-detention"
+        ? row.Admission_Date
+        : row.ATD_Entry_Date
     );
     const dob = parseDate(
       programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
@@ -217,7 +219,7 @@ const getSimplifiedOffenseCategory = (offenseCategory) => {
 // Helper for race/ethnicity
 const getRaceEthnicity = (race, ethnicity) => {
   if (ethnicity?.toLowerCase() === "hispanic") return "Hispanic";
-  if (/black|african/i.test(race)) return "Black";
+  if (/black|african/i.test(race)) return "African American or Black";
   if (/asian/i.test(race)) return "Asian";
   if (/white/i.test(race)) return "White";
   return "Other";
@@ -325,7 +327,9 @@ const analyzeData = (
   const grouped = csvData.reduce((acc, row) => {
     // Handle potentially missing or malformed data
     const intakeDate = parseDate(
-      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
+      programType === "secure-detention"
+        ? row.Admission_Date
+        : row.ATD_Entry_Date
     );
     const releaseDate = parseDate(
       programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
@@ -334,7 +338,9 @@ const analyzeData = (
     // Prepare derived fields
     const age = getAgeAtAdmission(
       row.Date_of_Birth,
-      programType === "secure-detention" ? row.Admission_Date : row.ATD_Entry_Date
+      programType === "secure-detention"
+        ? row.Admission_Date
+        : row.ATD_Entry_Date
     );
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
