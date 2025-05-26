@@ -132,7 +132,11 @@ export default function Overview() {
             (record) => categorizeAge(record, incarcerationType) === value
           )
         );
-      } else if (key === "Gender" || key === "Screened/not screened") {
+      } else if (
+        key === "Gender" ||
+        key === "Screened/not screened" ||
+        key === "Facility"
+      ) {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(
             (record) => record[key] === value

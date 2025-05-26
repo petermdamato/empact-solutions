@@ -73,7 +73,6 @@ export default function Overview() {
       } else if (
         key === "Gender" ||
         key === "Screened/not screened" ||
-        key === "Pre/post-dispo filter" ||
         key === "Facility"
       ) {
         setFinalData(
@@ -81,6 +80,24 @@ export default function Overview() {
             (record) => record[key] === value
           )
         );
+      } else if (key === "Pre/post-dispo filter") {
+        if (value === "Pre-dispo") {
+          setFinalData(
+            JSON.parse(JSON.stringify(csvData)).filter(
+              (record) =>
+                record["Post-Dispo Stay Reason"] === null ||
+                record["Post-Dispo Stay Reason"] === ""
+            )
+          );
+        } else {
+          setFinalData(
+            JSON.parse(JSON.stringify(csvData)).filter(
+              (record) =>
+                record["Post-Dispo Stay Reason"] &&
+                record["Post-Dispo Stay Reason"].length > 0
+            )
+          );
+        }
       } else {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(

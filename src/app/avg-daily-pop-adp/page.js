@@ -15,6 +15,11 @@ import {
   analyzeDailyPopByScreenedStatus,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
+import {
+  chooseCategoryV2 as chooseCategory,
+  categorizeRaceEthnicity,
+  categorizeAge,
+} from "@/utils/categories";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -23,68 +28,7 @@ const parseDateYear = (dateStr) => {
 
   return isNaN(year) ? null : year;
 };
-const groupReasons = (data) => {
-  const result = {
-    "New Offense": {},
-    Technical: {},
-  };
 
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
-const groupOffenseCategories = (data) => {
-  const result = {
-    Felony: {},
-    Misdemeanor: {},
-    "Status Offense": {},
-    Technical: {},
-  };
-
-  for (const [label, counts] of Object.entries(data)) {
-    let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "Felony";
-    } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
-    } else if (label === "Status Offense") {
-      group = "Status Offense";
-    } else {
-      group = "Technical";
-    }
-
-    if (!result[group]) result[group] = {};
-
-    // Sum counts into group-level counts
-    for (const [dispo, count] of Object.entries(counts)) {
-      result[group][dispo] = (result[group][dispo] || 0) + count;
-    }
-  }
-
-  return result;
-};
 export default function Overview() {
   const { csvData } = useCSV();
   const [selectedYear, setSelectedYear] = useState(2024);
@@ -109,11 +53,16 @@ export default function Overview() {
       const [key, value] = Object.entries(filterVariable)[0];
       if (key === "Race/Ethnicity") {
         setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) =>
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            console.log(
+              categorizeRaceEthnicity(record["Race"], record["Ethnicity"]),
+              value
+            );
+            return (
               categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
               value
-          )
+            );
+          })
         );
       } else if (key === "Age") {
         setFinalData(
