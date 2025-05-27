@@ -7,12 +7,12 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import ChartCard from "@/components/ChartCard/ChartCard";
 import { ResponsiveContainer } from "recharts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import RecordsTable from "@/components/RecordsTable/RecordsTable";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
-import { MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import "./styles.css";
 import { analyzeExitsByYear } from "@/utils/aggFunctions";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -23,6 +23,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [filterVariable, setFilterVariable] = useState(null);
   const [selectedYear, setSelectedYear] = useState(2024);
@@ -205,12 +206,19 @@ export default function Overview() {
               variable={"Program Type"}
               selectedValue={programType}
               setValue={setProgramType}
+            />{" "}
+            <DownloadButton
+              elementRef={contentRef}
+              filename="alternative-to-detention-exits.pdf"
             />
           </Header>
         </div>
 
         {/* Charts */}
-        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
+        <div
+          style={{ display: "flex", gap: "24px", padding: "24px" }}
+          ref={contentRef}
+        >
           {/* Column 1 */}
           <div
             style={{

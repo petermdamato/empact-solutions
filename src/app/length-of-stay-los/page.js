@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
@@ -22,6 +22,7 @@ import {
   categorizeRaceEthnicity,
   categorizeAge,
 } from "@/utils/categories";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -33,6 +34,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [selectedYear, setSelectedYear] = useState(2024);
 
@@ -364,11 +366,18 @@ export default function Overview() {
               selectedValue={calculationType}
               setValue={setCalculationType}
             />
+            <DownloadButton
+              elementRef={contentRef}
+              filename="secure-detention-length-of-stay.pdf"
+            />
           </Header>
         </div>
 
         {/* Charts */}
-        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
+        <div
+          style={{ display: "flex", gap: "24px", padding: "24px" }}
+          ref={contentRef}
+        >
           {/* Column 1 */}
           <div
             style={{

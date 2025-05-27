@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
@@ -20,6 +20,7 @@ import {
   categorizeRaceEthnicity,
   categorizeAge,
 } from "@/utils/categories";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -93,11 +94,12 @@ const groupOffenseCategories = (data) => {
 };
 export default function Overview() {
   const { csvData } = useCSV();
+  const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [incarcerationType] = useState("secure-detention");
-  const [calculationType, setCalculationType] = useState("average");
-  const [programType, setProgramType] = useState("All Program Types");
+  const [calculationType] = useState("average");
+  const [programType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
@@ -376,6 +378,10 @@ export default function Overview() {
               variable={"Year"}
               selectedValue={selectedYear}
               setValue={setSelectedYear}
+            />
+            <DownloadButton
+              elementRef={contentRef}
+              filename="secure-detention-admissions.pdf"
             />
           </Header>
         </div>

@@ -4,11 +4,10 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
 import PillContainer from "@/components/PillContainer/PillContainer";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
-import { aggregateByLos } from "@/utils";
-import { analyzeByYear } from "@/utils/aggFunctions";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -19,10 +18,9 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
-
+  const contentRef = useRef();
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
-  const [dataArray3, setDataArray3] = useState([]);
   const [incarcerationType] = useState("Secure Detention Utilization");
   const [selectedYear, setSelectedYear] = useState(2024);
   // exploreType options: Overall Total | Pre/post-dispo
@@ -84,8 +82,12 @@ export default function Overview() {
               selectedValue={selectedYear}
               setValue={setSelectedYear}
             />
+            <DownloadButton
+              elementRef={contentRef}
+              filename="secure-detention-length-of-stay-distribution.pdf"
+            />
           </Header>
-          <div style={{ display: "flex" }}>
+          <div style={{ display: "flex" }} ref={contentRef}>
             {dataArray1 && (
               <PillContainer
                 display={"double"}

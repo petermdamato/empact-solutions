@@ -4,14 +4,14 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
 import PillContainer from "@/components/PillContainer/PillContainer";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./styles.css";
-
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import { dataAnalysis } from "@/utils/aggFunctions";
 
 export default function Overview() {
   const { csvData } = useCSV();
-
+  const contentRef = useRef();
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
@@ -479,41 +479,49 @@ export default function Overview() {
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
             useDropdown
-          />
-          {loading ? (
-            <div className="spinner-container">
-              <div className="spinner" />
-            </div>
-          ) : (
-            <PillContainer
-              data={[
-                {
-                  title: "Admissions",
-                  data: dataArray1,
-                  charts: ["table"],
-                  chartTitles: ["Table"],
-                },
-                {
-                  title: "Releases",
-                  data: dataArray2,
-                  charts: ["table"],
-                  chartTitles: ["Table"],
-                },
-                {
-                  title: "LOS",
-                  data: dataArray3,
-                  charts: ["table"],
-                  chartTitles: ["Table"],
-                },
-                {
-                  title: "ADP",
-                  data: dataArray4,
-                  charts: ["table"],
-                  chartTitles: ["Table"],
-                },
-              ]}
+          >
+            <DownloadButton
+              elementRef={contentRef}
+              filename="secure-detention-table.pdf"
+              orientation="portrait"
             />
-          )}
+          </Header>
+          <div ref={contentRef}>
+            {loading ? (
+              <div className="spinner-container">
+                <div className="spinner" />
+              </div>
+            ) : (
+              <PillContainer
+                data={[
+                  {
+                    title: "Admissions",
+                    data: dataArray1,
+                    charts: ["table"],
+                    chartTitles: ["Table"],
+                  },
+                  {
+                    title: "Releases",
+                    data: dataArray2,
+                    charts: ["table"],
+                    chartTitles: ["Table"],
+                  },
+                  {
+                    title: "LOS",
+                    data: dataArray3,
+                    charts: ["table"],
+                    chartTitles: ["Table"],
+                  },
+                  {
+                    title: "ADP",
+                    data: dataArray4,
+                    charts: ["table"],
+                    chartTitles: ["Table"],
+                  },
+                ]}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

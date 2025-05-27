@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
@@ -20,6 +20,7 @@ import {
   categorizeRaceEthnicity,
   categorizeAge,
 } from "@/utils/categories";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 
 const parseDateYear = (dateStr) => {
@@ -93,6 +94,7 @@ const groupOffenseCategories = (data) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [incarcerationType] = useState("alternative-to-detention");
@@ -362,11 +364,18 @@ export default function Overview() {
               selectedValue={selectedYear}
               setValue={setSelectedYear}
             />
+            <DownloadButton
+              elementRef={contentRef}
+              filename="alternative-to-detention-entries.pdf"
+            />
           </Header>
         </div>
 
         {/* Charts */}
-        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
+        <div
+          style={{ display: "flex", gap: "24px", padding: "24px" }}
+          ref={contentRef}
+        >
           {/* Column 1 */}
           <div
             style={{

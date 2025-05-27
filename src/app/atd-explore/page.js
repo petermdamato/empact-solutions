@@ -3,10 +3,11 @@
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
 import { analyzeByYear } from "@/utils/aggFunctions";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LineChartContainerV2 from "@/components/LineChart/LineChartContainerV2";
 
 const parseDateYear = (dateStr) => {
@@ -18,7 +19,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
-
+  const contentRef = useRef();
   const [dataArray3, setDataArray3] = useState([]);
   const [incarcerationType] = useState("ATD Utilization");
 
@@ -73,8 +74,15 @@ export default function Overview() {
               selectedValue={programType}
               setValue={setProgramType}
             />
+            <DownloadButton
+              elementRef={contentRef}
+              filename="alternative-to-detention-explore.pdf"
+            />
           </Header>
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column" }}
+            ref={contentRef}
+          >
             <div style={{ display: "flex" }}>
               <LineChartContainerV2
                 charts={["entries", "averageDailyPopulation"]}
@@ -87,7 +95,6 @@ export default function Overview() {
                 data={dataArray3}
                 selectorChild={["on", "off"]}
               >
-                {" "}
                 <Selector
                   values={["average", "median"]}
                   variable={"Calculation Type"}

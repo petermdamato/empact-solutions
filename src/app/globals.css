@@ -40,3 +40,21 @@ a {
     color-scheme: dark;
   }
 }
+.download-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #1f2937; /* dark gray */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s;
+}
+
+.download-button:hover {
+  background-color: #111827; /* darker gray on hover */
+}

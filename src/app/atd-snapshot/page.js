@@ -4,7 +4,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
 import PillContainer from "@/components/PillContainer/PillContainer";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./styles.css";
 import {
   aggregateByGender,
@@ -15,10 +15,12 @@ import {
   aggregatePopulationByStatus,
   aggregatePrePost,
 } from "@/utils";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import { isLeapYear } from "date-fns";
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const contentRef = useRef();
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
@@ -196,55 +198,63 @@ export default function Overview() {
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
             useDropdown
-          />
-          {dataArray1 &&
-            dataArray1.length > 0 &&
-            dataArray2 &&
-            dataArray2.length > 0 &&
-            dataArray3 &&
-            dataArray3.length > 0 &&
-            dataArray4 &&
-            dataArray4.length > 0 && (
-              <PillContainer
-                data={[
-                  {
-                    title: "ATD Population",
-                    subtitle:
-                      "Showing all youth who were in an ATD during the time period",
-                    data: dataArray1,
-                    charts: ["stacked-bar", "stacked-bar"],
-                    chartTitles: [
-                      "Entries by gender",
-                      "Entries by race/ethnicity",
-                    ],
-                  },
-                  {
-                    title: "Entries",
-                    data: dataArray2,
-                    charts: ["change", "column", "stacked-bar"],
-                    chartTitles: ["Total admissions", "", ""],
-                  },
-                  {
-                    title: "LOS",
-                    data: dataArray3,
-                    charts: ["change", "column", "stacked-bar"],
-                    chartTitles: ["Days", "", ""],
-                    contexts: ["releases", "releases", "releases"],
-                    useDropdown: true,
-                    dropdownOptions: ["Average LOS", "Median LOS"],
-                    dropdownValue: calculation,
-                    onSelectChange: handleSelectChange,
-                  },
-                  {
-                    title: "ADP",
-                    data: dataArray4,
-                    charts: ["change", "column", "stacked-bar"],
-                    chartTitles: ["Average daily pop.", "", ""],
-                    contexts: ["population", "population", "population"],
-                  },
-                ]}
-              />
-            )}
+          >
+            {" "}
+            <DownloadButton
+              elementRef={contentRef}
+              filename="alternative-to-detention-overview.pdf"
+            />
+          </Header>
+          <div ref={contentRef}>
+            {dataArray1 &&
+              dataArray1.length > 0 &&
+              dataArray2 &&
+              dataArray2.length > 0 &&
+              dataArray3 &&
+              dataArray3.length > 0 &&
+              dataArray4 &&
+              dataArray4.length > 0 && (
+                <PillContainer
+                  data={[
+                    {
+                      title: "ATD Population",
+                      subtitle:
+                        "Showing all youth who were in an ATD during the time period",
+                      data: dataArray1,
+                      charts: ["stacked-bar", "stacked-bar"],
+                      chartTitles: [
+                        "Entries by gender",
+                        "Entries by race/ethnicity",
+                      ],
+                    },
+                    {
+                      title: "Entries",
+                      data: dataArray2,
+                      charts: ["change", "column", "stacked-bar"],
+                      chartTitles: ["Total admissions", "", ""],
+                    },
+                    {
+                      title: "LOS",
+                      data: dataArray3,
+                      charts: ["change", "column", "stacked-bar"],
+                      chartTitles: ["Days", "", ""],
+                      contexts: ["releases", "releases", "releases"],
+                      useDropdown: true,
+                      dropdownOptions: ["Average LOS", "Median LOS"],
+                      dropdownValue: calculation,
+                      onSelectChange: handleSelectChange,
+                    },
+                    {
+                      title: "ADP",
+                      data: dataArray4,
+                      charts: ["change", "column", "stacked-bar"],
+                      chartTitles: ["Average daily pop.", "", ""],
+                      contexts: ["population", "population", "population"],
+                    },
+                  ]}
+                />
+              )}
+          </div>
         </div>
       </div>
     </div>

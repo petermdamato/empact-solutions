@@ -3,11 +3,12 @@
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
 import { analyzeByYear } from "@/utils/aggFunctions";
 import LineChartContainerV2 from "@/components/LineChart/LineChartContainerV2";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -18,7 +19,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
-
+  const contentRef = useRef();
   const [dataArray3, setDataArray3] = useState([]);
   const [incarcerationType] = useState("Secure Detention");
 
@@ -67,8 +68,16 @@ export default function Overview() {
             title={`${incarcerationType}`}
             subtitle={"Secure Detention Trends"}
             dekWithYear={`Showing trends in secure detention`}
-          />
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          >
+            <DownloadButton
+              elementRef={contentRef}
+              filename="secure-detention-explore-trends.pdf"
+            />
+          </Header>
+          <div
+            style={{ display: "flex", flexDirection: "column" }}
+            ref={contentRef}
+          >
             <div style={{ display: "flex" }}>
               <LineChartContainerV2
                 charts={["entries", "averageDailyPopulation"]}

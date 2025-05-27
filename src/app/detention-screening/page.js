@@ -5,17 +5,19 @@ import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
 import TileContainer from "@/components/TileContainer/TileContainer";
 import DateRangeSlider from "@/components/DateRangeSlider/DateRangeSlider";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./styles.css";
 import { aggregateByComparison } from "@/utils";
 import RecordsTableDST from "@/components/RecordsTable/RecordsTableDST";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const contentRef = useRef();
   const [datesRange, setDatesRange] = useState(["2019-01-01", "2024-10-10"]);
   const [datesData, setDatesData] = useState([]);
   const [dataArray1, setDataArray1] = useState([]);
-  const [dataArray2, setDataArray2] = useState([]);
+
   useEffect(() => {
     setDatesData(
       csvData.filter((entry) => {
@@ -48,7 +50,12 @@ export default function Overview() {
             title="Secure Detention Utilization"
             subtitle="Detention Screening"
             dekWithYear="DST Recommendation Restrictiveness Compared to Actual Decision"
-          />
+          >
+            <DownloadButton
+              elementRef={contentRef}
+              filename="secure-detention-detention-screening.pdf"
+            />
+          </Header>
           <div
             style={{
               position: "absolute",
@@ -63,7 +70,7 @@ export default function Overview() {
               setDatesRange={setDatesRange}
             />
           </div>
-          <div>
+          <div ref={contentRef}>
             {dataArray1 && (
               <div
                 style={{
