@@ -2,12 +2,17 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* two columns */
   grid-template-rows: repeat(2, auto); /* two rows */
-  gap: 32px;
-  padding: 20px;
+  gap: 4px;
+  padding: 20px 20px 20px 4px;
 }
 
 .line-chart-item {
   background: #f9f9f9;
+}
+.legend-line {
+  background-color: #e6e6e6;
+  margin: 20px 8px 8px 8px;
+  padding: 4px 4px;
 }
 
 .container-pill {
@@ -26,8 +31,6 @@
   margin-bottom: 8px;
 }
 
-.line-chart-header {
-}
 .line-chart-title {
   margin: 0;
   text-align: center;

@@ -9,6 +9,7 @@ import "./styles.css";
 import { analyzeByYear } from "@/utils/aggFunctions";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LineChartContainerV2 from "@/components/LineChart/LineChartContainerV2";
+import LegendLine from "@/components/LegendLines/LegendLines";
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -20,8 +21,11 @@ const parseDateYear = (dateStr) => {
 export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
+  const [breakdownType, setBreakdownType] = useState("Overall Total");
+  const [legendOptions, setLegendOptions] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
   const [incarcerationType] = useState("ATD Utilization");
+  const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
 
   const [programType, setProgramType] = useState("All Program Types");
   const [calculationType, setCalculationType] = useState("average");
@@ -29,6 +33,12 @@ export default function Overview() {
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
+  const [labelsArray] = useState(["Hide", "Show"]);
+  const [selectedLabelsChoice, setSelectedLabelsChoice] = useState("Hide");
+
+  useEffect(() => {
+    setSelectedLegendOptions([]);
+  }, [legendOptions]);
 
   useEffect(() => {
     const dataArray = csvData.filter(
@@ -58,6 +68,33 @@ export default function Overview() {
     setProgramTypeArray(programTypeArrayFinal);
   }, [csvData]);
 
+  useEffect(() => {
+    if (!csvData.length) return;
+
+    let options = [];
+
+    if (breakdownType === "Successful/Unsuccessful") {
+      options = [...new Set(csvData.map((d) => d.ATD_Successful_Exit))];
+    } else if (breakdownType === "Gender") {
+      options = [...new Set(csvData.map((d) => d.Gender))];
+    } else if (breakdownType === "Race/Ethnicity") {
+      options = [
+        ...new Set(
+          csvData.map((d) =>
+            d.Ethnicity?.toLowerCase() === "hispanic"
+              ? "Hispanic"
+              : d.Race || "Unknown"
+          )
+        ),
+      ];
+    } else if (breakdownType === "Overall Total") {
+      options = ["Total"];
+    }
+
+    // Clean and sort
+    setLegendOptions(options.filter(Boolean).sort());
+  }, [csvData, breakdownType]);
+
   return (
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
@@ -68,6 +105,12 @@ export default function Overview() {
             subtitle={`Explore Trends - ${programType}`}
             dekWithYear={`Showing year-by-year trends`}
           >
+            <Selector
+              values={labelsArray}
+              variable={"Show Labels"}
+              selectedValue={selectedLabelsChoice}
+              setValue={setSelectedLabelsChoice}
+            />
             <Selector
               values={programTypeArray}
               variable={"Program Type"}
@@ -83,10 +126,30 @@ export default function Overview() {
             style={{ display: "flex", flexDirection: "column" }}
             ref={contentRef}
           >
-            <div style={{ display: "flex" }}>
+            <div style={{ display: "flex", width: "100%" }}>
+              <div className="legend-line">
+                <Selector
+                  values={[
+                    "Overall Total",
+                    "Race/Ethnicity",
+                    "Gender",
+                    "Successful/Unsuccessful",
+                  ]}
+                  variable={"Explore"}
+                  selectedValue={breakdownType}
+                  setValue={setBreakdownType}
+                />
+
+                <LegendLine
+                  options={legendOptions}
+                  selectedOptions={selectedLegendOptions}
+                  setSelectedOptions={setSelectedLegendOptions}
+                />
+              </div>
               <LineChartContainerV2
                 charts={["entries", "averageDailyPopulation"]}
                 data={dataArray3}
+                selectedLabelsChoice={selectedLabelsChoice}
               />
             </div>
             <div style={{ display: "flex" }}>
@@ -94,6 +157,7 @@ export default function Overview() {
                 charts={[`${calculationType}LengthOfStay`, "exits"]}
                 data={dataArray3}
                 selectorChild={["on", "off"]}
+                selectedLabelsChoice={selectedLabelsChoice}
               >
                 <Selector
                   values={["average", "median"]}

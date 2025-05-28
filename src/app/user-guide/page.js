@@ -20,7 +20,7 @@ export default function Overview() {
               <main style={{ padding: "40px" }}>
                 <ol style={{ lineHeight: "1.8" }}>
                   <li>
-                    <h2>General Tips</h2>
+                    <h2 className="guide-h2">General Tips</h2>
                     <ul>
                       <li>
                         Use the menu on the left to easily navigate between
@@ -35,7 +35,7 @@ export default function Overview() {
                   </li>
 
                   <li>
-                    <h2>Dashboard Tips</h2>
+                    <h2 className="guide-h2">Dashboard Tips</h2>
                     <ul>
                       <li>
                         Most dashboards are interactive, and can be filtered by

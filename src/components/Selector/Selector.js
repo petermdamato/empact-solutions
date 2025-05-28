@@ -9,7 +9,8 @@ const Selector = ({ values, variable, selectedValue, setValue }) => {
   return (
     <div className="flex flex-col">
       <label className="mb-1 text-gray-600 text-lg font-normal">
-        Select {variable}
+        {variable !== "Show Labels" && variable !== "Explore" && "Select"}{" "}
+        {variable}
       </label>
       <div className="relative w-48">
         <select

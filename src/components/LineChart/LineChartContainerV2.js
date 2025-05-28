@@ -5,10 +5,12 @@ import "./LineChartContainer.css"; // optional CSS file
 const LineChartContainerV2 = ({
   charts,
   data,
+  selectedLabelsChoice,
   comparison,
   selectorChild,
   children,
 }) => {
+  console.log(data);
   return (
     <div className="line-chart-grid">
       {charts.map((chart, index) => (
@@ -24,6 +26,7 @@ const LineChartContainerV2 = ({
             header={chart}
             comparison={comparison}
             metric={chart}
+            labels={selectedLabelsChoice}
           />
         </div>
       ))}

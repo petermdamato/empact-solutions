@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 const colors = ["#006890", "#ff7b00"];
 
-const LineChartV2 = ({ data, header, metric, comparison = "none" }) => {
+const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [containerWidth, setContainerWidth] = useState(600); // default fallback
@@ -44,7 +44,10 @@ const LineChartV2 = ({ data, header, metric, comparison = "none" }) => {
     // D3 rendering code below remains mostly unchanged, just update line logic to use this seriesData
     const width = containerWidth;
     const height = 240;
-    const margin = { top: 10, right: 10, bottom: 30, left: 50 };
+    const margin =
+      labels === "Show"
+        ? { top: 20, right: 20, bottom: 30, left: 60 }
+        : { top: 10, right: 10, bottom: 30, left: 50 };
 
     const svg = d3
       .select(svgRef.current)
@@ -111,8 +114,65 @@ const LineChartV2 = ({ data, header, metric, comparison = "none" }) => {
         .attr("cy", (d) => yScale(d.value))
         .attr("r", 3)
         .attr("fill", colorScale(series.key));
+
+      if (labels === "Show") {
+        // Combine all label data across series
+        const allLabelData = [];
+
+        seriesData.forEach((series) => {
+          series.values.forEach((d) => {
+            allLabelData.push({
+              x: xScale(d.year),
+              y: yScale(d.value) - 12,
+              fx: xScale(d.year),
+              valueY: yScale(d.value),
+              text: d.value,
+              group: series.key,
+              color: colorScale(series.key),
+            });
+          });
+        });
+
+        // Global simulation to avoid all label collisions
+        const simulation = d3
+          .forceSimulation(allLabelData)
+          .force("x", d3.forceX((d) => d.fx).strength(1)) // lock to X
+          .force("y", d3.forceY((d) => d.valueY - 20).strength(0.5))
+          .force("collision", d3.forceCollide(16))
+          .stop();
+
+        for (let i = 0; i < 200; ++i) simulation.tick(); // more ticks = more stable layout
+
+        // Draw labels after resolving all collisions
+        svg
+          .selectAll(".point-label")
+          .data(allLabelData)
+          .enter()
+          .append("text")
+          .attr("class", "point-label")
+          .attr("x", (d) => d.x)
+          .attr("y", (d) => Math.max(margin.top + 6, d.y)) // prevent clipping top
+          .attr("text-anchor", "middle")
+          .attr("font-size", "10px")
+          .attr("fill", (d) => d.color)
+          .text((d) => d.text);
+
+        // Optional: Add leader lines from point to label
+        svg
+          .selectAll(".leader-line")
+          .data(allLabelData)
+          .enter()
+          .append("line")
+          .attr("class", "leader-line")
+          .attr("x1", (d) => d.x)
+          .attr("x2", (d) => d.x)
+          .attr("y1", (d) => d.valueY)
+          .attr("y2", (d) => Math.max(margin.top + 6, d.y))
+          .attr("stroke", (d) => d.color)
+          .attr("stroke-width", 0.5);
+      }
     });
-  }, [data, metric, containerWidth]);
+  }, [data, metric, containerWidth, labels]);
 
   return (
     <div ref={containerRef} style={{ width: "100%" }}>
