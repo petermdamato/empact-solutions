@@ -11,10 +11,10 @@ import LineChartContainerV2 from "@/components/LineChart/LineChartContainerV2";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 
 const parseDateYear = (dateStr) => {
+  if (!dateStr) return null;
   const date = new Date(dateStr);
   const year = date.getFullYear();
-
-  return !dateStr || dateStr === undefined || isNaN(year) ? null : year;
+  return isNaN(year) ? null : year;
 };
 
 export default function Overview() {
@@ -31,6 +31,8 @@ export default function Overview() {
   ]);
 
   useEffect(() => {
+    if (!csvData) return;
+
     const dataArray = csvData.filter(
       (record) =>
         programType === "All Program Types" || record.Facility === programType
@@ -45,19 +47,26 @@ export default function Overview() {
   }, [csvData, programType]);
 
   useEffect(() => {
+    if (!csvData) return;
+
     setYearsArray(
       [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
+
     let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
       .filter((entry) => entry !== null && entry !== "")
       .sort((a, b) => a - b);
 
     const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
-
     setProgramTypeArray(programTypeArrayFinal);
   }, [csvData]);
+
+  // Add loading state if needed
+  if (!csvData) {
+    return <div>Loading data...</div>;
+  }
 
   return (
     <div className="max-w-xl mx-auto mt-10">
@@ -105,3 +114,5 @@ export default function Overview() {
     </div>
   );
 }
+
+export const dynamic = "force-dynamic"; // Add this line
