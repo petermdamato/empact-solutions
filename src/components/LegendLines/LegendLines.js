@@ -25,16 +25,9 @@ const LegendLines = ({
   setSelectedOptions,
   setSelectedLegendDetails,
 }) => {
-  if (!options?.length) return null;
-
-  const toggleOption = (option) => {
-    if (selectedOptions.includes(option)) {
-      setSelectedOptions(selectedOptions.filter((o) => o !== option));
-    } else {
-      setSelectedOptions([...selectedOptions, option]);
-    }
-  };
   useEffect(() => {
+    if (!options?.length) return;
+
     const selectedOptionDetails = options.map((option) => {
       const index = options.indexOf(option);
       return {
@@ -50,6 +43,16 @@ const LegendLines = ({
 
     setSelectedLegendDetails(selectedOptionDetails);
   }, [options]);
+
+  if (!options?.length) return null;
+
+  const toggleOption = (option) => {
+    if (selectedOptions.includes(option)) {
+      setSelectedOptions(selectedOptions.filter((o) => o !== option));
+    } else {
+      setSelectedOptions([...selectedOptions, option]);
+    }
+  };
 
   return (
     <div
