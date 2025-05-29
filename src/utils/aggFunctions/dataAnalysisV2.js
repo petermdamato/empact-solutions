@@ -72,8 +72,8 @@ function analyzeAdmissionsOnly(
 
   const getAgeBracket = (age) => {
     if (!age) return "Unknown";
-
-    if (age <= 13) return "11-13";
+    if (age <= 13 && age >= 11) return "11-13";
+    if (age <= 10) return "Under 11";
     if (age <= 17) return "14-17";
     return "18+";
   };

@@ -6,8 +6,8 @@ const SidebarContext = createContext();
 
 export const SidebarProvider = ({ children }) => {
   const [openMenus, setOpenMenus] = useState({});
-  const [selectedMenu, setSelectedMenu] = useState("User Guide");
-  const [selectedElement, setSelectedElement] = useState("user-guide");
+  const [selectedMenu, setSelectedMenu] = useState("Upload");
+  const [selectedElement, setSelectedElement] = useState("upload");
   const [selectedSubItemLabel, setSelectedSubItemLabel] = useState("");
 
   const toggleMenu = (label) => {

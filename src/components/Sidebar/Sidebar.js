@@ -64,11 +64,23 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="sidebar">
+    <div
+      className={`sidebar sidebar-${
+        selectedMenu.includes("Alternative")
+          ? "alternative-to-detention"
+          : "secure-detention"
+      }`}
+    >
       <div className="header">
         <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
-        <h1>{selectedMenu}</h1>
-        <h2>{selectedSubItemLabel || selectedElement}</h2>
+        <h1>
+          {selectedMenu === "User Guide" ||
+          selectedMenu === "Upload" ||
+          selectedMenu === "Glossary"
+            ? "Empact Detention Analytics"
+            : selectedMenu}
+        </h1>
+        <h2>{selectedSubItemLabel || selectedMenu}</h2>
       </div>
       <nav>
         <ul>
@@ -132,7 +144,9 @@ const Sidebar = () => {
                           .replace(")", "")
                           .replaceAll(" ", "-")
                           .toLowerCase() === selectedElement
-                          ? "active"
+                          ? selectedMenu.includes("Alternative")
+                            ? "active alternative"
+                            : "active"
                           : "single"
                       }`}
                       onClick={() =>
