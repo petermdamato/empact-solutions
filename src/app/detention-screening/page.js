@@ -27,7 +27,7 @@ export default function Overview() {
         return intake >= lowerDate && intake <= upperDate;
       })
     );
-  }, [datesRange]);
+  }, [datesRange, csvData]);
   useEffect(() => {
     setDataArray1([
       {
