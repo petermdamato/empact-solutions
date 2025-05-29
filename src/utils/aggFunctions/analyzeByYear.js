@@ -1,7 +1,6 @@
-function analyzeByYear(
-  data,
-  { detentionType, bySuccess = false, byDispo = false }
-) {
+import getSimplifiedOffenseCategory from "../helper";
+
+function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
   const getDates = (record) => {
     if (detentionType === "secure-detention") {
       return {
@@ -17,16 +16,64 @@ function analyzeByYear(
     return { entry: null, exit: null };
   };
 
-  const groupKey = (record) => {
-    if (!bySuccess && !byDispo) return "all";
-    if (!byDispo) {
-      return record.ATD_Successful_Exit === "1" ? "successful" : "unsuccessful";
+  const getAge = (dob, intake) => {
+    if (!dob || !intake) return null;
+    return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
+  };
+
+  const getAgeBracket = (age) => {
+    if (!age) return "Unknown";
+    if (age <= 10) return "Under-11";
+    if (age <= 13) return "11-13";
+    if (age <= 17) return "14-17";
+    return "18";
+  };
+
+  const groupKey = (record, entry) => {
+    switch (breakdown) {
+      case "bySuccess":
+        return record.ATD_Successful_Exit === "1"
+          ? "successful"
+          : "unsuccessful";
+
+      case "byDispo":
+        return record["Post-Dispo Stay Reason"] === null ||
+          record["Post-Dispo Stay Reason"] === ""
+          ? "pre"
+          : "post";
+
+      case "byYOC":
+        const ethnicity = record.Ethnicity;
+        const race = record.Race;
+        return race === "White" && ethnicity === "Non Hispanic"
+          ? "white"
+          : "yoc";
+
+      case "byAge":
+        const dob = record.Date_of_Birth
+          ? new Date(record.Date_of_Birth)
+          : null;
+        const age = getAge(dob, entry);
+        return getAgeBracket(age);
+
+      case "byRaceEthnicity":
+        if (
+          record.Ethnicity === "Hispanic or Latino" ||
+          record.Ethnicity === "Hispanic"
+        ) {
+          return "Hispanic";
+        }
+        return record.Race || "Unknown";
+
+      case "byGender":
+        return record.Gender || "Unknown";
+
+      case "byOffenseCategory":
+        return getSimplifiedOffenseCategory(record.OffenseCategory);
+
+      default:
+        return "all";
     }
-    // return record["Pre/post-dispo filter"] === "Pre-dispo" ? "pre" : "post";
-    return record["Post-Dispo Stay Reason"] === null ||
-      record["Post-Dispo Stay Reason"] === ""
-      ? "pre"
-      : "post";
   };
 
   const yearRange = (start, end) => {
@@ -45,7 +92,7 @@ function analyzeByYear(
     const { entry, exit } = getDates(record);
     if (!entry) return;
 
-    const key = groupKey(record);
+    const key = groupKey(record, entry);
     const year = entry.getFullYear();
     const los = exit
       ? Math.max(0, Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)))

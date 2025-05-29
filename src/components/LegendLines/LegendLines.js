@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect } from "react";
+
 // Simple hash-color generator based on index
 const getColor = (label, index) => {
   const palette = [
@@ -15,7 +19,12 @@ const getColor = (label, index) => {
   return palette[index % palette.length];
 };
 
-const LegendLines = ({ options, selectedOptions, setSelectedOptions }) => {
+const LegendLines = ({
+  options,
+  selectedOptions,
+  setSelectedOptions,
+  setSelectedLegendDetails,
+}) => {
   if (!options?.length) return null;
 
   const toggleOption = (option) => {
@@ -25,6 +34,22 @@ const LegendLines = ({ options, selectedOptions, setSelectedOptions }) => {
       setSelectedOptions([...selectedOptions, option]);
     }
   };
+  useEffect(() => {
+    const selectedOptionDetails = options.map((option) => {
+      const index = options.indexOf(option);
+      return {
+        label:
+          option === "0"
+            ? "Unsuccessful"
+            : option === "1"
+            ? "Successful"
+            : option,
+        color: getColor(option, index),
+      };
+    });
+
+    setSelectedLegendDetails(selectedOptionDetails);
+  }, [options]);
 
   return (
     <div

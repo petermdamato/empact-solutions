@@ -1,29 +1,57 @@
+"use client";
 import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 
-const colors = ["#006890", "#ff7b00"];
+const colors = [
+  "#1f77b4",
+  "#ff7f0e",
+  "#2ca02c",
+  "#d62728",
+  "#9467bd",
+  "#8c564b",
+  "#e377c2",
+  "#7f7f7f",
+  "#bcbd22",
+  "#17becf",
+];
 
-const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
+const LineChartV2 = ({
+  data,
+  header,
+  metric,
+  comparison = "none",
+  labels,
+  selectedLegendOptions,
+  selectedLegendDetails,
+}) => {
   const svgRef = useRef();
   const containerRef = useRef();
-  const [containerWidth, setContainerWidth] = useState(600); // default fallback
+  const [containerWidth, setContainerWidth] = useState(600); // Fallback width
 
-  // ResizeObserver to track width of container
+  // Observe container width changes
   useEffect(() => {
+    if (!containerRef.current) return;
+
     const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setContainerWidth(entry.contentRect.width);
-      }
+      if (!entries.length) return;
+      const { width } = entries[0].contentRect;
+      setContainerWidth(width);
     });
-    if (containerRef.current) observer.observe(containerRef.current);
+
+    observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!data || !metric) return;
+    if (
+      !data ||
+      !metric ||
+      !selectedLegendDetails ||
+      selectedLegendDetails.length === 0 ||
+      !containerWidth
+    )
+      return;
 
-    // Build the dataset in the required shape: [{ year, value, group }]
     const seriesMap = new Map();
 
     Object.entries(data).forEach(([year, yearData]) => {
@@ -41,9 +69,8 @@ const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
       values: values.sort((a, b) => a.year - b.year),
     }));
 
-    // D3 rendering code below remains mostly unchanged, just update line logic to use this seriesData
     const width = containerWidth;
-    const height = 240;
+    const height = 320;
     const margin =
       labels === "Show"
         ? { top: 20, right: 20, bottom: 30, left: 60 }
@@ -73,10 +100,17 @@ const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
       .nice()
       .range([height - margin.bottom, margin.top]);
 
+    // const colorScale = d3
+    //   .scaleOrdinal()
+    //   .domain(seriesData.map((s) => s.key))
+    //   .range(colors);
+
     const colorScale = d3
       .scaleOrdinal()
-      .domain(seriesData.map((s) => s.key))
-      .range(colors);
+      .domain(
+        selectedLegendDetails.map((entry) => entry.label.replace("+", ""))
+      )
+      .range(selectedLegendDetails.map((entry) => entry.color));
 
     const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
     const yAxis = d3.axisLeft(yScale).ticks(4);
@@ -91,6 +125,21 @@ const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
       .attr("transform", `translate(${margin.left},0)`)
       .call(yAxis);
 
+    svg
+      .append("g")
+      .attr("class", "grid-lines")
+      .selectAll("line")
+      .data(yScale.ticks(4))
+      .enter()
+      .append("line")
+      .attr("x1", margin.left)
+      .attr("x2", width - margin.right)
+      .attr("y1", (d) => yScale(d))
+      .attr("y2", (d) => yScale(d))
+      .attr("stroke", "black")
+      .attr("stroke-opacity", 0.4)
+      .attr("stroke-dasharray", "4 2");
+
     const line = d3
       .line()
       .x((d) => xScale(d.year))
@@ -101,6 +150,12 @@ const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
         .append("path")
         .datum(series.values)
         .attr("fill", "none")
+        .attr("opacity", () => {
+          return selectedLegendOptions.length === 0 ||
+            selectedLegendOptions.includes(series.values[0].group)
+            ? 1
+            : 0.3;
+        })
         .attr("stroke", colorScale(series.key))
         .attr("stroke-width", 2)
         .attr("d", line);
@@ -110,16 +165,26 @@ const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
         .data(series.values)
         .enter()
         .append("circle")
+        .attr("opacity", () => {
+          return selectedLegendOptions.length === 0 ||
+            selectedLegendOptions.includes(series.values[0].group)
+            ? 1
+            : 0.3;
+        })
         .attr("cx", (d) => xScale(d.year))
         .attr("cy", (d) => yScale(d.value))
         .attr("r", 3)
         .attr("fill", colorScale(series.key));
+    });
 
-      if (labels === "Show") {
-        // Combine all label data across series
-        const allLabelData = [];
+    if (labels === "Show") {
+      const allLabelData = [];
 
-        seriesData.forEach((series) => {
+      seriesData.forEach((series) => {
+        if (
+          selectedLegendOptions.length === 0 ||
+          selectedLegendOptions.includes(series.values[0].group)
+        ) {
           series.values.forEach((d) => {
             allLabelData.push({
               x: xScale(d.year),
@@ -131,47 +196,44 @@ const LineChartV2 = ({ data, header, metric, comparison = "none", labels }) => {
               color: colorScale(series.key),
             });
           });
-        });
+        }
+      });
 
-        // Global simulation to avoid all label collisions
-        const simulation = d3
-          .forceSimulation(allLabelData)
-          .force("x", d3.forceX((d) => d.fx).strength(1)) // lock to X
-          .force("y", d3.forceY((d) => d.valueY - 20).strength(0.5))
-          .force("collision", d3.forceCollide(16))
-          .stop();
+      const simulation = d3
+        .forceSimulation(allLabelData)
+        .force("x", d3.forceX((d) => d.fx).strength(1))
+        .force("y", d3.forceY((d) => d.valueY - 20).strength(0.5))
+        .force("collision", d3.forceCollide(16))
+        .stop();
 
-        for (let i = 0; i < 200; ++i) simulation.tick(); // more ticks = more stable layout
+      for (let i = 0; i < 200; ++i) simulation.tick();
 
-        // Draw labels after resolving all collisions
-        svg
-          .selectAll(".point-label")
-          .data(allLabelData)
-          .enter()
-          .append("text")
-          .attr("class", "point-label")
-          .attr("x", (d) => d.x)
-          .attr("y", (d) => Math.max(margin.top + 6, d.y)) // prevent clipping top
-          .attr("text-anchor", "middle")
-          .attr("font-size", "10px")
-          .attr("fill", (d) => d.color)
-          .text((d) => d.text);
+      svg
+        .selectAll(".point-label")
+        .data(allLabelData)
+        .enter()
+        .append("text")
+        .attr("class", "point-label")
+        .attr("x", (d) => d.x)
+        .attr("y", (d) => Math.max(margin.top + 6, d.y))
+        .attr("text-anchor", "middle")
+        .attr("font-size", "10px")
+        .attr("fill", (d) => d.color)
+        .text((d) => d.text);
 
-        // Optional: Add leader lines from point to label
-        svg
-          .selectAll(".leader-line")
-          .data(allLabelData)
-          .enter()
-          .append("line")
-          .attr("class", "leader-line")
-          .attr("x1", (d) => d.x)
-          .attr("x2", (d) => d.x)
-          .attr("y1", (d) => d.valueY)
-          .attr("y2", (d) => Math.max(margin.top + 6, d.y))
-          .attr("stroke", (d) => d.color)
-          .attr("stroke-width", 0.5);
-      }
-    });
+      svg
+        .selectAll(".leader-line")
+        .data(allLabelData)
+        .enter()
+        .append("line")
+        .attr("class", "leader-line")
+        .attr("x1", (d) => d.x)
+        .attr("x2", (d) => d.x)
+        .attr("y1", (d) => d.valueY)
+        .attr("y2", (d) => Math.max(margin.top + 6, d.y))
+        .attr("stroke", (d) => d.color)
+        .attr("stroke-width", 0.5);
+    }
   }, [data, metric, containerWidth, labels]);
 
   return (

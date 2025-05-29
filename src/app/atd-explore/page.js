@@ -10,6 +10,18 @@ import { analyzeByYear } from "@/utils/aggFunctions";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LineChartContainerV2 from "@/components/LineChart/LineChartContainerV2";
 import LegendLine from "@/components/LegendLines/LegendLines";
+import getSimplifiedOffenseCategory from "@/utils/helper";
+
+const breakdownMapping = {
+  "Overall Total": "none",
+  "Pre/Post-Dispo": "byDispo",
+  "Race/Ethnicity": "byRaceEthnicity",
+  "YOC/White": "byYOC",
+  Gender: "byGender",
+  "Age at Intake": "byAge",
+  "Offense Category": "byOffenseCategory",
+  "Successful/Unsuccessful": "bySuccess",
+};
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -26,7 +38,7 @@ export default function Overview() {
   const [dataArray3, setDataArray3] = useState([]);
   const [incarcerationType] = useState("ATD Utilization");
   const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
-
+  const [selectedLegendDetails, setSelectedLegendDetails] = useState([]);
   const [programType, setProgramType] = useState("All Program Types");
   const [calculationType, setCalculationType] = useState("average");
   const [yearsArray, setYearsArray] = useState([2024]);
@@ -45,13 +57,16 @@ export default function Overview() {
       (record) =>
         programType === "All Program Types" || record.Facility === programType
     );
+
+    const mappedBreakdown = breakdownMapping[breakdownType] || "none";
+
     setDataArray3(
       analyzeByYear(dataArray, {
         detentionType: "alternative-to-detention",
-        bySuccess: true,
+        breakdown: mappedBreakdown,
       })
     );
-  }, [csvData, programType]);
+  }, [csvData, programType, breakdownType, selectedLegendOptions]);
 
   useEffect(() => {
     setYearsArray(
@@ -87,6 +102,37 @@ export default function Overview() {
           )
         ),
       ];
+    } else if (breakdownType === "YOC/White") {
+      options = ["White", "YOC"];
+    } else if (breakdownType === "Offense Category") {
+      options = [
+        ...new Set(
+          csvData.map((d) => getSimplifiedOffenseCategory(d.OffenseCategory))
+        ),
+      ];
+    } else if (breakdownType === "Age at Intake") {
+      const getAge = (dobStr, intakeStr) => {
+        const dob = new Date(dobStr);
+        const intake = new Date(intakeStr);
+        if (!dob || !intake || isNaN(dob) || isNaN(intake)) return null;
+        return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      };
+
+      const getAgeBracket = (age) => {
+        if (age == null || isNaN(age)) return age;
+        if (age <= 10) return "Under 11";
+        if (age <= 13) return "11-13";
+        if (age <= 17) return "14-17";
+        return "18+";
+      };
+
+      options = [
+        ...new Set(
+          csvData.map((d) =>
+            getAgeBracket(getAge(d.Date_of_Birth, d.ATD_Entry_Date))
+          )
+        ),
+      ];
     } else if (breakdownType === "Overall Total") {
       options = ["Total"];
     }
@@ -99,7 +145,10 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          ref={contentRef}
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+        >
           <Header
             title={`${incarcerationType}`}
             subtitle={`Explore Trends - ${programType}`}
@@ -123,45 +172,81 @@ export default function Overview() {
             />
           </Header>
           <div
-            style={{ display: "flex", flexDirection: "column" }}
-            ref={contentRef}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              flexGrow: 1,
+            }}
           >
-            <div style={{ display: "flex", width: "100%" }}>
-              <div className="legend-line">
+            {/* Top Row */}
+            <div
+              style={{ display: "flex", width: "100%", flex: 1, minHeight: 0 }}
+            >
+              <div
+                className="legend-line"
+                style={{ flex: 1, maxWidth: "260px" }}
+              >
                 <Selector
                   values={[
                     "Overall Total",
                     "Race/Ethnicity",
+                    "YOC/White",
                     "Gender",
+                    "Age at Intake",
+                    "Offense Category",
                     "Successful/Unsuccessful",
                   ]}
                   variable={"Explore"}
                   selectedValue={breakdownType}
                   setValue={setBreakdownType}
                 />
-
                 <LegendLine
                   options={legendOptions}
                   selectedOptions={selectedLegendOptions}
                   setSelectedOptions={setSelectedLegendOptions}
+                  setSelectedLegendDetails={setSelectedLegendDetails}
                 />
               </div>
-              <LineChartContainerV2
-                charts={["entries", "averageDailyPopulation"]}
-                data={dataArray3}
-                selectedLabelsChoice={selectedLabelsChoice}
-              />
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  height: "100%",
+                  width: "100%",
+                }}
+              >
+                <LineChartContainerV2
+                  charts={["entries", "averageDailyPopulation"]}
+                  data={dataArray3}
+                  selectedLabelsChoice={selectedLabelsChoice}
+                  selectedLegendOptions={selectedLegendOptions}
+                  selectedLegendDetails={selectedLegendDetails}
+                />
+              </div>
             </div>
-            <div style={{ display: "flex" }}>
+
+            {/* Bottom Row */}
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                height: "100%",
+                width: "100%",
+              }}
+            >
               <LineChartContainerV2
                 charts={[`${calculationType}LengthOfStay`, "exits"]}
                 data={dataArray3}
                 selectorChild={["on", "off"]}
                 selectedLabelsChoice={selectedLabelsChoice}
+                selectedValue={[calculationType, null]}
+                selectorPlacement="left"
+                selectedLegendOptions={selectedLegendOptions}
+                selectedLegendDetails={selectedLegendDetails}
               >
                 <Selector
                   values={["average", "median"]}
-                  variable={"Calculation Type"}
+                  variable={"calc"}
                   selectedValue={calculationType}
                   setValue={setCalculationType}
                 />

@@ -58,3 +58,18 @@ a {
 .download-button:hover {
   background-color: #111827; /* darker gray on hover */
 }
+body.pdf-export-mode *,
+body.pdf-export-mode *::before,
+body.pdf-export-mode *::after {
+  animation: none !important;
+  transition: none !important;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.chart-wrapper {
+  height: 400px; /* Or 100% if inside a flex container */
+}
