@@ -14,7 +14,7 @@ const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
   const year = date.getFullYear();
 
-  return isNaN(year) ? null : year;
+  return !dateStr || dateStr === undefined || isNaN(year) ? null : year;
 };
 
 export default function Overview() {
