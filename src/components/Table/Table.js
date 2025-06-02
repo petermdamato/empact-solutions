@@ -94,10 +94,22 @@ const TableComponent = ({ data }) => {
                   return (
                     <tr key={catIndex}>
                       <td>{category}</td>
-                      <td style={{ textAlign: "right" }}>
+                      <td
+                        style={{
+                          maxWidth: "64px",
+                          width: "64px",
+                          textAlign: "right",
+                        }}
+                      >
                         {formatPercent((value / total) * 100)}
                       </td>
-                      <td style={{ textAlign: "right" }}>
+                      <td
+                        style={{
+                          maxWidth: "64px",
+                          width: "64px",
+                          textAlign: "right",
+                        }}
+                      >
                         {formatNumber(value)}
                       </td>
                     </tr>

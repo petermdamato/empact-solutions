@@ -2,9 +2,10 @@
   display: flex;
   gap: 4px;
   padding: 8px;
+  flex-wrap: wrap; /* Allow wrapping when the container shrinks */
 }
 
 .pill-container > * {
-  flex: 1; /* All children take equal width */
-  min-width: 0; /* Prevent overflow */
+  flex: 1 1 0; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
+  min-width: 250px; /* Optional: prevents them from becoming too small */
 }

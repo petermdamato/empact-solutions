@@ -109,7 +109,7 @@ export default function Overview() {
 
       const getAgeBracket = (age) => {
         if (age == null || isNaN(age)) return age;
-        if (age <= 10) return "Under 11";
+        if (age <= 10) return "10 and younger";
         if (age <= 13) return "11-13";
         if (age <= 17) return "14-17";
         return "18+";

@@ -478,6 +478,7 @@ export default function Overview() {
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
+            year={selectedYear}
             useDropdown
           >
             <DownloadButton

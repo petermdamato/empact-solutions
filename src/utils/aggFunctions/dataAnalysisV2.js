@@ -56,6 +56,13 @@ const offenseMap = {
   "Other Technical Violation": "Technicals",
 };
 
+// Helper to determine if youth is White or Youth of Color
+const getRaceSimplified = (race, ethnicity) => {
+  if (ethnicity === "Hispanic") return "Youth of Color";
+  if (race === "White") return "White";
+  return "Youth of Color"; // All others are Youth of Color
+};
+
 function analyzeAdmissionsOnly(
   rows,
   targetYear,
@@ -73,7 +80,7 @@ function analyzeAdmissionsOnly(
   const getAgeBracket = (age) => {
     if (!age) return "Unknown";
     if (age <= 13 && age >= 11) return "11-13";
-    if (age <= 10) return "Under 11";
+    if (age <= 10) return "10 and younger";
     if (age <= 17) return "14-17";
     return "18+";
   };
@@ -83,7 +90,8 @@ function analyzeAdmissionsOnly(
     "Race",
     "Ethnicity",
     "OffenseCategory",
-    "RaceEthnicity",
+    "RaceEthnicity", // Detailed race/ethnicity breakdown
+    "RaceSimplified", // Simplified White vs Youth of Color breakdown
     "Facility",
     "Referral_Source",
     "AgeBracket",
@@ -110,9 +118,6 @@ function analyzeAdmissionsOnly(
     const dob = parseDate(row.Date_of_Birth);
 
     const age = getAge(dob, intake);
-    // const dispo = dispoTypes.includes(row["Pre/post-dispo filter"])
-    // ? row["Pre/post-dispo filter"]
-    // : "Unknown";
     const dispo =
       row["Post-Dispo Stay Reason"] === null ||
       row["Post-Dispo Stay Reason"] === ""
@@ -130,10 +135,13 @@ function analyzeAdmissionsOnly(
 
     if (!result.screened[screened]) result.screened[screened] = [];
     result.screened[screened].push(age);
+
     for (const group of groups) {
       let val;
       if (group === "RaceEthnicity") {
         val = row.Ethnicity === "Hispanic" ? "Hispanic" : row.Race || "Unknown";
+      } else if (group === "RaceSimplified") {
+        val = getRaceSimplified(row.Race, row.Ethnicity);
       } else if (group === "AgeBracket") {
         val = getAgeBracket(age);
       } else {
@@ -236,7 +244,7 @@ const getSimplifiedOffenseCategory = (offenseCategory) => {
 // Helper for race/ethnicity
 const getRaceEthnicity = (race, ethnicity) => {
   if (ethnicity?.toLowerCase() === "hispanic") return "Hispanic";
-  if (/black|african/i.test(race)) return "Black";
+  if (/black|african/i.test(race)) return "African American or Black";
   if (/asian/i.test(race)) return "Asian";
   if (/white/i.test(race)) return "White";
   return "Other";
@@ -271,8 +279,8 @@ const getAgeAtAdmission = (dob, intake) => {
  *            "medianLengthOfStay", "averageDailyPopulation"
  * @param {number} year - Year to analyze
  * @param {string} groupBy - Column to group by
- *   Options: "Gender", "Age", "RaceEthnicity", "OffenseCategory",
- *            "OffenseOverall", "Facility", "Referral_Source"
+ *   Options: "Gender", "Age", "RaceEthnicity", "RaceSimplified", "OffenseCategory",
+ *            "OffenseOverall", "Facility", "Referral_Source", "simplifiedReferralSource"
  * @param {Object} options - Additional options
  * @returns {Object} Results of the analysis
  */
@@ -319,6 +327,7 @@ const analyzeData = (
     "Gender",
     "Age",
     "RaceEthnicity",
+    "RaceSimplified",
     "OffenseCategory",
     "OffenseOverall",
     "SimplifiedOffense",
@@ -366,6 +375,7 @@ const analyzeData = (
     // Prepare derived fields
     const age = getAgeAtAdmission(row.Date_of_Birth, entryDate);
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
+    const raceSimplified = getRaceSimplified(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
     const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
       row.OffenseCategory
@@ -384,6 +394,9 @@ const analyzeData = (
         break;
       case "RaceEthnicity":
         key = raceEth;
+        break;
+      case "RaceSimplified":
+        key = raceSimplified;
         break;
       case "OffenseCategory":
         key = row.OffenseCategory || "Unknown";

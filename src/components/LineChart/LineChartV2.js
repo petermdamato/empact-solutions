@@ -1,19 +1,8 @@
 "use client";
 import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
-
-const colors = [
-  "#1f77b4",
-  "#ff7f0e",
-  "#2ca02c",
-  "#d62728",
-  "#9467bd",
-  "#8c564b",
-  "#e377c2",
-  "#7f7f7f",
-  "#bcbd22",
-  "#17becf",
-];
+import { usePathname } from "next/navigation";
+import "./LineChartV2.css";
 
 const LineChartV2 = ({
   data,
@@ -26,34 +15,66 @@ const LineChartV2 = ({
 }) => {
   const svgRef = useRef();
   const containerRef = useRef();
-  const [containerWidth, setContainerWidth] = useState(600); // Fallback width
+  const pathname = usePathname();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 320 });
+  const [renderKey, setRenderKey] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Observe container width changes
+  useEffect(() => {
+    setRenderKey((prev) => prev + 1);
+    setIsInitialized(false);
+  }, [pathname]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const observer = new ResizeObserver((entries) => {
-      if (!entries.length) return;
-      const { width } = entries[0].contentRect;
-      setContainerWidth(width);
+    const measure = () => {
+      const width = containerRef.current.clientWidth;
+      if (width !== dimensions.width) {
+        setDimensions({ width, height: 320 });
+      }
+      if (!isInitialized) setIsInitialized(true);
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(measure);
     });
 
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
+
+    const timeout1 = setTimeout(measure, 50);
+    const timeout2 = setTimeout(measure, 200);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+    };
+  }, [dimensions.width, isInitialized]);
 
   useEffect(() => {
-    if (
-      !data ||
-      !metric ||
-      !selectedLegendDetails ||
-      selectedLegendDetails.length === 0 ||
-      !containerWidth
-    )
+    if (!isInitialized || !data || !metric || !selectedLegendDetails?.length)
       return;
 
-    const seriesMap = new Map();
+    const svg = d3.select(svgRef.current);
+    svg.selectAll(".chart-content").remove();
 
+    const margin =
+      labels === "Show"
+        ? { top: 20, right: 20, bottom: 30, left: 60 }
+        : { top: 10, right: 10, bottom: 30, left: 50 };
+    const { width, height } = dimensions;
+
+    svg
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", `0 0 ${width} ${height}`);
+
+    const chartGroup = svg.append("g").attr("class", "chart-content");
+
+    const seriesMap = new Map();
     Object.entries(data).forEach(([year, yearData]) => {
       Object.entries(yearData).forEach(([group, metrics]) => {
         if (!seriesMap.has(group)) seriesMap.set(group, []);
@@ -69,20 +90,6 @@ const LineChartV2 = ({
       values: values.sort((a, b) => a.year - b.year),
     }));
 
-    const width = containerWidth;
-    const height = 320;
-    const margin =
-      labels === "Show"
-        ? { top: 20, right: 20, bottom: 30, left: 60 }
-        : { top: 10, right: 10, bottom: 30, left: 50 };
-
-    const svg = d3
-      .select(svgRef.current)
-      .attr("width", width)
-      .attr("height", height);
-
-    svg.selectAll("*").remove();
-
     const allYears = Array.from(
       new Set(seriesData.flatMap((s) => s.values.map((d) => d.year)))
     ).sort();
@@ -93,17 +100,11 @@ const LineChartV2 = ({
       .range([margin.left, width - margin.right]);
 
     const yMax = d3.max(seriesData, (s) => d3.max(s.values, (d) => d.value));
-
     const yScale = d3
       .scaleLinear()
       .domain([0, yMax])
       .nice()
       .range([height - margin.bottom, margin.top]);
-
-    // const colorScale = d3
-    //   .scaleOrdinal()
-    //   .domain(seriesData.map((s) => s.key))
-    //   .range(colors);
 
     const colorScale = d3
       .scaleOrdinal()
@@ -112,22 +113,10 @@ const LineChartV2 = ({
       )
       .range(selectedLegendDetails.map((entry) => entry.color));
 
-    const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
-    const yAxis = d3.axisLeft(yScale).ticks(4);
-
-    svg
-      .append("g")
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(xAxis);
-
-    svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(yAxis);
-
-    svg
+    chartGroup
       .append("g")
       .attr("class", "grid-lines")
+      .attr("clip-path", "url(#chart-clip)")
       .selectAll("line")
       .data(yScale.ticks(4))
       .enter()
@@ -136,9 +125,20 @@ const LineChartV2 = ({
       .attr("x2", width - margin.right)
       .attr("y1", (d) => yScale(d))
       .attr("y2", (d) => yScale(d))
-      .attr("stroke", "black")
-      .attr("stroke-opacity", 0.4)
-      .attr("stroke-dasharray", "4 2");
+      .attr("stroke", "#e0e0e0")
+      .attr("stroke-width", 1);
+
+    chartGroup
+      .append("g")
+      .attr("class", "axis x-axis")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+
+    chartGroup
+      .append("g")
+      .attr("class", "axis y-axis")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(yScale).ticks(4));
 
     const line = d3
       .line()
@@ -146,44 +146,132 @@ const LineChartV2 = ({
       .y((d) => yScale(d.value));
 
     seriesData.forEach((series) => {
-      svg
+      chartGroup
         .append("path")
         .datum(series.values)
+        .attr("class", "data-line")
+        .attr("clip-path", "url(#chart-clip)")
         .attr("fill", "none")
-        .attr("opacity", () => {
-          return selectedLegendOptions.length === 0 ||
-            selectedLegendOptions.includes(series.values[0].group)
-            ? 1
-            : 0.3;
-        })
         .attr("stroke", colorScale(series.key))
         .attr("stroke-width", 2)
-        .attr("d", line);
+        .attr("d", line)
+        .attr("opacity", () =>
+          selectedLegendOptions.length === 0 ||
+          selectedLegendOptions.includes(series.key)
+            ? 1
+            : 0.3
+        );
+    });
 
-      svg
-        .selectAll(`.circle-${series.key}`)
+    seriesData.forEach((series) => {
+      chartGroup
+        .selectAll(`.point-${series.key}`)
         .data(series.values)
         .enter()
         .append("circle")
-        .attr("opacity", () => {
-          return selectedLegendOptions.length === 0 ||
-            selectedLegendOptions.includes(series.values[0].group)
-            ? 1
-            : 0.3;
-        })
+        .attr("class", `point-${series.key}`)
+        .attr("clip-path", "url(#chart-clip)")
         .attr("cx", (d) => xScale(d.year))
         .attr("cy", (d) => yScale(d.value))
         .attr("r", 3)
-        .attr("fill", colorScale(series.key));
+        .attr("fill", colorScale(series.key))
+        .attr("opacity", () =>
+          selectedLegendOptions.length === 0 ||
+          selectedLegendOptions.includes(series.key)
+            ? 1
+            : 0.3
+        );
     });
 
+    // Hover line and labels
+    const interactionGroup = chartGroup
+      .append("g")
+      .attr("class", "interaction-layer");
+
+    const hoverLine = interactionGroup
+      .append("line")
+      .attr("class", "hover-line")
+      .attr("stroke", "#444")
+      .attr("stroke-width", 1)
+      .attr("y1", margin.top)
+      .attr("y2", height - margin.bottom)
+      .style("display", "none");
+
+    const hoverLabels = interactionGroup
+      .append("g")
+      .attr("class", "hover-labels");
+
+    const overlay = chartGroup
+      .append("rect")
+      .attr("class", "hover-overlay")
+      .attr("x", margin.left)
+      .attr("y", margin.top)
+      .attr("width", width - margin.left - margin.right)
+      .attr("height", height - margin.top - margin.bottom)
+      .attr("fill", "transparent")
+      .style("cursor", "crosshair");
+
+    const yearToX = new Map(allYears.map((year) => [year, xScale(year)]));
+
+    const dataByGroupAndYear = new Map();
+    seriesData.forEach((series) => {
+      series.values.forEach((d) => {
+        const key = `${series.key}-${d.year}`;
+        dataByGroupAndYear.set(key, d.value);
+      });
+    });
+
+    let frameId = null;
+    overlay.on("mousemove", function (event) {
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        const [mx] = d3.pointer(event);
+        const closestYear = d3.least(allYears, (y) => Math.abs(xScale(y) - mx));
+        const x = yearToX.get(closestYear);
+        hoverLine.style("display", null).attr("x1", x).attr("x2", x);
+
+        hoverLabels.selectAll("*").remove();
+
+        seriesData.forEach((series, i) => {
+          const value = dataByGroupAndYear.get(`${series.key}-${closestYear}`);
+          if (
+            value != null &&
+            (selectedLegendOptions.length === 0 ||
+              selectedLegendOptions.includes(series.key))
+          ) {
+            const y = yScale(value);
+            hoverLabels
+              .append("circle")
+              .attr("cx", x)
+              .attr("cy", y)
+              .attr("r", 4)
+              .attr("fill", colorScale(series.key));
+
+            hoverLabels
+              .append("text")
+              .attr("x", x + 6)
+              .attr("y", y - 6)
+              .attr("fill", colorScale(series.key))
+              .attr("font-size", "10px")
+              .text(value);
+          }
+        });
+      });
+    });
+
+    overlay.on("mouseleave", () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      hoverLine.style("display", "none");
+      hoverLabels.selectAll("*").remove();
+    });
+
+    // Label simulation (same as before, if labels === "Show")
     if (labels === "Show") {
       const allLabelData = [];
-
       seriesData.forEach((series) => {
         if (
           selectedLegendOptions.length === 0 ||
-          selectedLegendOptions.includes(series.values[0].group)
+          selectedLegendOptions.includes(series.key)
         ) {
           series.values.forEach((d) => {
             allLabelData.push({
@@ -208,7 +296,7 @@ const LineChartV2 = ({
 
       for (let i = 0; i < 200; ++i) simulation.tick();
 
-      svg
+      chartGroup
         .selectAll(".point-label")
         .data(allLabelData)
         .enter()
@@ -221,7 +309,7 @@ const LineChartV2 = ({
         .attr("fill", (d) => d.color)
         .text((d) => d.text);
 
-      svg
+      chartGroup
         .selectAll(".leader-line")
         .data(allLabelData)
         .enter()
@@ -234,11 +322,54 @@ const LineChartV2 = ({
         .attr("stroke", (d) => d.color)
         .attr("stroke-width", 0.5);
     }
-  }, [data, metric, containerWidth, labels]);
+  }, [
+    data,
+    metric,
+    dimensions,
+    labels,
+    selectedLegendOptions,
+    selectedLegendDetails,
+    isInitialized,
+    renderKey,
+  ]);
 
   return (
-    <div ref={containerRef} style={{ width: "100%" }}>
-      <svg ref={svgRef} style={{ width: "100%" }} />
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%",
+        height: "100%",
+        minHeight: "320px",
+        position: "relative",
+      }}
+    >
+      <svg
+        ref={svgRef}
+        key={`chart-svg-${renderKey}`}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: isInitialized ? "block" : "none",
+        }}
+      />
+      {!isInitialized && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#666",
+            fontSize: "14px",
+          }}
+        >
+          Loading chart data...
+        </div>
+      )}
     </div>
   );
 };

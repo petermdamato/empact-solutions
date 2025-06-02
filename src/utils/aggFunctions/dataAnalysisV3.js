@@ -56,6 +56,13 @@ const offenseMap = {
   "Other Technical Violation": "Technicals",
 };
 
+// Helper to determine if youth is White or Youth of Color
+const getRaceSimplified = (race, ethnicity) => {
+  if (ethnicity === "Hispanic") return "Youth of Color";
+  if (race === "White") return "White";
+  return "Youth of Color"; // All others are Youth of Color
+};
+
 function analyzeAdmissionsOnly(
   rows,
   targetYear,
@@ -254,7 +261,7 @@ const getAgeAtAdmission = (dob, intake) => {
  *            "medianLengthOfStay", "averageDailyPopulation"
  * @param {number} year - Year to analyze
  * @param {string} groupBy - Column to group by
- *   Options: "Gender", "Age", "RaceEthnicity", "OffenseCategory",
+ *   Options: "Gender", "Age", "RaceEthnicity", "RaceSimplified", "OffenseCategory",
  *            "OffenseOverall", "Facility", "Referral_Source"
  * @param {Object} options - Additional options
  * @returns {Object} Results of the analysis
@@ -303,6 +310,7 @@ const analyzeData = (
     "Gender",
     "Age",
     "RaceEthnicity",
+    "RaceSimplified",
     "OffenseCategory",
     "OffenseOverall",
     "SimplifiedOffense",
@@ -343,6 +351,7 @@ const analyzeData = (
         : row.ATD_Entry_Date
     );
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
+    const raceSimplified = getRaceSimplified(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
     const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
       row.OffenseCategory
@@ -363,6 +372,9 @@ const analyzeData = (
         break;
       case "RaceEthnicity":
         key = raceEth;
+        break;
+      case "RaceSimplified":
+        key = raceSimplified;
         break;
       case "OffenseCategory":
         key = row.OffenseCategory || "Unknown";
@@ -393,6 +405,7 @@ const analyzeData = (
       releaseDate,
       age,
       raceEth,
+      raceSimplified,
       offenseOverall,
       simplifiedOffenseCategory,
       facility,

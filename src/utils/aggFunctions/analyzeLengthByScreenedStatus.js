@@ -7,10 +7,10 @@ const analyzeLengthByScreenedStatus = (filteredData, selectedYear) => {
 
   filteredData.forEach((row) => {
     const intake = row.Admission_Date
-      ? parse(row.Admission_Date, "MM/dd/yy", new Date())
+      ? parse(row.Admission_Date, "yyyy-MM-dd", new Date())
       : null;
     const release = row.Release_Date
-      ? parse(row.Release_Date, "MM/dd/yy", new Date())
+      ? parse(row.Release_Date, "yyyy-MM-dd", new Date())
       : null;
 
     // Only include records where both dates are in 2024

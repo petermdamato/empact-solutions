@@ -20,15 +20,38 @@ const TableCalculations = ({ data }) => {
                 <thead>
                   <tr key={index + "_" + section.category.replaceAll(" ", "-")}>
                     <th></th>
-                    <th style={{ textAlign: "right" }}>Avg.</th>
-                    <th style={{ textAlign: "right" }}>Median</th>
+                    <th
+                      style={{
+                        maxWidth: "64px",
+                        width: "64px",
+                        textAlign: "right",
+                      }}
+                    >
+                      Avg.
+                    </th>
+                    <th
+                      style={{
+                        maxWidth: "64px",
+                        paddingLeft: "6px",
+                        width: "64px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Median
+                    </th>
                   </tr>
                 </thead>
               )}
               <thead>
                 <tr key={index + "_" + section.category.replaceAll(" ", "-")}>
                   <th>{section.category}</th>
-                  <th style={{ textAlign: "right" }}>
+                  <th
+                    style={{
+                      maxWidth: "64px",
+                      width: "64px",
+                      textAlign: "right",
+                    }}
+                  >
                     {section.header["All"] && section.header["All"].average
                       ? section.header["All"].average
                       : ""}
@@ -44,7 +67,13 @@ const TableCalculations = ({ data }) => {
                       ? section.header["Other"].average
                       : ""}
                   </th>
-                  <th style={{ textAlign: "right" }}>
+                  <th
+                    style={{
+                      maxWidth: "64px",
+                      width: "64px",
+                      textAlign: "right",
+                    }}
+                  >
                     {section.header["All"] && section.header["All"].median
                       ? section.header["All"].median
                       : ""}
@@ -81,10 +110,22 @@ const TableCalculations = ({ data }) => {
                     return (
                       <tr key={catIndex}>
                         <td>{category}</td>
-                        <td style={{ textAlign: "right" }}>
+                        <td
+                          style={{
+                            maxWidth: "64px",
+                            width: "64px",
+                            textAlign: "right",
+                          }}
+                        >
                           {formatNumber(value.average)}
                         </td>
-                        <td style={{ textAlign: "right" }}>
+                        <td
+                          style={{
+                            maxWidth: "64px",
+                            width: "64px",
+                            textAlign: "right",
+                          }}
+                        >
                           {formatNumber(value.median)}
                         </td>
                       </tr>

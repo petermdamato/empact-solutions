@@ -13,6 +13,7 @@ export default function CSVUploader() {
   const { setCsvData, setValidationErrors } = useCSV();
   const [errors, setErrors] = useState([]);
   const [csvUploaded, setCsvUploaded] = useState(false);
+  const [fileType, setFileType] = useState("CSV");
 
   const validateCSV = (data) => {
     const errorCounts = {}; // { 'column|error': count }
@@ -94,12 +95,52 @@ export default function CSVUploader() {
         const data = target.result;
 
         const handleParsedData = (parsedData) => {
-          const validationErrors = validateCSV(parsedData);
+          const transformedData = parsedData.map((row) => {
+            const newRow = { ...row };
+
+            const dateFields = [
+              "Date_of_Birth",
+              "ATD_Entry_Date",
+              "Admission_Date",
+              "Release_Date",
+              "Intake_Date",
+              "ATD_Exit_Date",
+              "DispositionDate",
+            ];
+
+            dateFields.forEach((field) => {
+              if (newRow[field]) {
+                const val = newRow[field];
+
+                // If it's a number (likely Excel serial), convert to date
+                if (!isNaN(val) && typeof val === "number") {
+                  // Excel serial date to JS date
+                  const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel base date
+                  const parsedDate = new Date(
+                    excelEpoch.getTime() + val * 86400000
+                  );
+                  newRow[field] = parsedDate.toISOString().split("T")[0]; // "YYYY-MM-DD"
+                }
+
+                // If it's a string that looks like a date, parse and normalize
+                if (typeof val === "string") {
+                  const parsedDate = new Date(val);
+                  if (!isNaN(parsedDate)) {
+                    newRow[field] = parsedDate.toISOString().split("T")[0];
+                  }
+                }
+              }
+            });
+
+            return newRow;
+          });
+
+          const validationErrors = validateCSV(transformedData);
           if (validationErrors.length === 0) {
-            setCsvData(parsedData);
+            setCsvData(transformedData);
           }
         };
-
+        setFileType(file.name.split(".")[file.name.split(".").length - 1]);
         if (file.name.endsWith(".csv")) {
           Papa.parse(data, {
             header: true,
@@ -150,7 +191,7 @@ export default function CSVUploader() {
       {csvUploaded && errors.length === 0 && (
         <div>
           <div className="success-message">
-            <span>CSV uploaded successfully</span>
+            <span>{fileType.toUpperCase()} uploaded successfully</span>
             <Link href="/overview">Go to overview →</Link>
           </div>
         </div>

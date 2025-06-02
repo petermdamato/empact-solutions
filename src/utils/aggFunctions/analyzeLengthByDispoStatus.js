@@ -6,7 +6,7 @@ const analyzeLengthByDispoStatus = (
   selectedYear,
   detentionType = "secure-detention"
 ) => {
-  const format = "MM/dd/yy";
+  const format = "yyyy-MM-dd";
   // First, create a map of status -> list of lengths of stay
   const dispoGroups = {};
 
@@ -29,6 +29,7 @@ const analyzeLengthByDispoStatus = (
         ? parse(row.Release_Date, format, new Date())
         : null;
     // Only include records where both dates are in 2024
+
     if (
       intake &&
       release &&

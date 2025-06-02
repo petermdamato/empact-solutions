@@ -182,14 +182,23 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            minWidth: 0,
+          }}
+        >
           <Header
             title="Secure Detention Utilization"
             subtitle="Snapshot"
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
+            year={selectedYear}
             useDropdown
+            useLegendStatic
           >
             <DownloadButton
               elementRef={contentRef}
@@ -208,7 +217,7 @@ export default function Overview() {
                 <PillContainer
                   data={[
                     {
-                      title: "Who was in detention?",
+                      title: "Population",
                       subtitle:
                         "Showing all youth who were in detention during time period",
                       data: dataArray1,

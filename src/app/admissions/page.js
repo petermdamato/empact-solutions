@@ -18,6 +18,7 @@ import {
 import {
   chooseCategory,
   categorizeRaceEthnicity,
+  categorizeYoc,
   categorizeAge,
 } from "@/utils/categories";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
@@ -60,6 +61,7 @@ const groupReasons = (data) => {
 
   return result;
 };
+
 const groupOffenseCategories = (data) => {
   const result = {
     Felony: {},
@@ -92,6 +94,7 @@ const groupOffenseCategories = (data) => {
 
   return result;
 };
+
 export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
@@ -105,6 +108,7 @@ export default function Overview() {
     "All Program Types",
   ]);
   const [filterVariable, setFilterVariable] = useState(null);
+  const [raceType, setRaceType] = useState("RaceEthnicity");
 
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
@@ -115,19 +119,33 @@ export default function Overview() {
   const [dataArray17, setDataArray17] = useState([]);
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
+  const [raceData, setRaceData] = useState([]);
+
+  const onSelectChange = (e) => {
+    setSelectedYear(e.target.value);
+  };
 
   // Pull in for the filter of types
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
       const [key, value] = Object.entries(filterVariable)[0];
       if (key === "Race/Ethnicity") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) =>
-              categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
-              value
-          )
-        );
+        if (raceType === "RaceEthnicity") {
+          setFinalData(
+            JSON.parse(JSON.stringify(csvData)).filter(
+              (record) =>
+                categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
+                value
+            )
+          );
+        } else {
+          setFinalData(
+            JSON.parse(JSON.stringify(csvData)).filter(
+              (record) =>
+                categorizeYoc(record["Race"], record["Ethnicity"]) === value
+            )
+          );
+        }
       } else if (key === "Age") {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(
@@ -168,7 +186,7 @@ export default function Overview() {
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariable, csvData]);
+  }, [filterVariable, csvData, raceType]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -233,16 +251,30 @@ export default function Overview() {
         incarcerationType
       );
 
-      // Set overall
+      // Set race/ethnicity data for both views
+      const detailedRaceData = Object.entries(
+        detData.byGroup.RaceEthnicity
+      ).map(([race, values]) => ({
+        category: race,
+        ...values,
+      }));
 
-      const byRaceEthnicity = Object.entries(detData.byGroup.RaceEthnicity).map(
-        ([race, values]) => ({
-          category: race,
-          ...values,
-        })
+      const simplifiedRaceData = Object.entries(
+        detData.byGroup.RaceSimplified
+      ).map(([race, values]) => ({
+        category: race,
+        ...values,
+      }));
+
+      setRaceData({
+        RaceEthnicity: detailedRaceData,
+        RaceSimplified: simplifiedRaceData,
+      });
+
+      // Set current race data based on selected view
+      setDataArray13(
+        raceType === "RaceEthnicity" ? detailedRaceData : simplifiedRaceData
       );
-
-      setDataArray13(byRaceEthnicity);
 
       const byGender = Object.entries(detData.byGroup.Gender).map(
         ([gender, values]) => ({
@@ -341,16 +373,21 @@ export default function Overview() {
 
       setDataArray12(overallArrScreened);
     }
-  }, [dataArray11, calculationType]);
+  }, [dataArray11, calculationType, raceType]);
+
+  // Update dataArray13 when raceType changes
+  useEffect(() => {
+    if (raceData[raceType]) {
+      setDataArray13(raceData[raceType]);
+    }
+  }, [raceType, raceData]);
 
   return (
-    // Top-level container
     <div
       style={{ display: "flex", height: "100vh", backgroundColor: "#f5f7fa" }}
     >
       <Sidebar />
 
-      {/* Main content area */}
       <div
         style={{
           flexGrow: 1,
@@ -359,7 +396,6 @@ export default function Overview() {
           overflow: "auto",
         }}
       >
-        {/* Header */}
         <div
           style={{
             height: "60px",
@@ -369,25 +405,26 @@ export default function Overview() {
           }}
         >
           <Header
-            title={`Secure Detention Utilization`}
-            subtitle={`Admissions`}
-            dekWithYear={`Showing admissions for ${selectedYear}`}
+            title="Secure Detention Utilization"
+            subtitle="Admissions"
+            dekWithYear={`Showing admissions to secure detention for ${selectedYear}.`}
+            showFilterInstructions
+            selectedYear={selectedYear}
+            onSelectChange={onSelectChange}
+            dropdownOptions={yearsArray}
+            useDropdown
           >
-            <Selector
-              values={yearsArray}
-              variable={"Year"}
-              selectedValue={selectedYear}
-              setValue={setSelectedYear}
-            />
             <DownloadButton
               elementRef={contentRef}
-              filename="secure-detention-admissions.pdf"
+              filename={`secure-detention-admissions-${selectedYear}.pdf`}
             />
           </Header>
         </div>
 
-        {/* Charts */}
-        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
+        <div
+          ref={contentRef}
+          style={{ display: "flex", gap: "24px", padding: "24px" }}
+        >
           {/* Column 1 */}
           <div
             style={{
@@ -456,27 +493,66 @@ export default function Overview() {
           >
             {/* Entries by Race/Ethnicity */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray13.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray13}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={300}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Race/Ethnicity"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
-                      groupByKey={"Race/Ethnicity"}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "300px",
+                  width: "100%",
+                }}
+              >
+                {/* Selector for race display type */}
+                <div
+                  style={{
+                    marginBottom: "6px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "0 4px 0 4px",
+                  }}
+                >
+                  <h5 style={{ fontSize: "14px" }}>
+                    {raceType === "RaceEthnicity"
+                      ? "Admissions by Race/Ethnicity"
+                      : "Admissions by Youth of Color vs. White"}
+                  </h5>
+                  <Selector
+                    values={["RaceEthnicity", "RaceSimplified"]}
+                    variable={"calc"}
+                    selectedValue={raceType}
+                    setValue={setRaceType}
+                    labelMap={{
+                      RaceEthnicity: "Race/Ethnicity",
+                      RaceSimplified: "YOC/White",
+                    }}
+                  />
+                </div>
+                <div style={{ height: "300px", width: "100%" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    {dataArray13.length > 0 && (
+                      <StackedBarChartGeneric
+                        data={dataArray13}
+                        breakdowns={["Pre-dispo", "Post-dispo"]}
+                        height={240}
+                        margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
+                        chartTitle={
+                          raceType === "RaceEthnicity"
+                            ? "Admissions by Race/Ethnicity"
+                            : "Admissions by Race (Simplified)"
+                        }
+                        colorMapOverride={{
+                          "Pre-dispo": "#5b6069",
+                          "Post-dispo": "#d3d3d3",
+                        }}
+                        setFilterVariable={setFilterVariable}
+                        filterVariable={filterVariable}
+                        groupByKey={"Race/Ethnicity"}
+                      />
+                    )}
+                  </ResponsiveContainer>
+                </div>
               </div>
             </ChartCard>
+
             {/* Entries by Gender */}
             <ChartCard width="100%">
               <div style={{ height: "200px", width: "100%" }}>

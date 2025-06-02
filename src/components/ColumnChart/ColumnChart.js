@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import * as Constants from "./../../constants";
 
 const ColumnChart = ({
   data,
@@ -79,7 +80,9 @@ const ColumnChart = ({
       .attr("width", xScale.bandwidth())
       .attr("height", (d) => innerHeight - margin.bottom - yScale(getValue(d)))
       .attr("fill", (d) =>
-        d.label.toLowerCase().includes("pre") ? "#898989" : "#c35a58"
+        d.label.toLowerCase().includes("pre")
+          ? Constants.prePostColors.pre
+          : Constants.prePostColors.post
       );
 
     // Add text labels

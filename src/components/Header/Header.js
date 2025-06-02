@@ -1,18 +1,22 @@
 import React from "react";
 import { MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import "./Header.css";
+import Selector from "../Selector/Selector"; // Adjust path as needed
+import LegendStatic from "../LegendStatic/LegendStatic";
 
 const Header = ({
-  year = "",
+  year,
   title = "Secure Detention Utilization",
   subtitle = "Test",
   dekWithYear,
   caption = "",
   useDropdown = false,
+  useLegendStatic = false,
   selectedYear,
   onSelectChange,
   dropdownOptions,
   children,
+  showFilterInstructions = false,
 }) => {
   return (
     <header
@@ -21,10 +25,20 @@ const Header = ({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "flex-start",
+        width: "100%",
+        flexWrap: "wrap", // optional for better responsiveness
       }}
     >
       {/* Left side: Title and info */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          minWidth: 0, // prevent overflow
+        }}
+      >
         <h1 style={{ margin: 0 }}>
           {title}
           {subtitle === "" ? "" : ":"}
@@ -32,61 +46,58 @@ const Header = ({
             {subtitle}
           </span>
         </h1>
-        <h2 style={{ margin: 0 }}>
-          <span style={{ fontWeight: 200 }}>{dekWithYear}</span>
-        </h2>
+        <div style={{ display: "flex" }}>
+          {year ? (
+            <h3 style={{ margin: 0 }}>{year}</h3>
+          ) : (
+            <h4 style={{ margin: 0 }}>{dekWithYear}</h4>
+          )}
+          {showFilterInstructions && (
+            <p>
+              <span style={{ fontWeight: "bold", marginLeft: "6px" }}>
+                Click charts to filter.
+              </span>
+              {" Press [Esc] key to escape filter."}
+            </p>
+          )}
+        </div>
         {caption && <span>{caption}</span>}
-        {useDropdown && (
-          <FormControl fullWidth>
-            <InputLabel>Intake Year</InputLabel>
-            <Select
-              labelId="Select"
-              id="selector"
-              value={selectedYear}
-              onChange={onSelectChange}
-              displayEmpty
-              variant="standard"
-              sx={{
-                backgroundColor: "#fff",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-                padding: "6px 10px",
-                fontSize: "16px",
-                boxShadow: "none",
-                ".MuiOutlinedInput-notchedOutline": { border: "none" },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  border: "none",
-                },
-                "&.Mui-focused": {
-                  boxShadow: "none",
-                  borderColor: "#ccc",
-                },
-                ".MuiSelect-icon": {
-                  color: "#000",
-                },
-              }}
-              renderValue={(selected) =>
-                selected ? (
-                  selected
-                ) : (
-                  <span style={{ color: "#888" }}>-- Select a year --</span>
-                )
-              }
-            >
-              {dropdownOptions.map((entry) => (
-                <MenuItem key={entry} value={entry}>
-                  {entry}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
       </div>
-
+      {/* Middle: Dropdown */}
+      {useDropdown && (
+        <div
+          style={{
+            margin: "0 0 0 24px", // space on left and right
+            flexShrink: 0, // prevent shrinking
+          }}
+        >
+          <Selector
+            values={dropdownOptions}
+            variable="Intake Year"
+            selectedValue={selectedYear}
+            setValue={onSelectChange}
+          />
+        </div>
+      )}
+      {useLegendStatic && (
+        <div
+          style={{
+            margin: "0 24px", // space on left and right
+            flexShrink: 0, // prevent shrinking
+          }}
+        >
+          <LegendStatic type="static" />
+        </div>
+      )}
       {/* Right side: Children */}
       <div
         className="header-children"
-        style={{ display: "flex", alignItems: "center", gap: "12px" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          flexShrink: 0, // optional
+        }}
       >
         {children}
       </div>

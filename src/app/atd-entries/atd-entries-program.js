@@ -11,14 +11,12 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
-  analyzeLengthByScreenedStatus,
+  analyzeAdmissionsOnly,
   analyzeEntriesByYear,
   dataAnalysisV2,
-  analyzeLengthByProgramType,
-  analyzeLengthByDispoStatus,
 } from "@/utils/aggFunctions";
 import {
-  chooseCategoryV2 as chooseCategory,
+  chooseCategory,
   categorizeRaceEthnicity,
   categorizeYoc,
   categorizeAge,
@@ -32,20 +30,83 @@ const parseDateYear = (dateStr) => {
 
   return isNaN(year) ? null : year;
 };
+const groupReasons = (data) => {
+  const result = {
+    "New Offense": {},
+    Technical: {},
+  };
+
+  for (const [label, counts] of Object.entries(data)) {
+    let group;
+    const lower = label.toLowerCase();
+
+    if (lower.includes("felony")) {
+      group = "New Offense";
+    } else if (lower.includes("misdemeanor")) {
+      group = "New Offense";
+    } else if (label === "Status Offense") {
+      group = "New Offense";
+    } else {
+      group = "Technical";
+    }
+
+    if (!result[group]) result[group] = {};
+
+    // Sum counts into group-level counts
+    for (const [dispo, count] of Object.entries(counts)) {
+      result[group][dispo] = (result[group][dispo] || 0) + count;
+    }
+  }
+
+  return result;
+};
+const groupOffenseCategories = (data) => {
+  const result = {
+    Felony: {},
+    Misdemeanor: {},
+    "Status Offense": {},
+    Technical: {},
+  };
+
+  for (const [label, counts] of Object.entries(data)) {
+    let group;
+    const lower = label.toLowerCase();
+
+    if (lower.includes("felony")) {
+      group = "Felony";
+    } else if (lower.includes("misdemeanor")) {
+      group = "Misdemeanor";
+    } else if (label === "Status Offense") {
+      group = "Status Offense";
+    } else {
+      group = "Technical";
+    }
+
+    if (!result[group]) result[group] = {};
+
+    // Sum counts into group-level counts
+    for (const [dispo, count] of Object.entries(counts)) {
+      result[group][dispo] = (result[group][dispo] || 0) + count;
+    }
+  }
+
+  return result;
+};
 
 export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [selectedYear, setSelectedYear] = useState(2024);
-
-  const [incarcerationType] = useState("secure-detention");
+  const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType, setCalculationType] = useState("average");
-  const [programType] = useState("All Program Types");
-  const [filterVariable, setFilterVariable] = useState(null);
+  const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
+  const [programTypeArray, setProgramTypeArray] = useState([
+    "All Program Types",
+  ]);
+  const [filterVariable, setFilterVariable] = useState(null);
   const [raceType, setRaceType] = useState("RaceEthnicity");
-
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
   const [dataArray13, setDataArray13] = useState([]);
@@ -84,7 +145,11 @@ export default function Overview() {
             (record) => categorizeAge(record, incarcerationType) === value
           )
         );
-      } else if (key === "Gender" || key === "Screened/not screened") {
+      } else if (
+        key === "Gender" ||
+        key === "Screened/not screened" ||
+        key === "Facility"
+      ) {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(
             (record) => record[key] === value
@@ -120,24 +185,20 @@ export default function Overview() {
     }
   }, [filterVariable, csvData, raceType]);
 
-  // Race array 2
-  // Gender array 3
-  // Age array 4
-
   useEffect(() => {
     if (programType === "All Program Types") {
       setDataArray11([
         {
-          title: "Statistics",
-          current: analyzeEntriesByYear(
+          title: "Entries by Successfulness",
+          header: analyzeEntriesByYear(
             finalData,
             +selectedYear,
-            "secure-detention"
+            "alternative-to-detention"
           ),
-          previous: analyzeEntriesByYear(
+          body: analyzeEntriesByYear(
             finalData,
-            +selectedYear - 1,
-            "secure-detention"
+            +selectedYear,
+            "alternative-to-detention"
           ),
         },
       ]);
@@ -148,147 +209,131 @@ export default function Overview() {
 
       setDataArray11([
         {
-          title: "Average Length of Stay",
-          header: analyzeEntriesByYear(intermediate, +selectedYear),
-          current: analyzeEntriesByYear(intermediate, +selectedYear),
+          title: "Entries by Successfulness",
+          header: analyzeEntriesByYear(
+            intermediate,
+            +selectedYear,
+            "alternative-to-detention"
+          ),
+          body: analyzeEntriesByYear(
+            intermediate,
+            +selectedYear,
+            "alternative-to-detention"
+          ),
         },
       ]);
     }
-  }, [finalData, selectedYear, programType, filterVariable]);
+  }, [finalData, selectedYear, programType]);
 
   useEffect(() => {
     setYearsArray(
-      [...new Set(finalData.map((obj) => parseDateYear(obj.Admission_Date)))]
+      [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-  }, [csvData]);
+    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
+      .filter((entry) => entry !== null && entry !== "")
+      .sort((a, b) => a - b);
+
+    const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
+
+    setProgramTypeArray(programTypeArrayFinal);
+  }, [finalData]);
 
   useEffect(() => {
-    if (
-      dataArray11.length > 0 &&
-      dataArray11[0].current?.entriesByProgramType
-    ) {
-      // Set overall
-      setDataArray12(
-        analyzeLengthByProgramType(finalData, +selectedYear, incarcerationType)
+    if (dataArray11.length > 0 && dataArray11[0].body?.entriesByProgramType) {
+      const byProgramType = Object.entries(
+        dataArray11[0].body?.entriesByProgramType
+      ).map(([program, values]) => ({
+        category: program,
+        ...values,
+      }));
+
+      setDataArray12(byProgramType);
+
+      const intermediate =
+        programType === "All Program Types"
+          ? finalData
+          : finalData.filter((record) => record.Facility === programType);
+
+      const detData = analyzeAdmissionsOnly(
+        intermediate,
+        +selectedYear,
+        "alternative-to-detention"
       );
 
-      const byRaceEthnicity = Object.entries(
-        dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "RaceEthnicity",
-          "secure-detention"
-        )
-      ).map(([race, value]) => {
-        return {
-          category: race,
-          "Pre-dispo": value,
-        };
-      });
+      // Set race/ethnicity data for both views
+      const detailedRaceData = Object.entries(
+        detData.byGroup.RaceEthnicity
+      ).map(([race, values]) => ({
+        category: race,
+        ...values,
+      }));
 
-      const bySimplifiedRace = Object.entries(
-        dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "RaceSimplified",
-          "secure-detention"
-        )
-      ).map(([race, value]) => {
-        return {
-          category: race,
-          "Pre-dispo": value,
-        };
-      });
+      const simplifiedRaceData = Object.entries(
+        detData.byGroup.RaceSimplified
+      ).map(([race, values]) => ({
+        category: race,
+        ...values,
+      }));
 
       setRaceData({
-        RaceEthnicity: byRaceEthnicity,
-        RaceSimplified: bySimplifiedRace,
+        RaceEthnicity: detailedRaceData,
+        RaceSimplified: simplifiedRaceData,
       });
 
       // Set current race data based on selected view
       setDataArray13(
-        raceType === "RaceEthnicity" ? byRaceEthnicity : bySimplifiedRace
+        raceType === "RaceEthnicity" ? detailedRaceData : simplifiedRaceData
       );
 
-      const byGender = Object.entries(
-        dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "Gender",
-          "secure-detention"
-        )
-      ).map(([gender, value]) => {
-        return {
+      const byGender = Object.entries(detData.byGroup.Gender).map(
+        ([gender, values]) => ({
           category: gender,
-          "Pre-dispo": value,
-        };
-      });
+          ...values,
+        })
+      );
 
       setDataArray14(byGender);
 
-      const byAge = Object.entries(
-        dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "Age",
-          "secure-detention"
-        )
-      ).map(([age, value]) => {
-        return {
+      const byAge = Object.entries(detData.byGroup.AgeBracket).map(
+        ([age, values]) => ({
           category: age,
-          "Pre-dispo": value,
-        };
-      });
+          ...values,
+        })
+      );
 
       setDataArray15(byAge);
 
-      const categories = Object.entries(
-        dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "SimplifiedOffense",
-          "secure-detention"
-        )
-      ).map(([cat, value]) => {
-        return {
-          category: cat,
-          "Pre-dispo": value,
-        };
-      });
+      const categories = groupOffenseCategories(
+        detData.byGroup.OffenseCategory
+      );
+      const byOffenseCategory = Object.entries(categories).map(
+        ([offense, values]) => ({
+          category: offense,
+          ...values,
+        })
+      );
 
-      setDataArray16(categories);
+      setDataArray16(byOffenseCategory);
 
-      const byReasons = Object.entries(
-        dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "OffenseOverall",
-          "secure-detention"
-        )
-      ).map(([cat, value]) => {
-        return {
-          category: cat,
-          "Pre-dispo": value,
-        };
-      });
+      const byReasons = groupReasons(detData.byGroup.OffenseCategory);
+      const groupedByReasons = Object.entries(byReasons).map(
+        ([offense, values]) => ({
+          category: offense,
+          ...values,
+        })
+      );
 
-      setDataArray18(byReasons);
+      setDataArray18(groupedByReasons);
 
       const byJurisdiction = Object.entries(
         dataAnalysisV2(
-          finalData,
-          `${calculationType}LengthOfStay`,
+          intermediate,
+          `countAdmissions`,
           +selectedYear,
           "simplifiedReferralSource",
-          "secure-detention"
+          "alternative-to-detention"
         )
       ).map(([cat, value]) => {
         return {
@@ -299,23 +344,14 @@ export default function Overview() {
 
       setDataArray17(byJurisdiction);
 
-      const byStatus = analyzeLengthByDispoStatus(
-        finalData,
-        +selectedYear,
-        "secure-detention"
-      );
       let overallArr = [];
 
-      byStatus.forEach((status) => {
+      Object.keys(detData.overall).forEach((source) => {
         overallArr.push({
-          category: status.category,
-          value:
-            calculationType === "average"
-              ? Math.round(status.averageLengthOfStay * 10) / 10
-              : status.medianLengthOfStay,
+          category: source,
+          value: detData.overall[source],
         });
       });
-
       const totalSum = overallArr.reduce(
         (accumulator, currentValue) => accumulator + currentValue.value,
         0
@@ -327,43 +363,15 @@ export default function Overview() {
       });
 
       setDataArray19(overallArr);
-
-      const byScreenedStatus = analyzeLengthByScreenedStatus(
-        finalData,
-        +selectedYear
-      );
-      let overallArrScreened = [];
-
-      byScreenedStatus.forEach((status) => {
-        overallArrScreened.push({
-          category: status.category,
-          value:
-            calculationType === "average"
-              ? Math.round(status.averageLengthOfStay * 10) / 10
-              : status.medianLengthOfStay,
-        });
-      });
-
-      const totalSumScreened = overallArrScreened.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.value,
-        0
-      );
-
-      overallArrScreened.map((entry) => {
-        entry.percentage = entry.value / totalSumScreened;
-        return entry;
-      });
-
-      setDataArray12(overallArrScreened);
     }
-  }, [dataArray11, calculationType, raceType]);
+  }, [dataArray11, calculationType, raceType, programType]);
 
   // Update dataArray13 when raceType changes
   useEffect(() => {
     if (raceData[raceType]) {
       setDataArray13(raceData[raceType]);
     }
-  }, [raceType, raceData]);
+  }, [raceType, raceData, programType]);
 
   return (
     // Top-level container
@@ -392,12 +400,12 @@ export default function Overview() {
         >
           <Header
             title={`${
-              incarcerationType === "secure-detention"
-                ? "Secure Detention Utilization"
+              incarcerationType === "alternative-to-detention"
+                ? "ATD Utilization"
                 : incarcerationType
             }`}
-            subtitle={`Average LOS`}
-            dekWithYear={`Showing LOS in secure detention for ${selectedYear}`}
+            subtitle={`Entries - All Programs`}
+            dekWithYear={`Showing entries to ATDs for ${selectedYear}`}
           >
             <Selector
               values={yearsArray}
@@ -406,14 +414,14 @@ export default function Overview() {
               setValue={setSelectedYear}
             />
             <Selector
-              values={["average", "median"]}
-              variable={"Calculation"}
-              selectedValue={calculationType}
-              setValue={setCalculationType}
-            />
+              values={programTypeArray}
+              variable={"Program Type"}
+              selectedValue={programType}
+              setValue={setProgramType}
+            />{" "}
             <DownloadButton
               elementRef={contentRef}
-              filename="secure-detention-length-of-stay.pdf"
+              filename="alternative-to-detention-entries.pdf"
             />
           </Header>
         </div>
@@ -438,39 +446,33 @@ export default function Overview() {
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
                     data={[
-                      Math.round(
-                        dataArray11[0]?.current[
-                          calculationType === "average"
-                            ? "avgLengthOfStay"
-                            : "medianLengthOfStay"
-                        ] * 10
-                      ) / 10,
-                      Math.round(
-                        dataArray11[0]?.previous[
-                          calculationType === "average"
-                            ? "avgLengthOfStay"
-                            : "medianLengthOfStay"
-                        ] * 10
-                      ) / 10,
+                      dataArray11[0]?.body?.totalEntries,
+                      dataArray11[0]?.body?.previousTotalEntries,
                     ]}
                   />
                 </ResponsiveContainer>
               </div>
             </ChartCard>
 
-            {/* LOS by Screened Type */}
+            {/* Entries by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "400px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray12}
-                    year={selectedYear}
-                    groupByKey={"Screened/not screened"}
-                    type={"secure-detention"}
-                    chartTitle={"LOS by screened/not screened"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
+                  {dataArray12.length > 0 && (
+                    <StackedBarChartGeneric
+                      data={dataArray12}
+                      breakdowns={["total"]}
+                      height={400}
+                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      chartTitle={"Entries by ATD Program Type"}
+                      colorMapOverride={{
+                        total: "#5b6069",
+                      }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Facility"}
+                    />
+                  )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
@@ -482,10 +484,10 @@ export default function Overview() {
                     records={dataArray19}
                     year={selectedYear}
                     groupByKey={"Pre/post-dispo filter"}
-                    type={"secure-detention"}
-                    chartTitle={"LOS by Pre/Post-Dispo"}
-                    setFilterVariable={setFilterVariable}
+                    type={"alternative-to-detention"}
+                    title={"Entries by Pre/Post-Dispo"}
                     filterVariable={filterVariable}
+                    setFilterVariable={setFilterVariable}
                   />
                 </ResponsiveContainer>
               </div>
@@ -522,8 +524,8 @@ export default function Overview() {
                 >
                   <h5 style={{ fontSize: "14px" }}>
                     {raceType === "RaceEthnicity"
-                      ? "LOS by Race/Ethnicity"
-                      : "LOS by Youth of Color vs. White"}
+                      ? "Entries by Race/Ethnicity"
+                      : "Entries by Youth of Color vs. White"}
                   </h5>
                   <Selector
                     values={["RaceEthnicity", "RaceSimplified"]}
@@ -546,8 +548,8 @@ export default function Overview() {
                         margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
-                            ? "LOS by Race/Ethnicity"
-                            : "LOS by Race (Simplified)"
+                            ? "Entries by Race/Ethnicity"
+                            : "Entries by Race (Simplified)"
                         }
                         colorMapOverride={{
                           "Pre-dispo": "#5b6069",
@@ -562,7 +564,7 @@ export default function Overview() {
                 </div>
               </div>
             </ChartCard>
-            {/* LOS by Gender */}
+            {/* Entries by Gender */}
             <ChartCard width="100%">
               <div style={{ height: "200px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -572,7 +574,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"LOS by Gender"}
+                      chartTitle={"Entries by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -585,21 +587,17 @@ export default function Overview() {
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* LOS by Age */}
+            {/* Entries by Age */}
             <ChartCard width="100%">
               <div style={{ height: "200px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray15.length > 0 && (
                     <StackedBarChartGeneric
-                      data={dataArray15.filter(
-                        (entry) =>
-                          entry.category !== "null" &&
-                          entry.category !== "Unknown"
-                      )}
+                      data={dataArray15}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"LOS by Age"}
+                      chartTitle={"Entries by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -622,7 +620,7 @@ export default function Overview() {
               gap: "24px",
             }}
           >
-            {/* LOS by Reason */}
+            {/* Entries by Reason */}
             <ChartCard width="100%">
               <div style={{ height: "260px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -632,7 +630,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"LOS by Reason for Detention"}
+                      chartTitle={"Entries by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -645,7 +643,7 @@ export default function Overview() {
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* LOS by Category */}
+            {/* Entries by Category */}
             <ChartCard width="100%">
               <div style={{ height: "260px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -655,7 +653,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"LOS by Offense Category (pre-dispo)"}
+                      chartTitle={"Entries by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -669,7 +667,7 @@ export default function Overview() {
               </div>
             </ChartCard>
 
-            {/* LOS by Jurisdiction */}
+            {/* Entries by Jurisdiction */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -679,7 +677,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={300}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"LOS by Jurisdiction (Pre-dispo)"}
+                      chartTitle={"Entries by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",

@@ -6,7 +6,7 @@ function analyzeDailyPopByDispoStatus(
   selectedYear,
   detentionType = "alternative-to-detention"
 ) {
-  const format = "MM/dd/yy";
+  const format = "yyyy-MM-dd";
 
   // Get all days in the year
   const allDays = eachDayOfInterval({

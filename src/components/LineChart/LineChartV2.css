@@ -1,0 +1,10 @@
+.grid-lines line {
+  stroke: #e0e0e0 !important;
+  stroke-width: 1px !important;
+  opacity: 1 !important;
+  vector-effect: non-scaling-stroke;
+}
+
+.grid-lines {
+  pointer-events: none;
+}

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
+import Selector from "../Selector/Selector";
 
 const defaultColorPalette = [
   "#5b6069",
@@ -22,6 +23,8 @@ const StackedBarChartGeneric = ({
   filterVariable,
   setFilterVariable,
   groupByKey,
+  // For selection menu
+  hasSelector = false,
 }) => {
   const svgRef = useRef();
   const [parentWidth, setParentWidth] = useState(0);
@@ -95,7 +98,10 @@ const StackedBarChartGeneric = ({
 
     const chart = svg
       .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+      .attr(
+        "transform",
+        `translate(${margin.left},${hasSelector ? -10 : margin.top})`
+      );
 
     const getTotalValue = (d) =>
       breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0);
@@ -211,14 +217,16 @@ const StackedBarChartGeneric = ({
       });
     });
 
-    // Add chart title
-    chart
-      .append("text")
-      .attr("x", -margin.left + 20)
-      .attr("y", -10)
-      .text(chartTitle)
-      .style("font-size", 14)
-      .style("font-weight", "bold");
+    if (!hasSelector) {
+      // Add chart title
+      chart
+        .append("text")
+        .attr("x", -margin.left + 20)
+        .attr("y", -10)
+        .text(chartTitle)
+        .style("font-size", 14)
+        .style("font-weight", "bold");
+    }
 
     // Add y-axis
     axisLayer

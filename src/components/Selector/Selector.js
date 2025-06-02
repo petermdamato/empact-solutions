@@ -1,10 +1,10 @@
-const Selector = ({ values, variable, selectedValue, setValue }) => {
+const Selector = ({ values, variable, selectedValue, setValue, labelMap }) => {
   const handleChange = (e) => {
     const value = e.target.value;
     setValue(value);
   };
 
-  if (!values || values.length === 0) return;
+  if (!values || values.length === 0) return null;
 
   return (
     <div className="flex flex-col">
@@ -26,9 +26,9 @@ const Selector = ({ values, variable, selectedValue, setValue }) => {
           }}
           onChange={handleChange}
         >
-          {values.map((year) => (
-            <option key={year} value={year}>
-              {year}
+          {values.map((value) => (
+            <option key={value} value={value}>
+              {labelMap && labelMap[value] ? labelMap[value] : value}
             </option>
           ))}
         </select>
