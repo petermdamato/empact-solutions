@@ -134,6 +134,19 @@ const StackedBarChartGeneric = ({
       }
     };
 
+    const handleDirectClick = (cat) => {
+      const selectedValue = cat.category;
+      const currentKey = Object.keys(filterVariable || {})[0];
+      const currentValue = filterVariable?.[currentKey];
+      const isSameSelection =
+        currentKey === groupByKey && currentValue === selectedValue;
+      if (isSameSelection) {
+        setFilterVariable(null);
+      } else {
+        setFilterVariable({ [groupByKey]: selectedValue });
+      }
+    };
+
     // Create layers for proper z-index ordering
     const backgroundLayer = chart.append("g").attr("class", "background-layer");
     const barsLayer = chart.append("g").attr("class", "bars-layer");
@@ -165,7 +178,7 @@ const StackedBarChartGeneric = ({
 
     finalFilteredData.forEach((d) => {
       let xOffset = 0;
-
+      const cat = d;
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
         const width = xScale(value) > 0 ? Math.max(xScale(value), 2) : 0;
@@ -187,6 +200,9 @@ const StackedBarChartGeneric = ({
           })
           .on("mouseout", () => {
             tooltip.style("opacity", 0);
+          })
+          .on("click", () => {
+            handleDirectClick(cat);
           });
 
         // Label logic...

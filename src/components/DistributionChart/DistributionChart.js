@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import { dateDiff } from "./../../utils/dateDiff";
 import Selector from "../Selector/Selector";
 import LegendLines from "../LegendLines/LegendLines";
+import { LucideAlignHorizontalDistributeStart } from "lucide-react";
 
 const getBucketForRecord = (d, filterDimension) => {
   switch (filterDimension) {
@@ -142,6 +143,7 @@ const expandedColors = (
           "Native Hawaiian or Pacific Islander": "#5b8a72",
           "Two or more races": "#c02828",
           Unknown: "#ccc",
+          Other: "#ccc",
         };
 
       case "Age at entry":
@@ -174,14 +176,15 @@ const expandedColors = (
           Technical: "#c02828",
           Other: "#ccc",
         };
-
+      case "Pre/post-dispo":
+        return { "Pre-dispo": "#006890", "Post-dispo": "#ff7b00" };
       default:
         return { all: "#006890" };
     }
   }
 
   if (exploreType === "Pre/post-dispo") {
-    return { pre: "#006890", post: "#ff7b00" };
+    return { "Pre-dispo": "#006890", "Post-dispo": "#ff7b00" };
   }
 
   return { all: "#006890" };
@@ -197,8 +200,8 @@ const colors = (
       }
     : exploreType === "Pre/post-dispo"
     ? {
-        pre: "#006890",
-        post: "#ff7b00",
+        "Pre-dispo": "#006890",
+        "Post-dispo": "#ff7b00",
       }
     : {
         all: "#006890",
@@ -235,9 +238,13 @@ const DistributionChart = (records) => {
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({
     width: 600,
-    height: 400,
+    height: 300,
   });
   const [tooltip, setTooltip] = useState(null);
+  const legendHeight =
+    records.legendOptions && records.legendOptions.length > 0
+      ? records.legendOptions.length * 24
+      : 0;
 
   const colorScale = colors(records.detentionType, records.exploreType);
   const colorMap = expandedColors(
@@ -249,18 +256,18 @@ const DistributionChart = (records) => {
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
-        const height = Math.round(window.innerHeight) - 200;
+        const height = Math.round(window.innerHeight) - 200 - legendHeight;
         const width = containerRef.current.clientWidth;
         setDimensions({ width, height });
       }
     };
 
-    handleResize();
+    handleResize(); // initial
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [records.legendOptions]);
 
-  const margin = { top: 40, right: 10, bottom: 40, left: 10 };
+  const margin = { top: 0, right: 10, bottom: 40, left: 10 };
   const { width, height } = dimensions;
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -269,6 +276,29 @@ const DistributionChart = (records) => {
 
   // Process data and group by length of stay
   const dataCopy = [...records.data];
+
+  useEffect(() => {
+    if (records.filterDimension && records.filterDimension.length > 0) {
+      console.log(records.filterDimension);
+      const legendVals = getLegendValues(dataCopy, records.filterDimension);
+      records.setLegendOptions?.(legendVals);
+      records.setSelectedLegendOptions([]);
+    }
+  }, [records.data, records.filterDimension]);
+
+  useEffect(() => {
+    if (
+      records.detentionType === "secure-detention" &&
+      records.exploreType &&
+      records.exploreType.length > 0
+    ) {
+      console.log(records.exploreType);
+      const legendVals = getLegendValues(dataCopy, records.exploreType);
+      records.setLegendOptions?.(legendVals);
+      records.setSelectedLegendOptions([]);
+    }
+  }, [records.data, records.exploreType]);
+
   const filteredData = dataCopy.filter((record) => {
     return (
       getYear(
@@ -375,7 +405,50 @@ const DistributionChart = (records) => {
           />
         </div>
       )}
-
+      {records.legendOptions &&
+        records.legendOptions.map((option) => {
+          return (
+            <div
+              key={option}
+              onClick={() => {
+                records.setSelectedLegendOptions((prev) =>
+                  prev.includes(option)
+                    ? prev.filter((item) => item !== option)
+                    : [...prev, option]
+                );
+              }}
+              style={{
+                padding: "4px 0.8rem",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                gap: "4px",
+              }}
+            >
+              <div
+                style={{
+                  background: colorMap[option],
+                  opacity:
+                    !records.selectedLegendOptions ||
+                    records.selectedLegendOptions.length === 0 ||
+                    records.selectedLegendOptions.includes(option)
+                      ? 1
+                      : 0.3,
+                  height: "16px",
+                  width: "16px",
+                  content: "",
+                }}
+              ></div>
+              <span>
+                {option === "1"
+                  ? "Successful"
+                  : option === "0"
+                  ? "Unsuccessful"
+                  : option}
+              </span>
+            </div>
+          );
+        })}
       <svg width={width} height={height}>
         <g transform={`translate(${margin.left},${margin.top})`}>
           {dataWithGroups.map((d) => {
@@ -397,15 +470,37 @@ const DistributionChart = (records) => {
                   height={barHeight}
                   fill={
                     records.detentionType === "alternative-to-detention"
-                      ? colorMap[getBucketForRecord(d, records.filterDimension)]
+                      ? colorMap[
+                          records.filterDimension === "Pre/post-dispo"
+                            ? d["Post-Dispo Stay Reason"] === null ||
+                              d["Post-Dispo Stay Reason"] === ""
+                              ? "Pre-dispo"
+                              : "Post-dispo"
+                            : getBucketForRecord(d, records.filterDimension)
+                        ]
                       : colorScale[
                           records.exploreType === "Pre/post-dispo"
                             ? d["Post-Dispo Stay Reason"] === null ||
                               d["Post-Dispo Stay Reason"] === ""
-                              ? "pre"
-                              : "post"
+                              ? "Pre-dispo"
+                              : "Post-dispo"
                             : "all"
                         ]
+                  }
+                  opacity={
+                    !records.selectedLegendOptions ||
+                    records.selectedLegendOptions.length === 0 ||
+                    records.selectedLegendOptions.includes(
+                      records.filterDimension === "Pre/post-dispo" ||
+                        records.exploreType === "Pre/post-dispo"
+                        ? d["Post-Dispo Stay Reason"] === null ||
+                          d["Post-Dispo Stay Reason"] === ""
+                          ? "Pre-dispo"
+                          : "Post-dispo"
+                        : getBucketForRecord(d, records.filterDimension)
+                    )
+                      ? 1
+                      : 0.3
                   }
                   rx={4}
                 />
@@ -488,17 +583,6 @@ const DistributionChart = (records) => {
           </text>
         </g>
       </svg>
-      {/* {records.filterDimension !== "all" && (
-        <>
-          <LegendLines
-            options={getLegendValues(records.data, records.filterDimension)}
-            selectedOptions={records.selectedLegendOptions}
-            setSelectedOptions={records.setSelectedLegendOptions}
-            setSelectedLegendDetails={records.setSelectedLegendDetails}
-          />
-        </>
-      )} */}
-
       {/* Tooltip */}
       {tooltip && (
         <div

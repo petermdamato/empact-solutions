@@ -451,14 +451,14 @@ export default function Overview() {
 
             {/* Entries by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "400px", width: "100%" }}>
+              <div style={{ height: "340px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray12.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray12}
                       breakdowns={["total"]}
-                      height={400}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      height={340}
+                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
                       chartTitle={"Entries by ATD Program Type"}
                       colorMapOverride={{
                         total: "#5b6069",
@@ -504,7 +504,7 @@ export default function Overview() {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  height: "300px",
+                  height: "270px",
                   width: "100%",
                 }}
               >
@@ -533,13 +533,13 @@ export default function Overview() {
                     }}
                   />
                 </div>
-                <div style={{ height: "300px", width: "100%" }}>
+                <div style={{ height: "270px", width: "100%" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
                         breakdowns={["Pre-dispo", "Post-dispo"]}
-                        height={240}
+                        height={220}
                         margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
@@ -561,13 +561,13 @@ export default function Overview() {
             </ChartCard>
             {/* Entries by Gender */}
             <ChartCard width="100%">
-              <div style={{ height: "200px", width: "100%" }}>
+              <div style={{ height: "180px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={200}
+                      height={180}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                       chartTitle={"Entries by Gender"}
                       colorMapOverride={{
@@ -617,14 +617,14 @@ export default function Overview() {
           >
             {/* Entries by Reason */}
             <ChartCard width="100%">
-              <div style={{ height: "260px", width: "100%" }}>
+              <div style={{ height: "180px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      height={180}
+                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
                       chartTitle={"Entries by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
@@ -664,14 +664,14 @@ export default function Overview() {
 
             {/* Entries by Jurisdiction */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "250px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
-                      height={300}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      height={250}
+                      margin={{ top: 20, right: 20, bottom: 10, left: 20 }}
                       chartTitle={"Entries by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",

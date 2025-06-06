@@ -16,7 +16,7 @@
   margin-bottom: 8px;
 }
 .pill-header-transparent {
-  background: none;
+  background: none !important;
   align-items: left;
   padding: 4px 2px 2px 14px;
   height: 36px;

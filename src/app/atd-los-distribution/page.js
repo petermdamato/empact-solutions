@@ -45,8 +45,8 @@ export default function Overview() {
     "All Program Types",
   ]);
   const [filterDimension, setFilterDimension] = useState("Successfulness");
-  // const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
-  // const [selectedLegendDetails, setSelectedLegendDetails] = useState([]);
+  const [legendOptions, setLegendOptions] = useState([]);
+  const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
 
   // Memoize the filter dimension setter
   const memoizedSetFilterDimension = useCallback((dimension) => {
@@ -148,6 +148,10 @@ export default function Overview() {
                         setFilterDimension: memoizedSetFilterDimension,
                       },
                     ]}
+                    legendOptions={legendOptions}
+                    selectedLegendOptions={selectedLegendOptions}
+                    setLegendOptions={setLegendOptions}
+                    setSelectedLegendOptions={setSelectedLegendOptions}
                   />
                 )}
               </div>
@@ -168,6 +172,7 @@ export default function Overview() {
                         filterDimension,
                       },
                     ]}
+                    selectedLegendOptions={selectedLegendOptions}
                   />
                 )}
               </div>

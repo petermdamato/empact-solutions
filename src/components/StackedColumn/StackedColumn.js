@@ -73,6 +73,8 @@ const colors = (
           Technical: "#c02828",
           Other: "#ccc",
         };
+      case "Pre/post-dispo":
+        return { "Pre-dispo": "#006890", "Post-dispo": "#ff7b00" };
 
       default:
         return { all: "#006890" };
@@ -80,7 +82,7 @@ const colors = (
   }
 
   if (exploreType === "Pre/post-dispo") {
-    return { pre: "#006890", post: "#ff7b00" };
+    return { "Pre-dispo": "#006890", "Post-dispo": "#ff7b00" };
   }
 
   return { all: "#006890" };
@@ -94,6 +96,7 @@ const StackedColumnChart = ({
   exploreType,
   useFilterDropdown = false,
   filterDimension,
+  selectedLegendOptions,
 }) => {
   const ref = useRef();
   const [tooltip, setTooltip] = useState(null);
@@ -156,6 +159,14 @@ const StackedColumnChart = ({
               : d.ATD_Successful_Exit === "0"
               ? "0"
               : "";
+          break;
+        }
+        case "Pre/post-dispo": {
+          groupKey =
+            d["Post-Dispo Stay Reason"] === null ||
+            d["Post-Dispo Stay Reason"] === ""
+              ? "Pre-dispo"
+              : "Post-dispo";
           break;
         }
 
@@ -244,11 +255,12 @@ const StackedColumnChart = ({
       if (!grouped[bucket][groupKey]) grouped[bucket][groupKey] = 0;
       grouped[bucket][groupKey]++;
     } else if (exploreType === "Pre/post-dispo") {
-      const dispo = !d["Post-Dispo Stay Reason"] ? "pre" : "post";
-      groupKeySet.add("pre");
-      groupKeySet.add("post");
+      const dispo = !d["Post-Dispo Stay Reason"] ? "Pre-dispo" : "Post-dispo";
+      groupKeySet.add("Pre-dispo");
+      groupKeySet.add("Post-dispo");
 
-      if (!grouped[bucket]) grouped[bucket] = { pre: 0, post: 0 };
+      if (!grouped[bucket])
+        grouped[bucket] = { "Pre-dispo": 0, "Post-dispo": 0 };
       grouped[bucket][dispo]++;
     } else {
       groupKeySet.add("all");
@@ -287,13 +299,12 @@ const StackedColumnChart = ({
     .range([innerHeight, 0]);
 
   const handleMouseOver = (event, d) => {
-    console.log(d);
     const keys = Object.keys(d).filter(
       (entry) => entry !== "bucket" && entry !== "total"
     );
 
     const bounds = ref.current.getBoundingClientRect();
-    console.log(keys);
+
     setTooltip({
       x: event.clientX - bounds.left,
       y: event.clientY - bounds.top,
@@ -369,6 +380,12 @@ const StackedColumnChart = ({
                     fill={colorScale[layer.key]}
                     onMouseOver={(e) => handleMouseOver(e, d)}
                     onMouseOut={handleMouseOut}
+                    opacity={
+                      selectedLegendOptions.length === 0 ||
+                      selectedLegendOptions.includes(layer.key)
+                        ? 1
+                        : 0.3
+                    }
                   />
                   {barHeight > 18 && (
                     <text

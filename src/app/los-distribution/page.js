@@ -28,6 +28,8 @@ export default function Overview() {
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
+  const [legendOptions, setLegendOptions] = useState([]);
+  const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
 
   useEffect(() => {
     setDataArray1([
@@ -106,6 +108,10 @@ export default function Overview() {
                     exploreType: [exploreType],
                   },
                 ]}
+                legendOptions={legendOptions}
+                selectedLegendOptions={selectedLegendOptions}
+                setLegendOptions={setLegendOptions}
+                setSelectedLegendOptions={setSelectedLegendOptions}
               />
             )}
             {dataArray2 && (
@@ -123,6 +129,7 @@ export default function Overview() {
                     exploreType: [exploreType],
                   },
                 ]}
+                selectedLegendOptions={selectedLegendOptions}
               />
             )}
           </div>

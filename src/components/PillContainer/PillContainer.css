@@ -3,7 +3,7 @@
   gap: 4px;
   padding: 8px;
   flex-wrap: wrap; /* Allow wrapping when the container shrinks */
-  height: 100%; /* Full height */
+  height: 90vh; /* Full height */
 }
 
 .pill-container > * {

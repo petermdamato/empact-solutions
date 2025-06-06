@@ -15,7 +15,14 @@ import TableComponent from "../Table/Table";
 import TableCalculations from "../Table/TableCalculations";
 import "./PillContainer.css";
 
-const PillContainer = ({ data, display }) => {
+const PillContainer = ({
+  data,
+  display,
+  legendOptions,
+  selectedLegendOptions,
+  setLegendOptions,
+  setSelectedLegendOptions,
+}) => {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
@@ -125,10 +132,10 @@ const PillContainer = ({ data, display }) => {
                 useFilterDropdown={outer.useFilterDropdown}
                 filterDimension={outer.filterDimension}
                 setFilterDimension={outer.setFilterDimension}
-                selectedLegendOptions={outer.selectedLegendOptions}
-                selectedLegendDetails={outer.selectedLegendDetails}
-                setSelectedLegendOptions={outer.setSelectedLegendOptions}
-                setSelectedLegendDetails={outer.setSelectedLegendDetails}
+                legendOptions={legendOptions}
+                selectedLegendOptions={selectedLegendOptions}
+                setLegendOptions={setLegendOptions}
+                setSelectedLegendOptions={setSelectedLegendOptions}
               />
             ) : outer.charts[i] === "stacked-column" ? (
               <StackedColumnChart
@@ -143,6 +150,7 @@ const PillContainer = ({ data, display }) => {
                 exploreType={outer.exploreType ? outer.exploreType[i] : null}
                 useFilterDropdown={outer.useFilterDropdown}
                 filterDimension={outer.filterDimension}
+                selectedLegendOptions={selectedLegendOptions}
               />
             ) : outer.charts[i] === "pie" ? (
               <PieChart

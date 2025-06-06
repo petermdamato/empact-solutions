@@ -8,7 +8,6 @@ line {
 }
 
 .noselect {
-  pointer-events: none;
   user-select: none;
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
@@ -17,7 +16,6 @@ line {
 
 /* For SVG text elements specifically */
 svg text {
-  pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
