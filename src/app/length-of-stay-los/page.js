@@ -57,6 +57,21 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   // Pull in for the filter of types
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
@@ -380,6 +395,7 @@ export default function Overview() {
           flexDirection: "column",
           overflow: "auto",
         }}
+        ref={contentRef}
       >
         {/* Header */}
         <div
@@ -398,6 +414,7 @@ export default function Overview() {
             }`}
             subtitle={`Average LOS`}
             dekWithYear={`Showing LOS in secure detention for ${selectedYear}`}
+            showFilterInstructions
           >
             <Selector
               values={yearsArray}
@@ -413,16 +430,13 @@ export default function Overview() {
             />
             <DownloadButton
               elementRef={contentRef}
-              filename="secure-detention-length-of-stay.pdf"
+              filename={`secure-detention-length-of-stay-${selectedYear}.pdf`}
             />
           </Header>
         </div>
 
         {/* Charts */}
-        <div
-          style={{ display: "flex", gap: "24px", padding: "24px" }}
-          ref={contentRef}
-        >
+        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
           {/* Column 1 */}
           <div
             style={{
@@ -619,7 +633,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "4px",
             }}
           >
             {/* LOS by Reason */}

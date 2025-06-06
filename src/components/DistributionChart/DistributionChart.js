@@ -1,6 +1,107 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { dateDiff } from "./../../utils/dateDiff";
+import Selector from "../Selector/Selector";
+import LegendLines from "../LegendLines/LegendLines";
+
+const getBucketForRecord = (d, filterDimension) => {
+  switch (filterDimension) {
+    case "Age at entry": {
+      const dob = new Date(d.Date_of_Birth);
+      const entry = new Date(d.ATD_Entry_Date);
+      if (isNaN(dob) || isNaN(entry)) return "Unknown";
+
+      const age =
+        entry.getFullYear() -
+        dob.getFullYear() -
+        (entry < new Date(entry.getFullYear(), dob.getMonth(), dob.getDate())
+          ? 1
+          : 0);
+
+      if (isNaN(age)) return "Unknown";
+      if (age <= 10) return "10 and younger";
+      if (age <= 13) return "11-13";
+      if (age <= 17) return "14-17";
+      return "18+";
+    }
+
+    case "YOC/white": {
+      const isWhite =
+        (d.Ethnicity || "").toLowerCase() === "non hispanic" &&
+        (d.Race || "").toLowerCase() === "white";
+      return isWhite ? "White" : "YOC";
+    }
+
+    case "Race/Ethnicity": {
+      const isHispanic =
+        d.Ethnicity.toLowerCase() === "hispanic" && d.Race.trim() === "White";
+      return isHispanic
+        ? "Hispanic"
+        : d.Race && d.Race.trim() !== ""
+        ? d.Race
+        : "Unknown";
+    }
+
+    case "Offense category (pre-dispo)": {
+      const reason = d["Post-Dispo Stay Reason"];
+      const offense = (d.OffenseCategory || "").toLowerCase();
+
+      if (reason && reason.trim() !== "") return "Other";
+      if (offense.includes("felony")) return "Felony";
+      if (offense.includes("misdemeanor")) return "Misdemeanor";
+      if (offense === "status offense") return "Status Offense";
+      return "Technical";
+    }
+
+    case "Gender": {
+      return d.Gender && d.Gender.trim() !== "" ? d.Gender : "Unknown";
+    }
+    case "Successfulness": {
+      return d["ATD_Successful_Exit"];
+    }
+
+    default:
+      return "all";
+  }
+};
+
+const getLegendValues = (data, dimension) => {
+  switch (dimension.toLowerCase()) {
+    case "successfulness":
+      return ["0", "1"];
+    case "race/ethnicity":
+      return [
+        "African American or Black",
+        "White",
+        "Hispanic",
+        "Asian",
+        "Other",
+      ];
+    case "age at entry":
+      return ["10 and younger", "11-13", "14-17", "18+"];
+    case "yoc/white":
+      return ["YOC", "White"];
+    case "pre/post-dispo":
+      return ["Pre-dispo", "Post-dispo"];
+    case "offense category (pre-dispo)":
+      return ["Felony", "Misdemeanor", "Technical", "Other"];
+    case "gender":
+      return [...new Set(data.map((d) => d.Gender))];
+    default:
+      return [];
+  }
+};
+
+const FILTER_DIMENSIONS = [
+  "Overall Total",
+  "Pre/post-dispo",
+  "YOC/white",
+  "Race/Ethnicity",
+  "Successfulness",
+  "Gender",
+  "Offense category (pre-dispo)",
+  "Age at entry",
+];
 
 const calculateLengthOfStay = (record, detentionType) => {
   const exitDate =
@@ -21,7 +122,70 @@ const calculateLengthOfStay = (record, detentionType) => {
     ? Math.ceil(dateDiff(admissionDate, exitDate, "days"))
     : null;
 };
+const expandedColors = (
+  detentionType = "alternative-to-detention",
+  exploreType = "Overall Total",
+  filterDimension = "Successfulness"
+) => {
+  if (detentionType === "alternative-to-detention") {
+    switch (filterDimension) {
+      case "Successfulness":
+        return { 1: "#006890", 0: "#ff7b00" };
 
+      case "Race/Ethnicity":
+        return {
+          Hispanic: "#006890",
+          White: "#73c5e1",
+          "African American or Black": "#ff7b00",
+          Asian: "#fcb953",
+          "American Indian or Alaska Native": "#9b4dca",
+          "Native Hawaiian or Pacific Islander": "#5b8a72",
+          "Two or more races": "#c02828",
+          Unknown: "#ccc",
+        };
+
+      case "Age at entry":
+        return {
+          "10 and younger": "#73c5e1",
+          "11-13": "#fcb953",
+          "14-17": "#ff7b00",
+          "18+": "#c02828",
+          Unknown: "#ccc",
+        };
+
+      case "Gender":
+        return {
+          Male: "#006890",
+          Female: "#ff7b00",
+          Unknown: "#ccc",
+        };
+
+      case "YOC/white":
+        return {
+          White: "#006890",
+          YOC: "#ff7b00",
+        };
+
+      case "Offense category (pre-dispo)":
+        return {
+          Felony: "#006890",
+          Misdemeanor: "#fcb953",
+          "Status Offense": "#ff7b00",
+          Technical: "#c02828",
+          Other: "#ccc",
+        };
+
+      default:
+        return { all: "#006890" };
+    }
+  }
+
+  if (exploreType === "Pre/post-dispo") {
+    return { pre: "#006890", post: "#ff7b00" };
+  }
+
+  return { all: "#006890" };
+};
 const colors = (
   detentionType = "alternative-to-detention",
   exploreType = "Overall Total"
@@ -69,55 +233,82 @@ const getMedian = (arr, detentionType) => {
 
 const DistributionChart = (records) => {
   const containerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(600); // default fallback
+  const [dimensions, setDimensions] = useState({
+    width: 600,
+    height: 400,
+  });
+  const [tooltip, setTooltip] = useState(null);
+
   const colorScale = colors(records.detentionType, records.exploreType);
+  const colorMap = expandedColors(
+    records.detentionType,
+    records.exploreType,
+    records.filterDimension
+  );
 
-  // Resize observer to detect container size
   useEffect(() => {
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setContainerWidth(entry.contentRect.width);
+    const handleResize = () => {
+      if (containerRef.current) {
+        const height = Math.round(window.innerHeight) - 200;
+        const width = containerRef.current.clientWidth;
+        setDimensions({ width, height });
       }
-    });
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => {
-      if (containerRef.current) observer.unobserve(containerRef.current);
     };
-  }, [records]);
 
-  const margin = { top: 10, right: 10, bottom: 10, left: 10 };
-  const height = 400;
-  const width = containerWidth;
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-  if (!records.data || records.data.length === 0) return null;
-  const dataCopy = [...records.data];
-  const data = dataCopy
-    .filter((record) => {
-      return (
-        getYear(
-          records.detentionType === "secure-detention"
-            ? record.Admission_Date
-            : record.ATD_Entry_Date
-        ) === +records.selectedYear &&
-        calculateLengthOfStay(record, records.detentionType)
-      );
-    })
-    .sort(
-      (a, b) =>
-        calculateLengthOfStay(a, records.detentionType) -
-        calculateLengthOfStay(b, records.detentionType)
-    );
-
+  const margin = { top: 40, right: 10, bottom: 40, left: 10 };
+  const { width, height } = dimensions;
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
+  if (!records.data || records.data.length === 0) return null;
+
+  // Process data and group by length of stay
+  const dataCopy = [...records.data];
+  const filteredData = dataCopy.filter((record) => {
+    return (
+      getYear(
+        records.detentionType === "secure-detention"
+          ? record.Admission_Date
+          : record.ATD_Entry_Date
+      ) === +records.selectedYear &&
+      calculateLengthOfStay(record, records.detentionType)
+    );
+  });
+
+  // Sort and group data by length of stay
+  const sortedData = filteredData.sort(
+    (a, b) =>
+      calculateLengthOfStay(a, records.detentionType) -
+      calculateLengthOfStay(b, records.detentionType)
+  );
+
+  // Group data by length of stay to identify series
+  const groupedData = {};
+  sortedData.forEach((d) => {
+    const days = calculateLengthOfStay(d, records.detentionType);
+    if (!groupedData[days]) groupedData[days] = [];
+    groupedData[days].push(d);
+  });
+
+  // Flatten back to array with group info
+  const dataWithGroups = sortedData.map((d) => {
+    const days = calculateLengthOfStay(d, records.detentionType);
+    return {
+      ...d,
+      days,
+      isLastInGroup: groupedData[days][groupedData[days].length - 1] === d,
+      groupSize: groupedData[days].length,
+    };
+  });
+
   const xScale = d3
     .scaleBand()
-    .domain(data.map((d) => d.Youth_ID + "-" + d.Referral_ID))
+    .domain(dataWithGroups.map((d) => d.Youth_ID + "-" + d.Referral_ID))
     .range([0, innerWidth])
     .padding(0.1);
 
@@ -125,46 +316,126 @@ const DistributionChart = (records) => {
     .scaleLinear()
     .domain([
       0,
-      d3.max(data, (d) => calculateLengthOfStay(d, records.detentionType)),
+      d3.max(dataWithGroups, (d) =>
+        calculateLengthOfStay(d, records.detentionType)
+      ),
     ])
     .range([innerHeight, 0]);
 
+  const handleMouseOver = (event, d) => {
+    const race = d.Race || "Unknown";
+    const ethnicity = d.Ethnicity || "Unknown";
+    const dob = d.Date_of_Birth
+      ? new Date(d.Date_of_Birth).toLocaleDateString()
+      : "Unknown";
+
+    setTooltip({
+      x: event.clientX,
+      y: event.clientY,
+      content: (
+        <div>
+          <div>
+            <strong>Race:</strong> {race}
+          </div>
+          <div>
+            <strong>Ethnicity:</strong> {ethnicity}
+          </div>
+          <div>
+            <strong>Date of Birth:</strong> {dob}
+          </div>
+          <div>
+            <strong>Length of Stay:</strong> {d.days} days
+          </div>
+        </div>
+      ),
+    });
+  };
+
+  const handleMouseOut = () => {
+    setTooltip(null);
+  };
+
   return (
-    <div ref={containerRef} style={{ width: "100%" }}>
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%",
+        height: `${dimensions.height}px`,
+        overflow: "visible",
+        position: "relative",
+      }}
+    >
+      {records.useFilterDropdown && (
+        <div style={{ marginLeft: "14px" }}>
+          <Selector
+            variable="calc"
+            values={FILTER_DIMENSIONS}
+            selectedValue={records.filterDimension}
+            setValue={records.setFilterDimension}
+          />
+        </div>
+      )}
+
       <svg width={width} height={height}>
         <g transform={`translate(${margin.left},${margin.top})`}>
-          {data.map((d) => {
+          {dataWithGroups.map((d) => {
+            const days = calculateLengthOfStay(d, records.detentionType);
+            const barHeight = innerHeight - yScale(days);
+            const showLabel =
+              d.isLastInGroup && d.groupSize > 1 && days % 10 === 0;
+
             return (
-              <rect
+              <g
                 key={d.Youth_ID + "-" + d.Referral_ID}
-                x={xScale(d.Youth_ID + "-" + d.Referral_ID)}
-                y={yScale(calculateLengthOfStay(d, records.detentionType))}
-                width={xScale.bandwidth()}
-                height={
-                  innerHeight -
-                  yScale(calculateLengthOfStay(d, records.detentionType))
-                }
-                fill={
-                  colorScale[
+                onMouseOver={(e) => handleMouseOver(e, d)}
+                onMouseOut={handleMouseOut}
+              >
+                <rect
+                  x={xScale(d.Youth_ID + "-" + d.Referral_ID)}
+                  y={yScale(days)}
+                  width={xScale.bandwidth()}
+                  height={barHeight}
+                  fill={
                     records.detentionType === "alternative-to-detention"
-                      ? d.ATD_Successful_Exit
-                      : records.exploreType === "Pre/post-dispo"
-                      ? d["Post-Dispo Stay Reason"] === null ||
-                        d["Post-Dispo Stay Reason"] === ""
-                        ? "pre"
-                        : "post"
-                      : "all"
-                  ]
-                }
-                rx={4}
-              />
+                      ? colorMap[getBucketForRecord(d, records.filterDimension)]
+                      : colorScale[
+                          records.exploreType === "Pre/post-dispo"
+                            ? d["Post-Dispo Stay Reason"] === null ||
+                              d["Post-Dispo Stay Reason"] === ""
+                              ? "pre"
+                              : "post"
+                            : "all"
+                        ]
+                  }
+                  rx={4}
+                />
+                {showLabel && (
+                  <text
+                    x={
+                      xScale(d.Youth_ID + "-" + d.Referral_ID) +
+                      xScale.bandwidth() / 2 -
+                      8
+                    }
+                    y={days ? yScale(days) - 4 : 0}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="#333"
+                  >
+                    {days}
+                  </text>
+                )}
+              </g>
             );
           })}
 
-          {/* Median line */}
+          {/* Median and Average lines (unchanged) */}
           <rect
             x={0}
-            y={yScale(getMedian(data, records.detentionType))}
+            y={
+              sortedData && sortedData.length
+                ? yScale(getMedian(sortedData, records.detentionType))
+                : 0
+            }
             width={innerWidth}
             height={2}
             fill="black"
@@ -173,21 +444,27 @@ const DistributionChart = (records) => {
           <text
             x={10}
             y={
-              yScale(getMedian(data, records.detentionType)) +
-              (getMedian(data, records.detentionType) >=
-              getAverage(data, records.detentionType)
-                ? -28
-                : 16)
+              sortedData && sortedData.length
+                ? yScale(getMedian(sortedData, records.detentionType)) +
+                  (getMedian(sortedData, records.detentionType) >=
+                  getAverage(sortedData, records.detentionType)
+                    ? -10
+                    : 16)
+                : 0
             }
             fill="black"
           >
-            Median: {Math.round(getMedian(data, records.detentionType))} days
+            Median: {Math.round(getMedian(sortedData, records.detentionType))}{" "}
+            days
           </text>
 
-          {/* Average line */}
           <rect
             x={0}
-            y={yScale(getAverage(data, records.detentionType))}
+            y={
+              sortedData && sortedData.length
+                ? yScale(getAverage(sortedData, records.detentionType))
+                : 0
+            }
             width={innerWidth}
             height={2}
             fill="black"
@@ -196,18 +473,51 @@ const DistributionChart = (records) => {
           <text
             x={10}
             y={
-              yScale(getMedian(data, records.detentionType)) +
-              (getMedian(data, records.detentionType) <
-              getAverage(data, records.detentionType)
-                ? -28
-                : 16)
+              sortedData && sortedData.length
+                ? yScale(getAverage(sortedData, records.detentionType)) +
+                  (getMedian(sortedData, records.detentionType) <
+                  getAverage(sortedData, records.detentionType)
+                    ? -10
+                    : 16)
+                : 0
             }
             fill="black"
           >
-            Average: {Math.round(getAverage(data, records.detentionType))} days
+            Average: {Math.round(getAverage(sortedData, records.detentionType))}{" "}
+            days
           </text>
         </g>
       </svg>
+      {/* {records.filterDimension !== "all" && (
+        <>
+          <LegendLines
+            options={getLegendValues(records.data, records.filterDimension)}
+            selectedOptions={records.selectedLegendOptions}
+            setSelectedOptions={records.setSelectedLegendOptions}
+            setSelectedLegendDetails={records.setSelectedLegendDetails}
+          />
+        </>
+      )} */}
+
+      {/* Tooltip */}
+      {tooltip && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${tooltip.x - 390}px`,
+            top: `${tooltip.y > 800 ? tooltip.y - 290 : tooltip.y - 90}px`,
+            backgroundColor: "white",
+            padding: "8px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            zIndex: 100,
+            pointerEvents: "none",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 };

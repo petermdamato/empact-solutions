@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
+import * as Constants from "./../../constants";
 
 const StackedBarChartMedian = ({
   data,
@@ -83,9 +84,11 @@ const StackedBarChartMedian = ({
       .attr("x", 0)
       .attr("height", yScale.bandwidth() / 2 + 2)
       .attr("width", (d) =>
-        xScale(context === "percentages" ? d.pre : d.medianPre)
+        xScale(context === "percentages" ? d.pre : d.medianPre) > 0
+          ? Math.max(xScale(context === "percentages" ? d.pre : d.medianPre), 2)
+          : 0
       )
-      .attr("fill", "#898989");
+      .attr("fill", Constants.prePostColors.pre);
 
     // Add post bars
     chart
@@ -95,12 +98,21 @@ const StackedBarChartMedian = ({
       .append("rect")
       .attr("class", "post-bar")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
-      .attr("x", (d) => xScale(context === "percentages" ? d.pre : d.medianPre))
+      .attr("x", (d) =>
+        xScale(context === "percentages" ? d.pre : d.medianPre) > 0
+          ? Math.max(xScale(context === "percentages" ? d.pre : d.medianPre), 2)
+          : 0
+      )
       .attr("height", yScale.bandwidth() / 2 + 2)
       .attr("width", (d) =>
-        xScale(context === "percentages" ? d.post : d.medianPost)
+        xScale(context === "percentages" ? d.post : d.medianPost) > 0
+          ? Math.max(
+              xScale(context === "percentages" ? d.post : d.medianPost),
+              2
+            )
+          : 0
       )
-      .attr("fill", "#c35a58");
+      .attr("fill", Constants.prePostColors.post);
     let textWidths = [];
     const labels = chart
       .selectAll(".label-invisible")

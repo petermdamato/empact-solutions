@@ -13,6 +13,8 @@ import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGener
 import "./styles.css";
 import { analyzeExitsByYear } from "@/utils/aggFunctions";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
+import LegendStatic from "@/components/LegendStatic/LegendStatic";
+import * as Constants from "./../../constants";
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -28,7 +30,7 @@ export default function Overview() {
   const [filterVariable, setFilterVariable] = useState(null);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [incarcerationType] = useState("alternative-to-detention");
-  const [calculationType, setCalculationType] = useState("average");
+  const [calculationType, setCalculationType] = useState("Average");
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
@@ -40,6 +42,21 @@ export default function Overview() {
   const [dataArray3, setDataArray3] = useState([]);
   const [dataArray4, setDataArray4] = useState([]);
   const [dataArray5, setDataArray5] = useState([]);
+
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
@@ -135,20 +152,20 @@ export default function Overview() {
       let chartObjLOS = {
         category: programType,
         total:
-          calculationType === "average"
+          calculationType.toLowerCase() === "average"
             ? dataArray1[0].body?.successfulAvgLengthOfStay +
               dataArray1[0].body?.unsuccessfulAvgLengthOfStay
             : dataArray1[0].body?.successfulMedianLengthOfStay +
               dataArray1[0].body?.unsuccessfulMedianLengthOfStay,
         successful:
-          calculationType === "average"
+          calculationType.toLowerCase() === "average"
             ? Math.round(dataArray1[0].body?.successfulAvgLengthOfStay * 10) /
               10
             : Math.round(
                 dataArray1[0].body?.successfulMedianLengthOfStay * 10
               ) / 10,
         unsuccessful:
-          calculationType === "average"
+          calculationType.toLowerCase() === "average"
             ? Math.round(dataArray1[0].body?.unsuccessfulAvgLengthOfStay * 10) /
               10
             : Math.round(
@@ -176,6 +193,7 @@ export default function Overview() {
           flexDirection: "column",
           overflow: "auto",
         }}
+        ref={contentRef}
       >
         {/* Header */}
         <div
@@ -194,6 +212,7 @@ export default function Overview() {
             }`}
             subtitle={`Exits - ${programType}`}
             dekWithYear={`Showing exits to ATDs for ${selectedYear}`}
+            showFilterInstructions
           >
             <Selector
               values={yearsArray}
@@ -209,16 +228,13 @@ export default function Overview() {
             />{" "}
             <DownloadButton
               elementRef={contentRef}
-              filename="alternative-to-detention-exits.pdf"
+              filename={`alternative-to-detention-exits-${selectedYear}.pdf`}
             />
           </Header>
         </div>
 
         {/* Charts */}
-        <div
-          style={{ display: "flex", gap: "24px", padding: "24px" }}
-          ref={contentRef}
-        >
+        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
           {/* Column 1 */}
           <div
             style={{
@@ -249,14 +265,11 @@ export default function Overview() {
                   {dataArray2.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray2}
-                      breakdowns={["successful", "unsuccessful"]}
+                      breakdowns={["unsuccessful", "successful"]}
                       height={400}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                       chartTitle={""}
-                      colorMapOverride={{
-                        successful: "#5b6069",
-                        unsuccessful: "#d3d3d3",
-                      }}
+                      colorMapOverride={Constants.successColors}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Facility"}
@@ -279,25 +292,27 @@ export default function Overview() {
             {/* Success breakdown */}
             <ChartCard width="100%">
               <div style={{ height: "140px", width: "100%" }}>
+                <div style={{ position: "relative" }}>
+                  <div style={{ position: "absolute", right: "14px", top: 0 }}>
+                    <LegendStatic type="success" />
+                  </div>
+                </div>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray3.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray3}
-                      breakdowns={["successful", "unsuccessful"]}
+                      breakdowns={["unsuccessful", "successful"]}
                       height={140}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                       chartTitle={`Exits by ${programType}`}
-                      colorMapOverride={{
-                        successful: "#5b6069",
-                        unsuccessful: "#d3d3d3",
-                      }}
+                      colorMapOverride={Constants.successColors}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
             <Selector
-              values={["average", "median"]}
+              values={["Average", "Median"]}
               variable={"Calculation"}
               selectedValue={calculationType}
               setValue={setCalculationType}
@@ -309,14 +324,11 @@ export default function Overview() {
                   {dataArray4.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray4}
-                      breakdowns={["successful", "unsuccessful"]}
+                      breakdowns={["unsuccessful", "successful"]}
                       height={140}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                       chartTitle={`${calculationType} LOS by ${programType}`}
-                      colorMapOverride={{
-                        successful: "#5b6069",
-                        unsuccessful: "#d3d3d3",
-                      }}
+                      colorMapOverride={Constants.successColors}
                     />
                   )}
                 </ResponsiveContainer>

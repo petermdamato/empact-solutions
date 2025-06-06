@@ -122,8 +122,23 @@ export default function Overview() {
   const [raceData, setRaceData] = useState([]);
 
   const onSelectChange = (e) => {
-    setSelectedYear(e.target.value);
+    setSelectedYear(e);
   };
+
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // Pull in for the filter of types
   useEffect(() => {
@@ -395,6 +410,7 @@ export default function Overview() {
           flexDirection: "column",
           overflow: "auto",
         }}
+        ref={contentRef}
       >
         <div
           style={{
@@ -421,10 +437,7 @@ export default function Overview() {
           </Header>
         </div>
 
-        <div
-          ref={contentRef}
-          style={{ display: "flex", gap: "24px", padding: "24px" }}
-        >
+        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
           {/* Column 1 */}
           <div
             style={{

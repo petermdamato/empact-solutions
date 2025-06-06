@@ -4,15 +4,15 @@ import wrap from "@/utils/wrap";
 import "./StackedBar.css";
 import * as Constants from "./../../constants";
 
-const StackedBarChartMulti = ({
+const StackedBarChartAverage = ({
   data,
   height,
   margin,
   chartTitle,
-  primary,
-  secondary,
+  context = "percentages",
 }) => {
   const svgRef = useRef();
+
   const [parentWidth, setParentWidth] = useState(0); // State to store parent width
 
   // Observe the parent width using ResizeObserver
@@ -39,8 +39,15 @@ const StackedBarChartMulti = ({
   useEffect(() => {
     if (!data || data.length === 0 || parentWidth === 0) return;
 
+    const getValue =
+      context === "releases"
+        ? (d) => d.averagePost + d.averagePre
+        : (d) => d.averagePost + d.averagePre;
+
+    const totalCount = 0;
+
     data = data.sort((a, b) => {
-      return b.pre + b.post - (a.pre + a.post);
+      return b.averagePre + b.averagePost - (a.averagePre + a.averagePost);
     });
 
     const svg = d3.select(svgRef.current);
@@ -52,7 +59,7 @@ const StackedBarChartMulti = ({
     // Create scales
     const xScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.pre + d.post)])
+      .domain([0, d3.max(data, getValue)])
       .range([0, innerWidth]);
 
     const yScale = d3
@@ -76,7 +83,14 @@ const StackedBarChartMulti = ({
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
       .attr("x", 0)
       .attr("height", yScale.bandwidth() / 2 + 2)
-      .attr("width", (d) => (xScale(d.pre) ? Math.max(xScale(d.pre), 2) : 0))
+      .attr("width", (d) =>
+        xScale(context === "percentages" ? d.pre : d.averagePre) > 0
+          ? Math.max(
+              xScale(context === "percentages" ? d.pre : d.averagePre),
+              2
+            )
+          : 0
+      )
       .attr("fill", Constants.prePostColors.pre);
 
     // Add post bars
@@ -87,13 +101,24 @@ const StackedBarChartMulti = ({
       .append("rect")
       .attr("class", "post-bar")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
-      .attr("x", (d) => (xScale(d.pre) ? Math.max(xScale(d.pre), 2) : 0))
+      .attr("x", (d) =>
+        xScale(context === "percentages" ? d.pre : d.averagePre) > 0
+          ? Math.max(
+              xScale(context === "percentages" ? d.pre : d.averagePre),
+              2
+            )
+          : 0
+      )
       .attr("height", yScale.bandwidth() / 2 + 2)
       .attr("width", (d) =>
-        xScale(d.post) > 0 ? Math.max(xScale(d.post), 2) : 0
+        xScale(context === "percentages" ? d.post : d.averagePost) > 0
+          ? Math.max(
+              xScale(context === "percentages" ? d.post : d.averagePost),
+              2
+            )
+          : 0
       )
       .attr("fill", Constants.prePostColors.post);
-
     let textWidths = [];
     const labels = chart
       .selectAll(".label-invisible")
@@ -102,22 +127,21 @@ const StackedBarChartMulti = ({
       .append("text")
       .attr("class", "label-invisible")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2)
-      .attr("x", (d) =>
-        xScale(d.pre + d.post + d.preSecondary + d.postSecondary)
-      )
+      .attr("x", (d) => xScale(getValue(d)))
       .attr("dy", "0.35em")
-      .text(
-        (d) => `${Math.round(d.preSecondary + d.postSecondary)} ${secondary}`
+      .text((d) =>
+        context === "percentages"
+          ? "(" + Math.round(((d.pre + d.post) * 100) / totalCount) + "%)"
+          : d.countTotal + " " + context
       )
       .attr("fill", "none")
       .style("font-size", 12);
-
     // Measure the width of the text elements
+
     labels.each(function () {
       const bbox = this.getBBox(); // Get the bounding box of the text element
       textWidths.push(bbox.width); // Log the width of the text
     });
-
     // Add labels
     chart
       .selectAll(".label-percent")
@@ -126,10 +150,12 @@ const StackedBarChartMulti = ({
       .append("text")
       .attr("class", "label-percent")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 5)
-      .attr("x", (d, i) => xScale(d.pre + d.post) + textWidths[i] / 2 + 8)
+      .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
       .attr("dy", "0.35em")
-      .text(
-        (d) => `${Math.round(d.preSecondary + d.postSecondary)} ${secondary}`
+      .text((d) =>
+        context === "percentages"
+          ? "(" + Math.round(((d.pre + d.post) * 100) / totalCount) + "%)"
+          : d.countTotal + " " + context
       )
       .attr("fill", "black")
       .style("font-size", 12)
@@ -143,9 +169,13 @@ const StackedBarChartMulti = ({
       .append("text")
       .attr("class", "label-nominal")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 - 7)
-      .attr("x", (d, i) => xScale(d.pre + d.post) + textWidths[i] / 2 + 8)
+      .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
       .attr("dy", "0.35em")
-      .text((d) => `${d.pre + d.post} ${primary}`)
+      .text((d) =>
+        context === "percentages"
+          ? d.pre + d.post
+          : Math.round(d.averageTotal * 10) / 10
+      )
       .attr("fill", "black")
       .style("font-size", 16)
       .style("font-weight", "bold")
@@ -166,10 +196,11 @@ const StackedBarChartMulti = ({
       .call(d3.axisLeft(yScale))
       .attr("class", "y-axis")
       .selectAll(".tick text")
+      .text((d) => (d === "" ? "N/A" : d))
       .call(wrap, 96);
-  }, [data, height, margin, parentWidth, primary, secondary]);
+  }, [data, height, margin, parentWidth]);
 
   return <svg ref={svgRef} width={parentWidth} height={height}></svg>;
 };
 
-export default StackedBarChartMulti;
+export default StackedBarChartAverage;

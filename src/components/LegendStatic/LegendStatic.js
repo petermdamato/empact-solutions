@@ -6,13 +6,26 @@ const getColor = (paletteType) => {
   const staticPalette = Object.keys(Constants.prePostColors).map(
     (entry) => Constants.prePostColors[entry]
   );
-  return paletteType === "static" ? staticPalette : staticPalette;
+  const successPalette = Object.keys(Constants.successColors).map(
+    (entry) => Constants.successColors[entry]
+  );
+
+  return paletteType === "static"
+    ? staticPalette
+    : paletteType === "success"
+    ? successPalette
+    : staticPalette;
 };
 
 // Simple hash-color generator based on index
 const getText = (type) => {
+  const successArray = ["Successful", "Unsuccessful"];
   const staticArray = ["Pre-dispo", "Post-dispo"];
-  return type === "static" ? staticArray : staticArray;
+  return type === "static"
+    ? staticArray
+    : type === "success"
+    ? successArray
+    : staticArray;
 };
 
 const LegendStatic = ({ type = "static" }) => {
@@ -23,7 +36,8 @@ const LegendStatic = ({ type = "static" }) => {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
+        flexDirection: type === "success" ? "row" : "column",
+        gap: "8px",
       }}
     >
       {textArray.map((option, i) => {

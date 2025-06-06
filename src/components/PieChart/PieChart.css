@@ -10,3 +10,8 @@
   z-index: 10;
   transition: opacity 0.2s;
 }
+.centered-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

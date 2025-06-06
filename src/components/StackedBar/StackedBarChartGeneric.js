@@ -168,7 +168,7 @@ const StackedBarChartGeneric = ({
 
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
-        const width = xScale(value);
+        const width = xScale(value) > 0 ? Math.max(xScale(value), 2) : 0;
 
         barsLayer
           .append("rect")

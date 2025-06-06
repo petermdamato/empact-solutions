@@ -52,6 +52,21 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   // Pull in for the filter of types
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
@@ -346,6 +361,7 @@ export default function Overview() {
           flexDirection: "column",
           overflow: "auto",
         }}
+        ref={contentRef}
       >
         {/* Header */}
         <div
@@ -357,9 +373,10 @@ export default function Overview() {
           }}
         >
           <Header
-            title={`${incarcerationType}`}
+            title={`${incarcerationType} Utilization`}
             subtitle={`Average Daily Population`}
-            dekWithYear={`Showing ADP in Secure Detention for ${selectedYear}`}
+            dekWithYear={`Showing ADP in secure detention for ${selectedYear}`}
+            showFilterInstructions
           >
             <Selector
               values={yearsArray}
@@ -369,16 +386,13 @@ export default function Overview() {
             />
             <DownloadButton
               elementRef={contentRef}
-              filename="secure-detention-average-daily-population.pdf"
+              filename={`secure-detention-average-daily-population-${selectedYear}.pdf`}
             />
           </Header>
         </div>
 
         {/* Charts */}
-        <div
-          style={{ display: "flex", gap: "24px", padding: "24px" }}
-          ref={contentRef}
-        >
+        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
           {/* Column 1 */}
           <div
             style={{
@@ -562,7 +576,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "4px",
             }}
           >
             {/* ADP by Reason */}

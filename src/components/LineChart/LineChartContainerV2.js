@@ -40,7 +40,7 @@ const LineChartContainerV2 = ({
                 ? `${
                     selectedValue[index].charAt(0).toUpperCase() +
                     selectedValue[index].slice(1)
-                  } LOS`
+                  } LOS (days)`
                 : chart.charAt(0).toUpperCase() + chart.slice(1)}
             </h3>
             {selectorChild &&

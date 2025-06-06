@@ -4,12 +4,25 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
 import PillContainer from "@/components/PillContainer/PillContainer";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
 import { aggregateByLos } from "@/utils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import { analyzeByYear } from "@/utils/aggFunctions";
+
+const getFilterValue = (entry, dimension) => {
+  switch (dimension) {
+    case "Race/Ethnicity":
+      return entry.Race_Ethnicity;
+    case "Successfulness":
+      return entry.ATD_Success;
+    case "Age":
+      return entry.Age_Group;
+    default:
+      return null;
+  }
+};
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -31,6 +44,14 @@ export default function Overview() {
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
+  const [filterDimension, setFilterDimension] = useState("Successfulness");
+  // const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
+  // const [selectedLegendDetails, setSelectedLegendDetails] = useState([]);
+
+  // Memoize the filter dimension setter
+  const memoizedSetFilterDimension = useCallback((dimension) => {
+    setFilterDimension(dimension);
+  }, []);
 
   useEffect(() => {
     setDataArray1([
@@ -80,7 +101,10 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          ref={contentRef}
+        >
           <Header
             title={`${incarcerationType}`}
             subtitle={`LOS Distribution - ${programType}`}
@@ -103,37 +127,51 @@ export default function Overview() {
               filename="alternative-to-detention-los-distribution.pdf"
             />
           </Header>
-          <div style={{ display: "flex" }} ref={contentRef}>
-            {dataArray1 && (
-              <PillContainer
-                display={"double"}
-                data={[
-                  {
-                    title: "LOS",
-                    data: dataArray1,
-                    charts: ["distribution"],
-                    chartTitles: ["LOS Distribution"],
-                    detentionType: ["alternative-to-detention"],
-                    selectedYear: [selectedYear],
-                  },
-                ]}
-              />
-            )}
-            {dataArray2 && (
-              <PillContainer
-                display={"double"}
-                data={[
-                  {
-                    title: "Number of exits within LOS bucket",
-                    data: dataArray2,
-                    charts: ["stacked-column"],
-                    chartTitles: ["Number of exits within LOS bucket"],
-                    detentionType: ["alternative-to-detention"],
-                    selectedYear: [selectedYear],
-                  },
-                ]}
-              />
-            )}
+          <div>
+            <div style={{ display: "flex", width: "100%" }}>
+              <div style={{ flex: 1, paddingRight: "12px" }}>
+                {dataArray1 && (
+                  <PillContainer
+                    display={"double"}
+                    data={[
+                      {
+                        title: "LOS distribution trends (days)",
+                        subtitle:
+                          "Each bar = 1 release within the selected time period. Hover over the legend to highlight a category.",
+                        data: dataArray1,
+                        charts: ["distribution"],
+                        chartTitles: ["LOS Distribution"],
+                        detentionType: ["alternative-to-detention"],
+                        selectedYear: [selectedYear],
+                        useFilterDropdown: true,
+                        filterDimension,
+                        setFilterDimension: memoizedSetFilterDimension,
+                      },
+                    ]}
+                  />
+                )}
+              </div>
+              <div style={{ flex: 1, paddingLeft: "12px" }}>
+                {dataArray2 && (
+                  <PillContainer
+                    display={"double"}
+                    data={[
+                      {
+                        title: "Number of exits within LOS bucket",
+                        subtitle: "Click on the bars to highlight by category.",
+                        data: dataArray2,
+                        charts: ["stacked-column"],
+                        chartTitles: ["Number of exits within LOS bucket"],
+                        detentionType: ["alternative-to-detention"],
+                        selectedYear: [selectedYear],
+                        useFilterDropdown: true,
+                        filterDimension,
+                      },
+                    ]}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

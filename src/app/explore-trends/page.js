@@ -99,7 +99,7 @@ export default function Overview() {
           csvData.map((d) => getSimplifiedOffenseCategory(d.OffenseCategory))
         ),
       ];
-    } else if (breakdownType === "Age at Intake") {
+    } else if (breakdownType === "Age at Admission") {
       const getAge = (dobStr, intakeStr) => {
         const dob = new Date(dobStr);
         const intake = new Date(intakeStr);
@@ -139,9 +139,9 @@ export default function Overview() {
           style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
         >
           <Header
-            title={`${incarcerationType}`}
+            title={`${incarcerationType} Utilization`}
             subtitle={`Explore Trends`}
-            dekWithYear={`Showing year-by-year trends`}
+            dekWithYear={`Showing trended data for admissions, average daily population (ADP), length of stay (LOS) and releases - ${breakdownType}`}
           >
             <Selector
               values={labelsArray}
@@ -151,7 +151,7 @@ export default function Overview() {
             />
             <DownloadButton
               elementRef={contentRef}
-              filename="alternative-to-detention-explore.pdf"
+              filename="secure-detention-explore.pdf"
             />
           </Header>
           <div
@@ -175,7 +175,7 @@ export default function Overview() {
                     "Race/Ethnicity",
                     "YOC/White",
                     "Gender",
-                    "Age at Intake",
+                    "Age at Admission",
                     "Offense Category",
                   ]}
                   variable={"Explore"}
@@ -198,7 +198,7 @@ export default function Overview() {
                 }}
               >
                 <LineChartContainerV2
-                  charts={["entries", "averageDailyPopulation"]}
+                  charts={["admissions", "averageDailyPopulation"]}
                   data={dataArray3}
                   selectedLabelsChoice={selectedLabelsChoice}
                   selectedLegendOptions={selectedLegendOptions}
@@ -217,17 +217,20 @@ export default function Overview() {
               }}
             >
               <LineChartContainerV2
-                charts={[`${calculationType}LengthOfStay`, "exits"]}
+                charts={[
+                  `${calculationType.toLowerCase()}LengthOfStay`,
+                  "releases",
+                ]}
                 data={dataArray3}
                 selectorChild={["on", "off"]}
                 selectedLabelsChoice={selectedLabelsChoice}
-                selectedValue={[calculationType, null]}
+                selectedValue={[calculationType.toLowerCase(), null]}
                 selectorPlacement="left"
                 selectedLegendOptions={selectedLegendOptions}
                 selectedLegendDetails={selectedLegendDetails}
               >
                 <Selector
-                  values={["average", "median"]}
+                  values={["Average", "Median"]}
                   variable={"calc"}
                   selectedValue={calculationType}
                   setValue={setCalculationType}

@@ -40,7 +40,7 @@ export default function Overview() {
   const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
   const [selectedLegendDetails, setSelectedLegendDetails] = useState([]);
   const [programType, setProgramType] = useState("All Program Types");
-  const [calculationType, setCalculationType] = useState("average");
+  const [calculationType, setCalculationType] = useState("Average");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
@@ -152,7 +152,7 @@ export default function Overview() {
           <Header
             title={`${incarcerationType}`}
             subtitle={`Explore Trends - ${programType}`}
-            dekWithYear={`Showing year-by-year trends`}
+            dekWithYear={`Showing trended data for entries, average daily population (ADP), length of stay (LOS) and exits - ${breakdownType}`}
           >
             <Selector
               values={labelsArray}
@@ -235,7 +235,10 @@ export default function Overview() {
               }}
             >
               <LineChartContainerV2
-                charts={[`${calculationType}LengthOfStay`, "exits"]}
+                charts={[
+                  `${calculationType.toLocaleLowerCase()}LengthOfStay`,
+                  "exits",
+                ]}
                 data={dataArray3}
                 selectorChild={["on", "off"]}
                 selectedLabelsChoice={selectedLabelsChoice}
@@ -245,7 +248,7 @@ export default function Overview() {
                 selectedLegendDetails={selectedLegendDetails}
               >
                 <Selector
-                  values={["average", "median"]}
+                  values={["Average", "Median"]}
                   variable={"calc"}
                   selectedValue={calculationType}
                   setValue={setCalculationType}

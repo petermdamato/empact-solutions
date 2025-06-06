@@ -45,31 +45,36 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          ref={contentRef}
+        >
           <Header
             title="Secure Detention Utilization"
             subtitle="Detention Screening"
             dekWithYear="DST Recommendation Restrictiveness Compared to Actual Decision"
           >
             <DownloadButton
+              style={{ zIndex: 1 }}
               elementRef={contentRef}
-              filename="secure-detention-detention-screening.pdf"
+              filename={`secure-detention-detention-screening.pdf`}
             />
+            <div
+              style={{
+                position: "absolute",
+                right: "10px",
+                width: "30%",
+                padding: "0 40px",
+              }}
+            >
+              <DateRangeSlider
+                records={csvData}
+                accessor={(d) => d.Admission_Date}
+                setDatesRange={setDatesRange}
+              />
+            </div>
           </Header>
-          <div
-            style={{
-              position: "absolute",
-              right: "10px",
-              width: "30%",
-              padding: "0 40px",
-            }}
-          >
-            <DateRangeSlider
-              records={csvData}
-              accessor={(d) => d.Admission_Date}
-              setDatesRange={setDatesRange}
-            />
-          </div>
+
           <div ref={contentRef}>
             {dataArray1 && (
               <div

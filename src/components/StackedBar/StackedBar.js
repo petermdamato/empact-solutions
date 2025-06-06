@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
+import * as Constants from "./../../constants";
 
 const StackedBarChart = ({
   data,
@@ -94,9 +95,20 @@ const StackedBarChart = ({
             : context === "population"
             ? d.pre / d.daysPre
             : d.daysPre / d.pre
-        )
+        ) > 0
+          ? Math.max(
+              xScale(
+                context === "percentages"
+                  ? d.pre
+                  : context === "population"
+                  ? d.pre / d.daysPre
+                  : d.daysPre / d.pre
+              ),
+              2
+            )
+          : 0
       )
-      .attr("fill", "#898989");
+      .attr("fill", Constants.prePostColors.pre);
 
     // Add post bars
     chart
@@ -113,7 +125,18 @@ const StackedBarChart = ({
             : context === "population"
             ? d.pre / d.daysPre
             : d.daysPre / d.pre
-        )
+        ) > 0
+          ? Math.max(
+              xScale(
+                context === "percentages"
+                  ? d.pre
+                  : context === "population"
+                  ? d.pre / d.daysPre
+                  : d.daysPre / d.pre
+              ),
+              2
+            )
+          : 0
       )
       .attr("height", yScale.bandwidth() / 2 + 2)
       .attr("width", (d) =>
@@ -123,9 +146,20 @@ const StackedBarChart = ({
             : context === "population"
             ? d.post / d.daysPost
             : d.daysPost / d.post
-        )
+        ) > 0
+          ? Math.max(
+              xScale(
+                context === "percentages"
+                  ? d.post
+                  : context === "population"
+                  ? d.post / d.daysPost
+                  : d.daysPost / d.post
+              ),
+              2
+            )
+          : 0
       )
-      .attr("fill", "#c35a58");
+      .attr("fill", Constants.prePostColors.post);
     let textWidths = [];
     const labels = chart
       .selectAll(".label-invisible")

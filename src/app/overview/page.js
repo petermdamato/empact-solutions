@@ -9,10 +9,10 @@ import "./styles.css";
 import {
   aggregateByGender,
   aggregateByRace,
-  aggregateByStatus,
-  aggregateCalculationByStatus,
-  aggregateMedianByStatus,
-  aggregatePopulationByStatus,
+  aggregateByOffense,
+  aggregateCalculationByOffense,
+  aggregateMedianByOffense,
+  aggregatePopulationByOffense,
   aggregatePrePost,
 } from "@/utils";
 import { isLeapYear } from "date-fns";
@@ -31,7 +31,7 @@ export default function Overview() {
   const [yearsArray, setYearsArray] = useState([]);
 
   const onSelectChange = (e) => {
-    setSelectedYear(e.target.value);
+    setSelectedYear(e);
   };
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function Overview() {
       aggregateByGender(csvData, selectedYear, detentionType),
       aggregateByRace(csvData, selectedYear, detentionType),
     ]);
-    const statusData = aggregateByStatus(csvData, selectedYear, detentionType);
+    const statusData = aggregateByOffense(csvData, selectedYear, detentionType);
     const columnAgg = statusData.results.reduce(
       (acc, curr) => {
         acc.post += curr.post;
@@ -67,7 +67,7 @@ export default function Overview() {
       },
       { post: 0, pre: 0 }
     );
-
+    console.log(statusData, selectedYear);
     setDataArray2([
       [columnAgg.pre + columnAgg.post, statusData.previousPeriodCount],
       Object.entries(columnAgg).map(([key, value]) => ({
@@ -77,14 +77,14 @@ export default function Overview() {
       statusData.results,
     ]);
 
-    const statusDataCalculations = aggregateCalculationByStatus(
+    const statusDataCalculations = aggregateCalculationByOffense(
       csvData,
-      selectedYear,
+      +selectedYear,
       detentionType
     );
-    const statusDataMedian = aggregateMedianByStatus(
+    const statusDataMedian = aggregateMedianByOffense(
       csvData,
-      selectedYear,
+      +selectedYear,
       detentionType
     );
 
@@ -99,10 +99,31 @@ export default function Overview() {
       { post: 0, pre: 0, daysPost: 0, daysPre: 0 }
     );
 
+    const columnAggAvgByOffense = statusDataCalculations.results.map(
+      (category) => {
+        let payload = {};
+        payload["category"] = category.category;
+        payload["all"] = {};
+        payload["all"]["count"] = category.post + category.pre;
+        payload["all"]["average"] =
+          category.post + category.pre === 0
+            ? 0
+            : (category.daysPost + category.daysPre) /
+              (category.post + category.pre);
+        payload["post"] = {
+          count: category.post,
+          average: category.post === 0 ? 0 : category.daysPost / category.post,
+        };
+        payload["pre"] = {
+          count: category.pre,
+          average: category.pre === 0 ? 0 : category.daysPre / category.pre,
+        };
+        return payload;
+      }
+    );
     setDataArray3(
       calculation.toLowerCase().includes("average")
         ? [
-            // The statistic and change stat calculations (currently only average)
             [
               Math.round(
                 ((columnAggCalculations.daysPre +
@@ -120,14 +141,19 @@ export default function Overview() {
                 `days${key.charAt(0).toUpperCase()}${key.slice(1)}`
               ],
             })),
-            statusDataCalculations.results,
+            columnAggAvgByOffense.map((status) => ({
+              category: status.category,
+              countTotal: status.all.count,
+              averageTotal: status.all.average,
+              averagePre: status.pre.average,
+              averagePost: status.post.average,
+            })),
           ]
         : [
             [
               statusDataMedian.overall.all.median,
               statusDataMedian.previousPeriod.median,
             ],
-            // The statistic and change stat calculations (currently only mapped as average)
             ["pre", "post"].map((key) => ({
               label: key === "pre" ? "Pre-dispo" : "Post-dispo",
               value: statusDataMedian.overall[key].count,
@@ -142,7 +168,7 @@ export default function Overview() {
             })),
           ]
     );
-    const statusDataPopulation = aggregatePopulationByStatus(
+    const statusDataPopulation = aggregatePopulationByOffense(
       csvData,
       selectedYear,
       detentionType
@@ -189,6 +215,7 @@ export default function Overview() {
             flexGrow: 1,
             minWidth: 0,
           }}
+          ref={contentRef}
         >
           <Header
             title="Secure Detention Utilization"
@@ -202,10 +229,10 @@ export default function Overview() {
           >
             <DownloadButton
               elementRef={contentRef}
-              filename="secure-detention-overview.pdf"
+              filename={`secure-detention-${selectedYear}-overview.pdf`}
             />
           </Header>
-          <div ref={contentRef}>
+          <div>
             {dataArray1 &&
               dataArray1.length > 0 &&
               dataArray2 &&

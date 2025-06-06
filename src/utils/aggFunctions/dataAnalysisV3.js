@@ -28,6 +28,10 @@ const getSimplifiedReferralSource = (source) => {
     return "Court";
   }
 
+  if (s.includes("school")) {
+    return "School";
+  }
+
   return "Other";
 };
 
@@ -80,6 +84,7 @@ function analyzeAdmissionsOnly(
   const getAgeBracket = (dob) => {
     if (!dob) return "Unknown";
     const age = (today - dob) / (365.25 * 24 * 60 * 60 * 1000);
+    if (age <= 10) return "10 and younger";
     if (age <= 13) return "11-13";
     if (age <= 17) return "14-17";
     return "18+";

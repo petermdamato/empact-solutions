@@ -27,11 +27,11 @@ export default function Overview() {
                         dashboards.
                       </li>
                     </ul>
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      Nulla convallis egestas rhoncus. Donec facilisis fermentum
-                      sem, ac viverra ante luctus vel. Donec vel mauris quam.
-                    </p>
+                    {/* <p>
+                      Click the download icon in the top right corner to
+                      download a dashboard as a PDF. Note: Any filters applied
+                      to dashboards will transfer to the PDF.
+                    </p> */}
                   </li>
 
                   <li>
@@ -44,9 +44,9 @@ export default function Overview() {
                       </li>
                     </ul>
                     <p>
-                      Phasellus vel arcu eu odio sollicitudin pellentesque.
-                      Integer gravida, eros a vestibulum sodales, massa turpis
-                      vestibulum metus, in convallis erat ligula at augue.
+                      Click the download icon in the top right corner to
+                      download a dashboard as a PDF. Note: Any filters applied
+                      to dashboards will transfer to the PDF.
                     </p>
                   </li>
                 </ol>

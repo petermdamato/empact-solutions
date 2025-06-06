@@ -4,6 +4,7 @@ import Pill from "./../Pill/Pill";
 import ChangeStatistics from "../ChangeStatistics/ChangeStatistics";
 import StackedBarChart from "../StackedBar/StackedBar";
 import StackedBarChartMedian from "../StackedBar/StackedBarMedian";
+import StackedBarChartAverage from "../StackedBar/StackedBarChartAverage";
 import StackedBarChartMulti from "../StackedBar/StackedBarMulti";
 import StackedColumnChart from "../StackedColumn/StackedColumn";
 import ColumnChart from "../ColumnChart/ColumnChart";
@@ -24,10 +25,7 @@ const PillContainer = ({ data, display }) => {
   }, [data]);
 
   return (
-    <div
-      className="pill-container"
-      style={{ width: display === "double" ? "50%" : "100%" }}
-    >
+    <div className="pill-container" style={{ width: "100%" }}>
       {chartData.map((outer, i) => (
         <Pill
           key={"pill-" + i}
@@ -38,10 +36,12 @@ const PillContainer = ({ data, display }) => {
           selectedValue={outer.dropdownValue}
           onSelectChange={outer.onSelectChange}
           style={{ width: display === "double" ? "100%" : "100%" }}
+          headerColor={outer.headerColor}
         >
           {outer.data.map((inner, i) => {
             return outer.charts[i] === "stacked-bar" &&
-              outer.dropdownValue !== "Median LOS" ? (
+              outer.dropdownValue !== "Median LOS" &&
+              outer.dropdownValue !== "Average LOS" ? (
               <StackedBarChart
                 key={"stacked-bar-chart-" + i}
                 data={inner}
@@ -54,6 +54,17 @@ const PillContainer = ({ data, display }) => {
             ) : outer.charts[i] === "stacked-bar" &&
               outer.dropdownValue === "Median LOS" ? (
               <StackedBarChartMedian
+                key={"stacked-bar-chart-" + i}
+                data={inner}
+                width={400}
+                height={300}
+                margin={{ top: 20, right: 60, bottom: 30, left: 110 }}
+                context={outer.contexts ? outer.contexts[i] : "percentages"}
+                chartTitle={outer.chartTitles[i]}
+              />
+            ) : outer.charts[i] === "stacked-bar" &&
+              outer.dropdownValue === "Average LOS" ? (
+              <StackedBarChartAverage
                 key={"stacked-bar-chart-" + i}
                 data={inner}
                 width={400}
@@ -111,6 +122,13 @@ const PillContainer = ({ data, display }) => {
                 detentionType={outer.detentionType[i]}
                 selectedYear={outer.selectedYear[i]}
                 exploreType={outer.exploreType ? outer.exploreType[i] : null}
+                useFilterDropdown={outer.useFilterDropdown}
+                filterDimension={outer.filterDimension}
+                setFilterDimension={outer.setFilterDimension}
+                selectedLegendOptions={outer.selectedLegendOptions}
+                selectedLegendDetails={outer.selectedLegendDetails}
+                setSelectedLegendOptions={outer.setSelectedLegendOptions}
+                setSelectedLegendDetails={outer.setSelectedLegendDetails}
               />
             ) : outer.charts[i] === "stacked-column" ? (
               <StackedColumnChart
@@ -123,6 +141,8 @@ const PillContainer = ({ data, display }) => {
                 detentionType={outer.detentionType[i]}
                 selectedYear={outer.selectedYear[i]}
                 exploreType={outer.exploreType ? outer.exploreType[i] : null}
+                useFilterDropdown={outer.useFilterDropdown}
+                filterDimension={outer.filterDimension}
               />
             ) : outer.charts[i] === "pie" ? (
               <PieChart

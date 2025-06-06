@@ -73,7 +73,11 @@ const Header = ({
         >
           <Selector
             values={dropdownOptions}
-            variable="Intake Year"
+            variable={
+              title === "Secure Detention Utilization"
+                ? "Admission Year"
+                : "Intake Year"
+            }
             selectedValue={selectedYear}
             setValue={onSelectChange}
           />

@@ -10,9 +10,10 @@ import {
   aggregateByGender,
   aggregateByRace,
   aggregateByStatus,
-  aggregateCalculationByStatus,
-  aggregateMedianByStatus,
-  aggregatePopulationByStatus,
+  aggregateByOffense,
+  aggregateCalculationByOffense,
+  aggregateMedianByOffense,
+  aggregatePopulationByOffense,
   aggregatePrePost,
 } from "@/utils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
@@ -31,7 +32,7 @@ export default function Overview() {
   const [yearsArray, setYearsArray] = useState([]);
 
   const onSelectChange = (e) => {
-    setSelectedYear(e.target.value);
+    setSelectedYear(e);
   };
 
   useEffect(() => {
@@ -58,11 +59,14 @@ export default function Overview() {
       aggregateByGender(csvData, selectedYear, detentionType),
       aggregateByRace(csvData, selectedYear, detentionType),
     ]);
-    const statusData = aggregateByStatus(
+    let statusData = aggregateByOffense(
       csvData,
       selectedYear,
       detentionType,
       "OffenseCategory"
+    );
+    statusData.results = statusData.results.filter(
+      (entry) => entry.post + entry.pre > 0
     );
     const columnAgg = statusData.results.reduce(
       (acc, curr) => {
@@ -82,17 +86,15 @@ export default function Overview() {
       statusData.results,
     ]);
 
-    const statusDataCalculations = aggregateCalculationByStatus(
+    const statusDataCalculations = aggregateCalculationByOffense(
       csvData,
-      selectedYear,
-      detentionType,
-      "OffenseCategory"
+      +selectedYear,
+      detentionType
     );
-    const statusDataMedian = aggregateMedianByStatus(
+    const statusDataMedian = aggregateMedianByOffense(
       csvData,
-      selectedYear,
-      detentionType,
-      "OffenseCategory"
+      +selectedYear,
+      detentionType
     );
 
     const columnAggCalculations = statusDataCalculations.results.reduce(
@@ -104,6 +106,29 @@ export default function Overview() {
         return acc;
       },
       { post: 0, pre: 0, daysPost: 0, daysPre: 0 }
+    );
+
+    const columnAggAvgByOffense = statusDataCalculations.results.map(
+      (category) => {
+        let payload = {};
+        payload["category"] = category.category;
+        payload["all"] = {};
+        payload["all"]["count"] = category.post + category.pre;
+        payload["all"]["average"] =
+          category.post + category.pre === 0
+            ? 0
+            : (category.daysPost + category.daysPre) /
+              (category.post + category.pre);
+        payload["post"] = {
+          count: category.post,
+          average: category.post === 0 ? 0 : category.daysPost / category.post,
+        };
+        payload["pre"] = {
+          count: category.pre,
+          average: category.pre === 0 ? 0 : category.daysPre / category.pre,
+        };
+        return payload;
+      }
     );
 
     setDataArray3(
@@ -127,7 +152,13 @@ export default function Overview() {
                 `days${key.charAt(0).toUpperCase()}${key.slice(1)}`
               ],
             })),
-            statusDataCalculations.results,
+            columnAggAvgByOffense.map((status) => ({
+              category: status.category,
+              countTotal: status.all.count,
+              averageTotal: status.all.average,
+              averagePre: status.pre.average,
+              averagePost: status.post.average,
+            })),
           ]
         : [
             [
@@ -149,11 +180,15 @@ export default function Overview() {
             })),
           ]
     );
-    const statusDataPopulation = aggregatePopulationByStatus(
+    const statusDataPopulation = aggregatePopulationByOffense(
       csvData,
       selectedYear,
       detentionType,
       "OffenseCategory"
+    );
+
+    statusDataPopulation.results = statusDataPopulation.results.filter(
+      (entry) => entry.post + entry.pre > 0
     );
 
     const columnAggPopulations = statusDataPopulation.results.reduce(
@@ -190,7 +225,10 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          ref={contentRef}
+        >
           <Header
             title="ATD Utilization"
             subtitle="Snapshot"
@@ -198,14 +236,15 @@ export default function Overview() {
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
             useDropdown
+            year={selectedYear}
           >
             {" "}
             <DownloadButton
               elementRef={contentRef}
-              filename="alternative-to-detention-overview.pdf"
+              filename={`alternative-to-detention-overview-${selectedYear}.pdf`}
             />
           </Header>
-          <div ref={contentRef}>
+          <div>
             {dataArray1 &&
               dataArray1.length > 0 &&
               dataArray2 &&

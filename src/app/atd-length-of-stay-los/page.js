@@ -58,6 +58,21 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   // Pull in for the filter of types
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
@@ -378,7 +393,8 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Average Length of Stay - All Programs`}
-            dekWithYear={`Showing LOS in ATDs for ${selectedYear}`}
+            dekWithYear={`Showing length of stay in ATDs for ${selectedYear}`}
+            showFilterInstructions
           >
             <Selector
               values={yearsArray}
@@ -394,7 +410,7 @@ export default function Overview() {
             />
             <DownloadButton
               elementRef={contentRef}
-              filename="alternative-to-detention-length-of-stay.pdf"
+              filename={`alternative-to-detention-length-of-stay-${selectedYear}.pdf`}
             />
           </Header>
         </div>
@@ -410,7 +426,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "12px",
             }}
           >
             {/* Change Statistics */}
@@ -486,7 +502,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "12px",
             }}
           >
             {/* LOS by Race/Ethnicity */}
@@ -607,7 +623,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "4px",
             }}
           >
             {/* LOS by Reason */}

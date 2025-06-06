@@ -13,6 +13,12 @@ const LineChartV2 = ({
   selectedLegendOptions,
   selectedLegendDetails,
 }) => {
+  if (metric === "releases") {
+    metric = "exits";
+  }
+  if (metric === "admissions") {
+    metric = "entries";
+  }
   const svgRef = useRef();
   const containerRef = useRef();
   const pathname = usePathname();
@@ -153,7 +159,7 @@ const LineChartV2 = ({
         .attr("clip-path", "url(#chart-clip)")
         .attr("fill", "none")
         .attr("stroke", colorScale(series.key))
-        .attr("stroke-width", 2)
+        .attr("stroke-width", 3)
         .attr("d", line)
         .attr("opacity", () =>
           selectedLegendOptions.length === 0 ||
@@ -192,7 +198,7 @@ const LineChartV2 = ({
       .append("line")
       .attr("class", "hover-line")
       .attr("stroke", "#444")
-      .attr("stroke-width", 1)
+      .attr("stroke-width", 3)
       .attr("y1", margin.top)
       .attr("y2", height - margin.bottom)
       .style("display", "none");
@@ -222,17 +228,23 @@ const LineChartV2 = ({
     });
 
     let frameId = null;
+    const tooltip = d3.select(`#tooltip-${metric}`);
     overlay.on("mousemove", function (event) {
       if (frameId) cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
-        const [mx] = d3.pointer(event);
+        const [mx, my] = d3.pointer(event, svgRef.current);
         const closestYear = d3.least(allYears, (y) => Math.abs(xScale(y) - mx));
         const x = yearToX.get(closestYear);
         hoverLine.style("display", null).attr("x1", x).attr("x2", x);
-
         hoverLabels.selectAll("*").remove();
 
-        seriesData.forEach((series, i) => {
+        // Tooltip content
+        let tooltipHTML = `<strong>Year:</strong> ${closestYear}<br/><strong>Metric:</strong> ${metric}<br/><strong>Header:</strong> ${header}<br/><br/>`;
+
+        let closestCircle = null;
+        let minDistance = Infinity;
+
+        seriesData.forEach((series) => {
           const value = dataByGroupAndYear.get(`${series.key}-${closestYear}`);
           if (
             value != null &&
@@ -247,15 +259,29 @@ const LineChartV2 = ({
               .attr("r", 4)
               .attr("fill", colorScale(series.key));
 
-            hoverLabels
-              .append("text")
-              .attr("x", x + 6)
-              .attr("y", y - 6)
-              .attr("fill", colorScale(series.key))
-              .attr("font-size", "10px")
-              .text(value);
+            // Tooltip data accumulation
+            tooltipHTML += `<span style="color:${colorScale(series.key)};">${
+              series.key
+            }:</span> ${value}<br/>`;
+
+            // Find closest circle
+            const distance = Math.abs(my - y);
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestCircle = series.key;
+            }
           }
         });
+
+        if (closestCircle) {
+          tooltipHTML += `<br/><strong>Closest:</strong> ${closestCircle}`;
+        }
+
+        tooltip
+          .style("display", "block")
+          .style("left", `${mx + 12}px`)
+          .style("top", `${my + 12}px`)
+          .html(tooltipHTML);
       });
     });
 
@@ -263,6 +289,7 @@ const LineChartV2 = ({
       if (frameId) cancelAnimationFrame(frameId);
       hoverLine.style("display", "none");
       hoverLabels.selectAll("*").remove();
+      d3.select(`#tooltip-${metric}`).style("display", "none");
     });
 
     // Label simulation (same as before, if labels === "Show")
@@ -352,6 +379,21 @@ const LineChartV2 = ({
           display: isInitialized ? "block" : "none",
         }}
       />
+      <div
+        id={`tooltip-${metric}`}
+        style={{
+          position: "absolute",
+          pointerEvents: "none",
+          backgroundColor: "white",
+          border: "1px solid #ccc",
+          padding: "8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+          display: "none",
+          zIndex: 10,
+          maxWidth: "300px",
+        }}
+      ></div>
       {!isInitialized && (
         <div
           style={{

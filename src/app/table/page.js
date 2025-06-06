@@ -471,7 +471,10 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          ref={contentRef}
+        >
           <Header
             title="Secure Detention Utilization"
             subtitle="Table"
@@ -487,7 +490,7 @@ export default function Overview() {
               orientation="portrait"
             />
           </Header>
-          <div ref={contentRef}>
+          <div>
             {loading ? (
               <div className="spinner-container">
                 <div className="spinner" />

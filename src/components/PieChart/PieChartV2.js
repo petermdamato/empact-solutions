@@ -96,63 +96,65 @@ const PieChart = ({
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md inline-block relative">
       <div className="text-center font-semibold mb-2">{chartTitle}</div>
-      <svg ref={svgRef} width={size} height={size}>
-        <g transform={`translate(${radius},${radius})`}>
-          {pieData.map((d, i) => (
-            <g key={i}>
-              <path
-                ref={(el) => (pathRefs.current[i] = el)}
-                d={arcGen(d)}
-                fill={color[i]}
-                stroke="white"
-                strokeWidth={1.5}
-                onClick={() => handleClick(d)}
-                onMouseMove={(e) => handleMouseOver(e, d)}
-                onMouseOut={handleMouseOut}
-              />
-              <text
-                data-label-index={i}
-                transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                  arcGen.centroid(d)[1]
-                })`}
-                textAnchor="start"
-                alignmentBaseline="middle"
-                fontSize={14}
-                fill="#fff"
-                fontWeight="bold"
-              >
-                {d.data.category}
-              </text>
-              <text
-                data-label-index={i}
-                transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                  arcGen.centroid(d)[1] + 16
-                })`}
-                textAnchor="start"
-                alignmentBaseline="middle"
-                fontSize={12}
-                fontWeight="bold"
-                fill="#fff"
-              >
-                {d.data.value}
-              </text>
-              <text
-                data-label-index={i}
-                transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                  arcGen.centroid(d)[1] + 32
-                })`}
-                textAnchor="start"
-                alignmentBaseline="middle"
-                fontSize={12}
-                fontWeight="bold"
-                fill="#fff"
-              >
-                {Math.round(d.data.percentage * 1000) / 10}%
-              </text>
-            </g>
-          ))}
-        </g>
-      </svg>
+      <div className="centered-chart">
+        <svg ref={svgRef} width={size} height={size}>
+          <g transform={`translate(${radius},${radius})`}>
+            {pieData.map((d, i) => (
+              <g key={i}>
+                <path
+                  ref={(el) => (pathRefs.current[i] = el)}
+                  d={arcGen(d)}
+                  fill={color[i]}
+                  stroke="white"
+                  strokeWidth={1.5}
+                  onClick={() => handleClick(d)}
+                  onMouseMove={(e) => handleMouseOver(e, d)}
+                  onMouseOut={handleMouseOut}
+                />
+                <text
+                  data-label-index={i}
+                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
+                    arcGen.centroid(d)[1]
+                  })`}
+                  textAnchor="start"
+                  alignmentBaseline="middle"
+                  fontSize={14}
+                  fill="#fff"
+                  fontWeight="bold"
+                >
+                  {d.data.category}
+                </text>
+                <text
+                  data-label-index={i}
+                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
+                    arcGen.centroid(d)[1] + 16
+                  })`}
+                  textAnchor="start"
+                  alignmentBaseline="middle"
+                  fontSize={12}
+                  fontWeight="bold"
+                  fill="#fff"
+                >
+                  {d.data.value}
+                </text>
+                <text
+                  data-label-index={i}
+                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
+                    arcGen.centroid(d)[1] + 32
+                  })`}
+                  textAnchor="start"
+                  alignmentBaseline="middle"
+                  fontSize={12}
+                  fontWeight="bold"
+                  fill="#fff"
+                >
+                  {Math.round(d.data.percentage * 1000) / 10}%
+                </text>
+              </g>
+            ))}
+          </g>
+        </svg>
+      </div>
       <div
         id="pie-tooltip"
         className="tooltip"

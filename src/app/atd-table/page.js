@@ -25,7 +25,7 @@ export default function Overview() {
   const [yearsArray, setYearsArray] = useState([]);
 
   const onSelectChange = (e) => {
-    setSelectedYear(e.target.value);
+    setSelectedYear(e);
   };
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function Overview() {
               ),
               "countAdmissions",
 
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -74,7 +74,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Gender"
             ),
@@ -88,7 +88,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -98,7 +98,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Age"
             ),
@@ -112,7 +112,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -122,7 +122,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "RaceEthnicity"
             ),
@@ -136,7 +136,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -147,7 +147,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -161,7 +161,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -172,7 +172,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -186,7 +186,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -197,7 +197,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countAdmissions",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -215,7 +215,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -225,7 +225,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Gender"
             ),
@@ -239,7 +239,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -249,7 +249,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Age"
             ),
@@ -263,7 +263,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -273,7 +273,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "RaceEthnicity"
             ),
@@ -287,7 +287,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -298,7 +298,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -312,7 +312,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -323,7 +323,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -337,7 +337,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -348,7 +348,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "countReleases",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -366,7 +366,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -376,7 +376,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Gender"
             ),
@@ -390,7 +390,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -400,7 +400,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Age"
             ),
@@ -414,7 +414,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -424,7 +424,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "RaceEthnicity"
             ),
@@ -438,7 +438,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -449,7 +449,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -463,7 +463,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -474,7 +474,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -488,7 +488,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -499,7 +499,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "lengthOfStay",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -517,7 +517,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -527,7 +527,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Gender"
             ),
@@ -541,7 +541,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -551,7 +551,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "Age"
             ),
@@ -565,7 +565,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType
             ),
             body: dataAnalysis(
@@ -575,7 +575,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "RaceEthnicity"
             ),
@@ -589,7 +589,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -600,7 +600,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -614,7 +614,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -625,7 +625,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -639,7 +639,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseOverall"
             ),
@@ -650,7 +650,7 @@ export default function Overview() {
                   entry.Facility === programType
               ),
               "averageDailyPopulation",
-              selectedYear,
+              +selectedYear,
               detentionType,
               "OffenseCategory"
             ),
@@ -1276,13 +1276,17 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          ref={contentRef}
+        >
           <Header
             title="ATD Utilization"
-            subtitle="Table"
+            subtitle={`Table View - ${programType}`}
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
+            year={selectedYear}
             useDropdown
           >
             <Selector
@@ -1293,7 +1297,7 @@ export default function Overview() {
             />
             <DownloadButton
               elementRef={contentRef}
-              filename="alternative-to-detention-table.pdf"
+              filename={`alternative-to-detention-table-${selectedYear}.pdf`}
               orientation="portrait"
             />
           </Header>
@@ -1302,7 +1306,7 @@ export default function Overview() {
               <div className="spinner" />
             </div>
           ) : (
-            <div ref={contentRef}>
+            <div>
               <PillContainer
                 data={[
                   {
@@ -1310,24 +1314,28 @@ export default function Overview() {
                     data: dataArray1,
                     charts: ["table"],
                     chartTitles: ["Table"],
+                    headerColor: "#0f648a",
                   },
                   {
                     title: "Exits",
                     data: dataArray2,
                     charts: ["table"],
                     chartTitles: ["Table"],
+                    headerColor: "#0f648a",
                   },
                   {
                     title: "LOS",
                     data: dataArray3,
                     charts: ["table"],
                     chartTitles: ["Table"],
+                    headerColor: "#0f648a",
                   },
                   {
                     title: "ADP",
                     data: dataArray4,
                     charts: ["table"],
                     chartTitles: ["Table"],
+                    headerColor: "#0f648a",
                   },
                 ]}
               />

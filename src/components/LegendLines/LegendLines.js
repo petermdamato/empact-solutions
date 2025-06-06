@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 // Simple hash-color generator based on index
 const getColor = (label, index) => {
@@ -25,34 +25,40 @@ const LegendLines = ({
   setSelectedOptions,
   setSelectedLegendDetails,
 }) => {
-  useEffect(() => {
-    if (!options?.length) return;
+  // Memoize the option details calculation
+  const getOptionDetails = useCallback(() => {
+    if (!options?.length) return [];
 
-    const selectedOptionDetails = options.map((option) => {
-      const index = options.indexOf(option);
-      return {
-        label:
-          option === "0"
-            ? "Unsuccessful"
-            : option === "1"
-            ? "Successful"
-            : option,
-        color: getColor(option, index),
-      };
-    });
-
-    setSelectedLegendDetails(selectedOptionDetails);
+    return options.map((option, index) => ({
+      label:
+        option === "0"
+          ? "Unsuccessful"
+          : option === "1"
+          ? "Successful"
+          : option,
+      color: getColor(option, index),
+    }));
   }, [options]);
 
-  if (!options?.length) return null;
-
-  const toggleOption = (option) => {
-    if (selectedOptions.includes(option)) {
-      setSelectedOptions(selectedOptions.filter((o) => o !== option));
-    } else {
-      setSelectedOptions([...selectedOptions, option]);
+  // Only update legend details when options change
+  useEffect(() => {
+    if (options?.length) {
+      setSelectedLegendDetails(getOptionDetails());
     }
-  };
+  }, [options, getOptionDetails, setSelectedLegendDetails]);
+
+  const toggleOption = useCallback(
+    (option) => {
+      setSelectedOptions((prev) =>
+        prev.includes(option)
+          ? prev.filter((o) => o !== option)
+          : [...prev, option]
+      );
+    },
+    [setSelectedOptions]
+  );
+
+  if (!options?.length) return null;
 
   return (
     <div

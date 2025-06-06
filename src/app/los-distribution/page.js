@@ -23,7 +23,6 @@ export default function Overview() {
   const [dataArray2, setDataArray2] = useState([]);
   const [incarcerationType] = useState("Secure Detention Utilization");
   const [selectedYear, setSelectedYear] = useState(2024);
-  // exploreType options: Overall Total | Pre/post-dispo
   const [exploreType, setExploreType] = useState("Overall Total");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [programTypeArray, setProgramTypeArray] = useState([
@@ -64,11 +63,14 @@ export default function Overview() {
     <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
         <Sidebar />
-        <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
+        <div
+          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          ref={contentRef}
+        >
           <Header
             title={`${incarcerationType}`}
             subtitle={`LOS Distribution`}
-            dekWithYear={`Showing length-of-stay (LOS) distribution`}
+            dekWithYear={`Showing length-of-stay (LOS) distribution across ${exploreType}`}
           >
             <Selector
               values={["Overall Total", "Pre/post-dispo"]}
@@ -87,13 +89,15 @@ export default function Overview() {
               filename="secure-detention-length-of-stay-distribution.pdf"
             />
           </Header>
-          <div style={{ display: "flex" }} ref={contentRef}>
+          <div style={{ display: "flex" }}>
             {dataArray1 && (
               <PillContainer
                 display={"double"}
                 data={[
                   {
-                    title: "LOS",
+                    title: "LOS distribution trends (days)",
+                    subtitle:
+                      "Each bar = 1 release within the selected time period. Hover over the legend to highlight a category.",
                     data: dataArray1,
                     charts: ["distribution"],
                     chartTitles: ["LOS Distribution"],
@@ -109,10 +113,11 @@ export default function Overview() {
                 display={"double"}
                 data={[
                   {
-                    title: "Number of exits within LOS bucket",
+                    title: "Number of releases within LOS bucket",
+                    subtitle: "Hover over the legend to highlight a category.",
                     data: dataArray2,
                     charts: ["stacked-column"],
-                    chartTitles: ["Number of exits within LOS bucket"],
+                    chartTitles: ["Number of releases within LOS bucket"],
                     detentionType: ["secure-detention"],
                     selectedYear: [selectedYear],
                     exploreType: [exploreType],

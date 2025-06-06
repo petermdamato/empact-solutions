@@ -106,17 +106,19 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
         totalLOS: 0,
         countLOS: 0,
         lengthOfStays: [],
-        dailyCounts: {}, // { 'YYYY-MM-DD': count }
+        dailyCounts: {},
       };
     }
 
     const yearObj = results[year][key];
     yearObj.entries += 1;
-    if (exit && exit.getFullYear() === year) yearObj.exits += 1;
-    if (los !== null) {
-      yearObj.totalLOS += los;
-      yearObj.countLOS += 1;
-      yearObj.lengthOfStays.push(los);
+    if (exit && exit.getFullYear() === year) {
+      yearObj.exits += 1;
+      if (los !== null) {
+        yearObj.totalLOS += los;
+        yearObj.countLOS += 1;
+        yearObj.lengthOfStays.push(los);
+      }
     }
 
     // Daily counts for ADP
@@ -142,21 +144,28 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
         Object.values(obj.dailyCounts).reduce((sum, val) => sum + val, 0) /
         Object.keys(obj.dailyCounts).length;
 
-      obj.lengthOfStays.sort((a, b) => a - b);
-      const mid = Math.floor(obj.lengthOfStays.length / 2);
-      const medianLOS =
-        obj.lengthOfStays.length % 2 === 0
-          ? (obj.lengthOfStays[mid - 1] + obj.lengthOfStays[mid]) / 2
-          : obj.lengthOfStays[mid];
+      // Calculate median LOS only for released cases
+      let medianLOS = null;
+      let medianLOSCount = 0;
+      if (obj.lengthOfStays.length > 0) {
+        obj.lengthOfStays.sort((a, b) => a - b);
+        const mid = Math.floor(obj.lengthOfStays.length / 2);
+        medianLOS =
+          obj.lengthOfStays.length % 2 === 0
+            ? (obj.lengthOfStays[mid - 1] + obj.lengthOfStays[mid]) / 2
+            : obj.lengthOfStays[mid];
+        medianLOSCount = obj.lengthOfStays.length;
+      }
 
       final[year][key] = {
         entries: obj.entries,
         exits: obj.exits,
         averageDailyPopulation: Number(adp.toFixed(2)),
+        lengthOfStayCount: obj.countLOS,
         averageLengthOfStay: obj.countLOS
           ? Number((obj.totalLOS / obj.countLOS).toFixed(2))
           : null,
-        medianLengthOfStay: medianLOS || null,
+        medianLengthOfStay: medianLOS ? medianLOS : null,
       };
     }
   }

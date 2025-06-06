@@ -118,6 +118,21 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   // Pull in for the filter of types
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
@@ -375,6 +390,7 @@ export default function Overview() {
           flexDirection: "column",
           overflow: "auto",
         }}
+        ref={contentRef}
       >
         {/* Header */}
         <div
@@ -393,6 +409,7 @@ export default function Overview() {
             }`}
             subtitle={`Entries - All Programs`}
             dekWithYear={`Showing entries to ATDs for ${selectedYear}`}
+            showFilterInstructions
           >
             <Selector
               values={yearsArray}
@@ -402,23 +419,20 @@ export default function Overview() {
             />
             <DownloadButton
               elementRef={contentRef}
-              filename="alternative-to-detention-entries.pdf"
+              filename={`alternative-to-detention-entries-${selectedYear}.pdf`}
             />
           </Header>
         </div>
 
         {/* Charts */}
-        <div
-          style={{ display: "flex", gap: "24px", padding: "24px" }}
-          ref={contentRef}
-        >
+        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
           {/* Column 1 */}
           <div
             style={{
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "12px",
             }}
           >
             {/* Change Statistics */}
@@ -466,7 +480,7 @@ export default function Overview() {
                     year={selectedYear}
                     groupByKey={"Pre/post-dispo filter"}
                     type={"alternative-to-detention"}
-                    title={"Entries by Pre/Post-Dispo"}
+                    chartTitle={"Entries by Pre/Post-Dispo"}
                     filterVariable={filterVariable}
                     setFilterVariable={setFilterVariable}
                   />
@@ -481,7 +495,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "12px",
             }}
           >
             {/* Entries by Race/Ethnicity */}
@@ -598,7 +612,7 @@ export default function Overview() {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "4px",
             }}
           >
             {/* Entries by Reason */}
