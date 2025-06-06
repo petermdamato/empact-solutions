@@ -267,16 +267,6 @@ const DistributionChart = (records) => {
     return () => window.removeEventListener("resize", handleResize);
   }, [records.legendOptions]);
 
-  const margin = { top: 0, right: 10, bottom: 40, left: 10 };
-  const { width, height } = dimensions;
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
-
-  if (!records.data || records.data.length === 0) return null;
-
-  // Process data and group by length of stay
-  const dataCopy = [...records.data];
-
   useEffect(() => {
     if (records.filterDimension && records.filterDimension.length > 0) {
       console.log(records.filterDimension);
@@ -298,6 +288,16 @@ const DistributionChart = (records) => {
       records.setSelectedLegendOptions([]);
     }
   }, [records.data, records.exploreType]);
+
+  const margin = { top: 0, right: 10, bottom: 40, left: 10 };
+  const { width, height } = dimensions;
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  if (!records.data || records.data.length === 0) return null;
+
+  // Process data and group by length of stay
+  const dataCopy = [...records.data];
 
   const filteredData = dataCopy.filter((record) => {
     return (
