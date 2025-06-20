@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,6 +13,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.1.0",
     "@mui/x-date-pickers": "^8.4.0",
+    "@turf/turf": "^7.2.0",
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
     "dom-to-image": "^2.6.0",
@@ -20,15 +21,19 @@
     "html2pdf.js": "^0.10.3",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.511.0",
+    "mapbox-gl": "^3.8.0",
+    "maplibre-gl": "^4.7.1",
     "next": "15.2.1",
     "next-auth": "^4.24.11",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
+    "react-map-gl": "^7.1.7",
     "react-resize-detector": "^12.0.2",
     "recharts": "^2.15.3",
     "shadcn-ui": "^0.9.5",
+    "turf": "^3.0.14",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

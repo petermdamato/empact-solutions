@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
+import EnhancedTooltip from "@/components/EnhancedTooltip/EnhancedTooltip";
 import "./PieChart.css";
 
 const PieChart = ({
@@ -10,20 +11,19 @@ const PieChart = ({
   setFilterVariable,
   filterVariable,
 }) => {
-  // All hooks must be called unconditionally at the top
   const radius = size / 2;
   const color = ["#5b6069", "#d3d3d3"];
   const svgRef = useRef();
   const pathRefs = useRef([]);
+  const [tooltipData, setTooltipData] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
-  // Default pieData and arcGen, even if records is empty
   const pieData = d3.pie().value((d) => d.value)(records || []);
   const arcGen = d3
     .arc()
     .innerRadius(0)
     .outerRadius(radius - 10);
 
-  // Effects (hooks must go above early return)
   useEffect(() => {
     if (!records || records.length === 0) return;
 
@@ -57,10 +57,8 @@ const PieChart = ({
     });
   }, [filterVariable, records]);
 
-  // Early return now comes AFTER hooks
   if (!records || records.length === 0) return null;
 
-  // Event handlers
   const handleClick = (data) => {
     const selectedValue = data.data.category;
     const currentKey = Object.keys(filterVariable || {})[0];
@@ -77,20 +75,26 @@ const PieChart = ({
   };
 
   const handleMouseOver = (event, d) => {
-    const tooltip = d3.select("#pie-tooltip");
-    tooltip
-      .style("opacity", 1)
-      .html(
-        `<strong>${d.data.category}</strong><br/>Value: ${
-          d.data.value
-        }<br/>Percentage: ${Math.round(d.data.percentage * 1000) / 10}%`
-      )
-      .style("left", event.pageX + 10 + "px")
-      .style("top", event.pageY + 10 + "px");
+    setTooltipData({
+      active: true,
+      payload: [
+        {
+          name: d.data.category,
+          value: d.data.value,
+          color: color[pieData.indexOf(d)],
+          percentage: Math.round(d.data.percentage * 1000) / 10,
+        },
+      ],
+      label: d.data.category,
+    });
+    setTooltipPosition({
+      x: event.pageX,
+      y: event.pageY,
+    });
   };
 
   const handleMouseOut = () => {
-    d3.select("#pie-tooltip").style("opacity", 0);
+    setTooltipData(null);
   };
 
   return (
@@ -155,20 +159,42 @@ const PieChart = ({
           </g>
         </svg>
       </div>
-      <div
-        id="pie-tooltip"
-        className="tooltip"
-        style={{
-          position: "absolute",
-          pointerEvents: "none",
-          opacity: 0,
-          background: "rgba(0, 0, 0, 0.8)",
-          color: "white",
-          padding: "8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-        }}
-      ></div>
+
+      {tooltipData && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${tooltipPosition.x + 10}px`,
+            top: `${tooltipPosition.y + 10}px`,
+            pointerEvents: "none",
+            zIndex: 100,
+          }}
+        >
+          <EnhancedTooltip
+            active={tooltipData.active}
+            payload={tooltipData.payload}
+            label={tooltipData.label}
+            valueFormatter={(value) => {
+              let identifier;
+              const title = chartTitle;
+              identifier = title.split(" by")[0];
+
+              return `${
+                value === "N/A"
+                  ? "N/A"
+                  : Math.round(value * 10) / 10 +
+                    (identifier === "LOS"
+                      ? " days"
+                      : identifier === "Admissions"
+                      ? " admissions"
+                      : identifier)
+              }`;
+            }}
+            showPercentage={true}
+            totalValue={records.reduce((sum, item) => sum + item.value, 0)}
+          />
+        </div>
+      )}
     </div>
   );
 };

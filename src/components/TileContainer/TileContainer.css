@@ -6,3 +6,16 @@
   padding: 8px;
   width: 100%;
 }
+
+.tile-container-two {
+  background-color: transparent;
+  flex-grow: 1;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px;
+  width: 100%;
+}
+
+.tile-container-two > .container-tile {
+  background-color: transparent;
+}

@@ -157,15 +157,29 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
         medianLOSCount = obj.lengthOfStays.length;
       }
 
-      final[year][key] = {
-        entries: obj.entries,
-        exits: obj.exits,
+      const baseMetrics = {
         averageDailyPopulation: Number(adp.toFixed(2)),
         lengthOfStayCount: obj.countLOS,
         averageLengthOfStay: obj.countLOS
           ? Number((obj.totalLOS / obj.countLOS).toFixed(2))
           : null,
         medianLengthOfStay: medianLOS ? medianLOS : null,
+      };
+
+      const detentionMetrics =
+        detentionType === "secure-detention"
+          ? {
+              admissions: obj.entries,
+              releases: obj.exits,
+            }
+          : {
+              entries: obj.entries,
+              exits: obj.exits,
+            };
+
+      final[year][key] = {
+        ...detentionMetrics,
+        ...baseMetrics,
       };
     }
   }

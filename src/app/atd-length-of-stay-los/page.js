@@ -56,6 +56,8 @@ export default function Overview() {
   const [dataArray17, setDataArray17] = useState([]);
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
+  const [dataArray20, setDataArray20] = useState([]);
+  const [dataArray21, setDataArray21] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
   // Add keydown event handler
@@ -351,6 +353,26 @@ export default function Overview() {
       });
 
       setDataArray19(overallArr);
+
+      setDataArray20(
+        dataAnalysisV2(
+          finalData,
+          `${calculationType}LengthOfStay`,
+          +selectedYear,
+          "AgeDetail",
+          "alternative-to-detention"
+        )
+      );
+
+      setDataArray21(
+        dataAnalysisV2(
+          finalData,
+          `${calculationType}LengthOfStay`,
+          +selectedYear,
+          "OffenseCategory",
+          "alternative-to-detention"
+        )
+      );
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -473,6 +495,7 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Facility"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -561,6 +584,7 @@ export default function Overview() {
                         setFilterVariable={setFilterVariable}
                         filterVariable={filterVariable}
                         groupByKey={"Race/Ethnicity"}
+                        showChart={false}
                       />
                     )}
                   </ResponsiveContainer>
@@ -585,6 +609,7 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Gender"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -612,6 +637,9 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Age"}
+                      showChart={true}
+                      innerData={dataArray20}
+                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -645,6 +673,9 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Reason for Detention"}
+                      showChart={true}
+                      innerData={dataArray21}
+                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -668,6 +699,9 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Category"}
+                      showChart={true}
+                      innerData={dataArray21}
+                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -692,6 +726,7 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Jurisdiction"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>

@@ -23,6 +23,10 @@ import {
 } from "@/utils/categories";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
+import dynamic from "next/dynamic";
+const ZipMap = dynamic(() => import("@/components/ZipMap/ZipMap"), {
+  ssr: false,
+});
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -119,7 +123,10 @@ export default function Overview() {
   const [dataArray17, setDataArray17] = useState([]);
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
+  const [dataArray20, setDataArray20] = useState([]);
+  const [dataArray21, setDataArray21] = useState([]);
   const [raceData, setRaceData] = useState([]);
+  const [showMap, setShowMap] = useState(false);
 
   const onSelectChange = (e) => {
     setSelectedYear(e);
@@ -207,7 +214,7 @@ export default function Overview() {
     if (programType === "All Program Types") {
       setDataArray11([
         {
-          title: "Entries by Successfulness",
+          title: "Admissions by Successfulness",
           header: analyzeEntriesByYear(
             finalData,
             +selectedYear,
@@ -227,7 +234,7 @@ export default function Overview() {
 
       setDataArray11([
         {
-          title: "Entries by Successfulness",
+          title: "Admissions by Successfulness",
           header: analyzeEntriesByYear(
             intermediate,
             +selectedYear,
@@ -387,6 +394,10 @@ export default function Overview() {
       });
 
       setDataArray12(overallArrScreened);
+
+      setDataArray20(detData.byGroup.AgeDetail);
+
+      setDataArray21(detData.byGroup.OffenseCategory);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -448,8 +459,12 @@ export default function Overview() {
             }}
           >
             {/* Change Statistics */}
-            <ChartCard width="100%">
-              <div style={{ maxHeight: "60px", width: "100%" }}>
+            <ChartCard width="100%" style={{ position: "relative" }}>
+              <div
+                style={{ maxHeight: "60px", width: "100%" }}
+                onMouseEnter={() => setShowMap(true)}
+                onMouseLeave={() => setShowMap(false)}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
                     data={[
@@ -458,10 +473,31 @@ export default function Overview() {
                     ]}
                   />
                 </ResponsiveContainer>
+
+                {/* Hover Map Tooltip */}
+
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "135px",
+                    left: "60px",
+                    zIndex: 10,
+                    width: "320px",
+                    height: "320px",
+                    background: "#fff",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                    borderRadius: "8px",
+                    opacity: `${showMap ? 1 : 0}`,
+                    overflow: "hidden",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <ZipMap csvData={finalData} selectedYear={selectedYear} />
+                </div>
               </div>
             </ChartCard>
 
-            {/* Entries by Type */}
+            {/* Admissions by Type */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -470,7 +506,7 @@ export default function Overview() {
                     year={selectedYear}
                     groupByKey={"Screened/not screened"}
                     type={"secure-detention"}
-                    chartTitle={"Entries by screened/not screened"}
+                    chartTitle={"Admissions by screened/not screened"}
                     setFilterVariable={setFilterVariable}
                     filterVariable={filterVariable}
                   />
@@ -486,7 +522,7 @@ export default function Overview() {
                     year={selectedYear}
                     groupByKey={"Pre/post-dispo filter"}
                     type={"secure-detention"}
-                    chartTitle={"Entries by Pre/Post-Dispo"}
+                    chartTitle={"Admissions by Pre/Post-Dispo"}
                     setFilterVariable={setFilterVariable}
                     filterVariable={filterVariable}
                   />
@@ -504,7 +540,7 @@ export default function Overview() {
               gap: "12px",
             }}
           >
-            {/* Entries by Race/Ethnicity */}
+            {/* Admissions by Race/Ethnicity */}
             <ChartCard width="100%">
               <div
                 style={{
@@ -559,6 +595,7 @@ export default function Overview() {
                         setFilterVariable={setFilterVariable}
                         filterVariable={filterVariable}
                         groupByKey={"Race/Ethnicity"}
+                        showChart={false}
                       />
                     )}
                   </ResponsiveContainer>
@@ -566,7 +603,7 @@ export default function Overview() {
               </div>
             </ChartCard>
 
-            {/* Entries by Gender */}
+            {/* Admissions by Gender */}
             <ChartCard width="100%">
               <div style={{ height: "180px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -576,7 +613,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Gender"}
+                      chartTitle={"Admissions by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -584,12 +621,13 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Gender"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* Entries by Age */}
+            {/* Admissions by Age */}
             <ChartCard width="100%">
               <div style={{ height: "200px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -599,7 +637,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Age"}
+                      chartTitle={"Admissions by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -607,6 +645,8 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Age"}
+                      showChart={true}
+                      innerData={dataArray20}
                     />
                   )}
                 </ResponsiveContainer>
@@ -622,7 +662,7 @@ export default function Overview() {
               gap: "4px",
             }}
           >
-            {/* Entries by Reason */}
+            {/* Admissions by Reason */}
             <ChartCard width="100%">
               <div style={{ height: "160px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -632,7 +672,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={180}
                       margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
-                      chartTitle={"Entries by Reason for Detention"}
+                      chartTitle={"Admissions by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -640,22 +680,24 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Reason for Detention"}
+                      showChart={true}
+                      innerData={dataArray21}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* Entries by Category */}
+            {/* Admissions by Category */}
             <ChartCard width="100%">
               <div style={{ height: "260px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Offense Category (pre-dispo)"}
+                      chartTitle={"Admissions by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -663,13 +705,15 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Category"}
+                      showChart={true}
+                      innerData={dataArray21}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
 
-            {/* Entries by Jurisdiction */}
+            {/* Admissions by Jurisdiction */}
             <ChartCard width="100%">
               <div style={{ height: "260px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -679,7 +723,7 @@ export default function Overview() {
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={"Entries by Jurisdiction"}
+                      chartTitle={"Admissions by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
@@ -687,6 +731,7 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Jurisdiction"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>

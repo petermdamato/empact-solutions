@@ -5,6 +5,12 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 
+import {
+  getAgeBracket,
+  getSimplifiedOffenseCategory,
+  offenseMap,
+} from "@/utils/categorizationUtils";
+
 const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
@@ -41,25 +47,6 @@ const parseDate = (dateStr) => {
   return isNaN(d) ? null : d;
 };
 
-// Map for offense categories
-const offenseMap = {
-  "Felony Person": "New Offenses",
-  "Felony Property": "New Offenses",
-  "Felony Weapons": "New Offenses",
-  "Felony Drugs": "New Offenses",
-  "Other Felony": "New Offenses",
-  "Misdemeanor Person": "New Offenses",
-  "Misdemeanor Property": "New Offenses",
-  "Misdemeanor Weapons": "New Offenses",
-  "Other Misdemeanor": "New Offenses",
-  "Status Offense": "New Offenses",
-  "ATD Program Failure": "Technicals",
-  "Court Order": "Technicals",
-  "Probation Violation": "Technicals",
-  Warrant: "Technicals",
-  "Other Technical Violation": "Technicals",
-};
-
 // Helper to determine if youth is White or Youth of Color
 const getRaceSimplified = (race, ethnicity) => {
   if (ethnicity === "Hispanic") return "Youth of Color";
@@ -81,15 +68,6 @@ function analyzeAdmissionsOnly(
     return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
   };
 
-  const getAgeBracket = (dob) => {
-    if (!dob) return "Unknown";
-    const age = (today - dob) / (365.25 * 24 * 60 * 60 * 1000);
-    if (age <= 10) return "10 and younger";
-    if (age <= 13) return "11-13";
-    if (age <= 17) return "14-17";
-    return "18+";
-  };
-
   const groups = [
     "Gender",
     "Race",
@@ -99,6 +77,7 @@ function analyzeAdmissionsOnly(
     "Facility",
     "Referral_Source",
     "AgeBracket",
+    "AgeDetail",
   ];
 
   const dispoTypes = ["Pre-dispo", "Post-dispo"];
@@ -136,6 +115,8 @@ function analyzeAdmissionsOnly(
         val = row.Ethnicity === "Hispanic" ? "Hispanic" : row.Race || "Unknown";
       } else if (group === "AgeBracket") {
         val = getAgeBracket(dob);
+      } else if (group === "AgeDetail") {
+        val = age(dob, intake);
       } else {
         val = row[group] || "Unknown";
       }
@@ -189,45 +170,6 @@ function analyzeAdmissionsOnly(
   return output;
 }
 
-// Function to determine simplified offense category
-const getSimplifiedOffenseCategory = (offenseCategory) => {
-  if (!offenseCategory) return "Other";
-
-  const category = offenseCategory.toString();
-
-  // Check for Felony categories
-  if (/felony/i.test(category)) {
-    return "Felonies";
-  }
-
-  // Check for Misdemeanor categories
-  if (/misdemeanor/i.test(category)) {
-    return "Misdemeanors";
-  }
-
-  // Check for Technical violations
-  const technicalCategories = [
-    "Court Order",
-    "Warrant",
-    "Status Offense",
-    "Probation Violation",
-    "ATD Program Failure",
-    "Other Technical Violation",
-    "Contempt of Court",
-  ];
-
-  if (technicalCategories.includes(category)) {
-    return "Technicals";
-  }
-
-  // Return Other for unknown categories
-  if (category === "Unknown") {
-    return "Other";
-  }
-
-  return "Other";
-};
-
 // Helper for race/ethnicity
 const getRaceEthnicity = (race, ethnicity) => {
   if (ethnicity?.toLowerCase() === "hispanic") return "Hispanic";
@@ -238,7 +180,7 @@ const getRaceEthnicity = (race, ethnicity) => {
 };
 
 // Helper to get age at admission
-const getAgeAtAdmission = (dob, intake) => {
+const getAgeAtAdmission = (dob, intake, bracketed = true) => {
   if (!dob || !intake) return null;
   const birth = parseDate(dob);
   const intakeDate = parseDate(intake);
@@ -252,10 +194,14 @@ const getAgeAtAdmission = (dob, intake) => {
       ? 1
       : 0);
 
-  if (age >= 11 && age <= 13) return "11–13";
-  if (age >= 14 && age <= 17) return "14–17";
-  if (age >= 18) return "18+";
-  return "Unknown";
+  if (bracketed) {
+    if (age >= 11 && age <= 13) return "11-13";
+    if (age >= 14 && age <= 17) return "14-17";
+    if (age >= 18) return "18+";
+    return "Unknown";
+  } else {
+    return age;
+  }
 };
 
 /**
@@ -267,7 +213,7 @@ const getAgeAtAdmission = (dob, intake) => {
  * @param {number} year - Year to analyze
  * @param {string} groupBy - Column to group by
  *   Options: "Gender", "Age", "RaceEthnicity", "RaceSimplified", "OffenseCategory",
- *            "OffenseOverall", "Facility", "Referral_Source"
+ *            "OffenseOverall", "Facility", "Referral_Source","AgeDetail"
  * @param {Object} options - Additional options
  * @returns {Object} Results of the analysis
  */
@@ -314,6 +260,7 @@ const analyzeData = (
   const validGroupBys = [
     "Gender",
     "Age",
+    "AgeDetail",
     "RaceEthnicity",
     "RaceSimplified",
     "OffenseCategory",
@@ -355,6 +302,15 @@ const analyzeData = (
         ? row.Admission_Date
         : row.ATD_Entry_Date
     );
+
+    const ageDetail = getAgeAtAdmission(
+      row.Date_of_Birth,
+      programType === "secure-detention"
+        ? row.Admission_Date
+        : row.ATD_Entry_Date,
+      false
+    );
+
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
     const raceSimplified = getRaceSimplified(row.Race, row.Ethnicity);
     const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
@@ -374,6 +330,9 @@ const analyzeData = (
         break;
       case "Age":
         key = age;
+        break;
+      case "AgeDetail":
+        key = ageDetail;
         break;
       case "RaceEthnicity":
         key = raceEth;

@@ -50,6 +50,8 @@ export default function Overview() {
   const [dataArray17, setDataArray17] = useState([]);
   const [dataArray18, setDataArray18] = useState([]);
   const [dataArray19, setDataArray19] = useState([]);
+  const [dataArray20, setDataArray20] = useState([]);
+  const [dataArray21, setDataArray21] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
   // Add keydown event handler
@@ -90,9 +92,9 @@ export default function Overview() {
         }
       } else if (key === "Age") {
         setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => categorizeAge(record, incarcerationType) === value
-          )
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            return categorizeAge(record, incarcerationType) === value;
+          })
         );
       } else if (key === "Gender" || key === "Screened/not screened") {
         setFinalData(
@@ -154,12 +156,12 @@ export default function Overview() {
 
   useEffect(() => {
     setYearsArray(
-      [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
+      [...new Set(csvData.map((obj) => parseDateYear(obj.Admission_Date)))]
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-  }, [finalData]);
-
+  }, [csvData]);
+  console.log(finalData);
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].current) {
       const byRaceEthnicity = Object.entries(
@@ -224,7 +226,7 @@ export default function Overview() {
           finalData,
           "averageDailyPopulation",
           +selectedYear,
-          "Gender",
+          "Age",
           "secure-detention"
         )
       ).map(([age, value]) => {
@@ -336,6 +338,26 @@ export default function Overview() {
       });
 
       setDataArray12(byScreenedStatus);
+
+      setDataArray20(
+        dataAnalysisV3(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear,
+          "AgeDetail",
+          "secure-detention"
+        )
+      );
+
+      setDataArray21(
+        dataAnalysisV3(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear,
+          "OffenseCategory",
+          "secure-detention"
+        )
+      );
     }
   }, [dataArray11, raceType]);
 
@@ -409,7 +431,6 @@ export default function Overview() {
                   <ChangeStatistics
                     data={[
                       Math.round(dataArray11[0]?.current * 10) / 10,
-
                       dataArray11[0]?.previous,
                     ]}
                   />
@@ -421,17 +442,15 @@ export default function Overview() {
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  {dataArray12.length > 0 && (
-                    <PieChart
-                      records={dataArray12}
-                      year={selectedYear}
-                      groupByKey={"Screened/not screened"}
-                      type={"secure-detention"}
-                      chartTitle={"ADP by screened/not screened"}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
-                    />
-                  )}
+                  <PieChart
+                    records={dataArray12}
+                    year={selectedYear}
+                    groupByKey={"Screened/not screened"}
+                    type={"secure-detention"}
+                    chartTitle={"LOS by screened/not screened"}
+                    setFilterVariable={setFilterVariable}
+                    filterVariable={filterVariable}
+                  />
                 </ResponsiveContainer>
               </div>
             </ChartCard>
@@ -517,6 +536,7 @@ export default function Overview() {
                         setFilterVariable={setFilterVariable}
                         filterVariable={filterVariable}
                         groupByKey={"Race/Ethnicity"}
+                        showChart={false}
                       />
                     )}
                   </ResponsiveContainer>
@@ -541,6 +561,7 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Gender"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -552,7 +573,11 @@ export default function Overview() {
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray15.length > 0 && (
                     <StackedBarChartGeneric
-                      data={dataArray15}
+                      data={dataArray15.filter(
+                        (entry) =>
+                          entry.category !== "null" &&
+                          entry.category !== "Unknown"
+                      )}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
                       margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
@@ -564,6 +589,8 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Age"}
+                      showChart={true}
+                      innerData={dataArray20}
                     />
                   )}
                 </ResponsiveContainer>
@@ -597,6 +624,8 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Reason for Detention"}
+                      showChart={true}
+                      innerData={dataArray21}
                     />
                   )}
                 </ResponsiveContainer>
@@ -619,6 +648,8 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Category"}
+                      showChart={true}
+                      innerData={dataArray21}
                     />
                   )}
                 </ResponsiveContainer>
@@ -643,6 +674,7 @@ export default function Overview() {
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Jurisdiction"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>

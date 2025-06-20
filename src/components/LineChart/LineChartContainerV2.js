@@ -16,6 +16,7 @@ const LineChartContainerV2 = ({
   selectedLegendDetails,
   selectorChild,
   children,
+  detentionType,
 }) => {
   const { width, height, ref } = useResizeDetector();
 
@@ -59,6 +60,7 @@ const LineChartContainerV2 = ({
             height={height}
             selectedLegendOptions={selectedLegendOptions}
             selectedLegendDetails={selectedLegendDetails}
+            detentionType={detentionType}
           />
         </div>
       ))}

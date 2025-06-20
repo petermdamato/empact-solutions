@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start; /* Align to top */
-  min-height: 100vh;
+  min-height: 40vh;
   font-family: Arial, sans-serif;
   background-color: #f5f5f5;
   padding: 20px;

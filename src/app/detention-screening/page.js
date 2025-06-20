@@ -3,43 +3,81 @@
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
-import TileContainer from "@/components/TileContainer/TileContainer";
 import DateRangeSlider from "@/components/DateRangeSlider/DateRangeSlider";
+import DownloadButton from "@/components/DownloadButton/DownloadButton";
+import RecordsTableDST from "@/components/RecordsTable/RecordsTableDST";
+import Heatmap from "@/components/Heatmap/Heatmap";
+import TileContainerV2 from "@/components/TileContainer/TileContainerV2";
+import Button from "@mui/material/Button";
+import Selector from "@/components/Selector/Selector";
+import { analyzeOverridesByYear } from "@/utils/analyzeOverridesByYear";
+import { analyzeOverridesByReasonByYear } from "@/utils/analyzeOverridesByReasonByYear";
+
 import { useEffect, useState, useRef } from "react";
 import "./styles.css";
-import { aggregateByComparison } from "@/utils";
-import RecordsTableDST from "@/components/RecordsTable/RecordsTableDST";
-import DownloadButton from "@/components/DownloadButton/DownloadButton";
 
 export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
   const [datesRange, setDatesRange] = useState(["2019-01-01", "2024-10-10"]);
   const [datesData, setDatesData] = useState([]);
-  const [dataArray1, setDataArray1] = useState([]);
+  const [recordsTableObject, setRecordsTableObject] = useState(false);
+  const [showScores, setShowScores] = useState("show");
+  const [xKey, setXKey] = useState("DST Recommendation");
+  const [filteredData, setFilteredData] = useState(datesData);
+  const [autohold, setAutohold] = useState("All");
+  const [dstValue, setDstValue] = useState(null);
+  const [dstScoreValue, setDstScoreValue] = useState(null);
+  const [decisionValue, setDecisionValue] = useState(null);
+  const [timeSeriesDataPercentage, setTimeSeriesDataPercentage] = useState([]);
+  const [timeSeriesDataCountByReason, setTimeSeriesDataCountByReason] =
+    useState([]);
 
   useEffect(() => {
+    const autoholdVal = autohold === "no" ? 0 : 1;
     setDatesData(
       csvData.filter((entry) => {
         const intake = new Date(entry.Admission_Date);
         const lowerDate = new Date(datesRange[0]);
         const upperDate = new Date(datesRange[1]);
-        return intake >= lowerDate && intake <= upperDate;
+        return (
+          intake >= lowerDate &&
+          intake <= upperDate &&
+          (autohold === "all" || +entry["Auto_Hold"] === autoholdVal)
+        );
       })
     );
-  }, [datesRange, csvData]);
+  }, [datesRange, csvData, autohold, dstValue, dstScoreValue, decisionValue]);
+
   useEffect(() => {
-    setDataArray1([
-      {
-        title: "categories",
-        data: aggregateByComparison(csvData, datesRange[0], datesRange[1]),
-      },
-      {
-        title: "heatmap",
-        data: csvData,
-      },
-    ]);
-  }, [csvData, datesRange]);
+    setFilteredData(
+      datesData.filter((entry) => {
+        return (
+          (dstValue === null || entry["DST Recommendation"] === dstValue) &&
+          (dstScoreValue === null || +entry["DST_Score"] === dstScoreValue) &&
+          (decisionValue === null || entry["Intake Decision"] === decisionValue)
+        );
+      })
+    );
+  }, [datesData, dstValue, dstScoreValue, decisionValue]);
+
+  useEffect(() => {
+    setTimeSeriesDataPercentage(analyzeOverridesByYear(filteredData));
+    setTimeSeriesDataCountByReason(
+      analyzeOverridesByReasonByYear(filteredData)
+    );
+  }, [filteredData]);
+
+  useEffect(() => {
+    setXKey(xKey === "DST Recommendation" ? "DST_Score" : "DST Recommendation");
+    setDstValue(null);
+    setDstScoreValue(null);
+    setDecisionValue(null);
+  }, [showScores]);
+
+  const handleGoBack = () => {
+    setRecordsTableObject(false);
+  };
 
   return (
     <div className="max-w-xl mx-auto mt-10">
@@ -54,29 +92,48 @@ export default function Overview() {
             subtitle="Detention Screening"
             dekWithYear="DST Recommendation Restrictiveness Compared to Actual Decision"
           >
-            <DownloadButton
-              style={{ zIndex: 1 }}
-              elementRef={contentRef}
-              filename={`secure-detention-detention-screening.pdf`}
-            />
             <div
               style={{
-                position: "absolute",
-                right: "10px",
-                width: "30%",
-                padding: "0 40px",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "24px",
+                flexWrap: "wrap",
+                marginTop: "-16px",
               }}
             >
-              <DateRangeSlider
-                records={csvData}
-                accessor={(d) => d.Admission_Date}
-                setDatesRange={setDatesRange}
-              />
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <h5 style={{ fontSize: "14px", margin: 0 }}>Auto Hold</h5>
+                <Selector
+                  values={["all", "no", "yes"]}
+                  variable="calc"
+                  selectedValue={autohold}
+                  setValue={setAutohold}
+                  labelMap={{ all: "All", no: "No", yes: "Yes" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ maxWidth: "200px", width: "100%" }}>
+                  <DateRangeSlider
+                    records={csvData}
+                    accessor={(d) => d.Admission_Date}
+                    setDatesRange={setDatesRange}
+                  />
+                </div>
+              </div>
+              <div style={{ marginLeft: "auto" }}>
+                <DownloadButton
+                  style={{ zIndex: 1 }}
+                  elementRef={contentRef}
+                  filename={`secure-detention-detention-screening.pdf`}
+                />
+              </div>
             </div>
           </Header>
 
           <div ref={contentRef}>
-            {dataArray1 && (
+            {recordsTableObject ? (
               <div
                 style={{
                   display: "flex",
@@ -84,34 +141,106 @@ export default function Overview() {
                   flexGrow: 1,
                 }}
               >
-                <TileContainer
-                  datesRange={datesRange}
+                <Button
+                  variant="contained"
+                  onClick={handleGoBack}
+                  sx={{
+                    marginBottom: "16px",
+                    alignSelf: "flex-start",
+                    backgroundColor: "#333a43",
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "#4a5568",
+                    },
+                  }}
+                >
+                  Go Back
+                </Button>
+                <RecordsTableDST
+                  data={filteredData}
+                  recordsTableObject={recordsTableObject}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flexGrow: 1,
+                }}
+              >
+                <TileContainerV2
                   data={[
                     {
                       title: "Actual Decision Compared to DST",
-                      data: dataArray1,
-                      charts: ["column", "heatmap"],
+                      data: filteredData,
+                      charts: ["distributionStacked", "distributionV2"],
                       chartTitles: [
-                        "Recommended Restrictivness Compared to Actual Decision",
-                        "Actual Decision Compared to DST Decision",
+                        "DST Recommendation Restrictivness Compared to Actual Decision",
+                        "DST Override Reason",
                       ],
                       keysArray: [
-                        [],
-                        ["Intake Decision", "DST Recommendation"],
+                        ["0", "1"],
+                        ["0", "1"],
                       ],
+                      timeSeriesDataPercentage: timeSeriesDataPercentage,
+                      timeSeriesDataCountByReason: timeSeriesDataCountByReason,
                     },
                   ]}
                 />
                 <div
                   style={{
-                    flex: 1,
-                    overflow: "clip",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    padding: "0 4px",
                     marginTop: "16px",
-                    maxHeight: "500px",
+                    marginBottom: "24px",
                   }}
                 >
-                  <RecordsTableDST data={datesData} />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <h5 style={{ fontSize: "14px", margin: 0 }}>
+                      Show Recommendation Scores
+                    </h5>
+                    <Selector
+                      values={["show", "hide"]}
+                      variable="calc"
+                      selectedValue={showScores}
+                      setValue={setShowScores}
+                      labelMap={{ show: "Show", hide: "Hide" }}
+                    />
+                  </div>
+
+                  <Button
+                    variant="outlined"
+                    onClick={() => setRecordsTableObject(true)}
+                    sx={{
+                      backgroundColor: "#333a43",
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "#4a5568",
+                      },
+                    }}
+                  >
+                    View Table
+                  </Button>
                 </div>
+
+                <Heatmap
+                  data={datesData}
+                  xKey={xKey}
+                  yKey="Intake Decision"
+                  datesRange={datesRange}
+                  chartTitle="Actual Decision Compared to DST Recommendation"
+                  showScores={showScores}
+                  dstValue={dstValue}
+                  dstScoreValue={dstScoreValue}
+                  setDstValue={setDstValue}
+                  setDstScoreValue={setDstScoreValue}
+                  decisionValue={decisionValue}
+                  setDecisionValue={setDecisionValue}
+                />
               </div>
             )}
           </div>

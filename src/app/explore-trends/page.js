@@ -19,6 +19,7 @@ const breakdownMapping = {
   "YOC/White": "byYOC",
   Gender: "byGender",
   "Age at Intake": "byAge",
+  "Age at Admission": "byAge",
   "Offense Category": "byOffenseCategory",
   "Successful/Unsuccessful": "bySuccess",
 };
@@ -203,6 +204,7 @@ export default function Overview() {
                   selectedLabelsChoice={selectedLabelsChoice}
                   selectedLegendOptions={selectedLegendOptions}
                   selectedLegendDetails={selectedLegendDetails}
+                  detentionType={incarcerationType}
                 />
               </div>
             </div>
@@ -228,6 +230,7 @@ export default function Overview() {
                 selectorPlacement="left"
                 selectedLegendOptions={selectedLegendOptions}
                 selectedLegendDetails={selectedLegendDetails}
+                detentionType={incarcerationType}
               >
                 <Selector
                   values={["Average", "Median"]}

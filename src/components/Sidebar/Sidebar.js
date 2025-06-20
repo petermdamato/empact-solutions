@@ -179,7 +179,8 @@ const Sidebar = () => {
       </nav>
       <footer>
         <img
-          src="https://empactsolutions.org/wp-content/uploads/2023/03/empact-solutions-logo-web-180x93.png"
+          className="sidebar-logo"
+          src="/logo.jpg"
           alt="Empact Solutions Logo"
         />
         <p>

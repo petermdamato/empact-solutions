@@ -8,15 +8,16 @@ const LineChartV2 = ({
   data,
   header,
   metric,
+  detentionType,
   comparison = "none",
   labels,
   selectedLegendOptions,
   selectedLegendDetails,
 }) => {
-  if (metric === "releases") {
+  if (detentionType === "alternative-to-detention" && metric === "releases") {
     metric = "exits";
   }
-  if (metric === "admissions") {
+  if (detentionType === "alternative-to-detention" && metric === "admissions") {
     metric = "entries";
   }
   const svgRef = useRef();
@@ -81,6 +82,7 @@ const LineChartV2 = ({
     const chartGroup = svg.append("g").attr("class", "chart-content");
 
     const seriesMap = new Map();
+
     Object.entries(data).forEach(([year, yearData]) => {
       Object.entries(yearData).forEach(([group, metrics]) => {
         if (!seriesMap.has(group)) seriesMap.set(group, []);
@@ -239,7 +241,14 @@ const LineChartV2 = ({
         hoverLabels.selectAll("*").remove();
 
         // Tooltip content
-        let tooltipHTML = `<strong>Year:</strong> ${closestYear}<br/><strong>Metric:</strong> ${metric}<br/><strong>Header:</strong> ${header}<br/><br/>`;
+        let tooltipHTML = `<strong>${closestYear} | ${
+          metric.toLowerCase() === "averagelengthofstay"
+            ? "Average length of stay"
+            : metric.toLowerCase() === "averagedailypopulation"
+            ? "Average daily population"
+            : String(metric)[0].toUpperCase() +
+              String(metric).slice(1).toLowerCase()
+        }</strong><br/><br/>`;
 
         let closestCircle = null;
         let minDistance = Infinity;
@@ -272,10 +281,6 @@ const LineChartV2 = ({
             }
           }
         });
-
-        if (closestCircle) {
-          tooltipHTML += `<br/><strong>Closest:</strong> ${closestCircle}`;
-        }
 
         tooltip
           .style("display", "block")

@@ -2,14 +2,17 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { dateDiff } from "./../../utils/dateDiff";
 import Selector from "../Selector/Selector";
-import LegendLines from "../LegendLines/LegendLines";
-import { LucideAlignHorizontalDistributeStart } from "lucide-react";
+import { useLinkOut } from "@/context/LinkOutContext";
 
-const getBucketForRecord = (d, filterDimension) => {
+const getBucketForRecord = (d, filterDimension, detentionType) => {
   switch (filterDimension) {
     case "Age at entry": {
       const dob = new Date(d.Date_of_Birth);
-      const entry = new Date(d.ATD_Entry_Date);
+      const entry = new Date(
+        detentionType === "alternative-to-detention"
+          ? d.ATD_Entry_Date
+          : d.Admission_Date
+      );
       if (isNaN(dob) || isNaN(entry)) return "Unknown";
 
       const age =
@@ -235,6 +238,8 @@ const getMedian = (arr, detentionType) => {
 };
 
 const DistributionChart = (records) => {
+  const linkText = useLinkOut();
+
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({
     width: 600,
@@ -269,7 +274,6 @@ const DistributionChart = (records) => {
 
   useEffect(() => {
     if (records.filterDimension && records.filterDimension.length > 0) {
-      console.log(records.filterDimension);
       const legendVals = getLegendValues(dataCopy, records.filterDimension);
       records.setLegendOptions?.(legendVals);
       records.setSelectedLegendOptions([]);
@@ -282,7 +286,6 @@ const DistributionChart = (records) => {
       records.exploreType &&
       records.exploreType.length > 0
     ) {
-      console.log(records.exploreType);
       const legendVals = getLegendValues(dataCopy, records.exploreType);
       records.setLegendOptions?.(legendVals);
       records.setSelectedLegendOptions([]);
@@ -353,28 +356,89 @@ const DistributionChart = (records) => {
     .range([innerHeight, 0]);
 
   const handleMouseOver = (event, d) => {
-    const race = d.Race || "Unknown";
-    const ethnicity = d.Ethnicity || "Unknown";
+    const days = calculateLengthOfStay(d, records.detentionType);
+    const dateOfEntry = new Date(
+      records.detentionType === "secure-detention"
+        ? d.Admission_Date
+        : d.ATD_Entry_Date
+    );
+    const raceEthnicity =
+      (d.Ethnicity === "Hispanic" ? "Hispanic" : d.Race) || "Unknown";
     const dob = d.Date_of_Birth
       ? new Date(d.Date_of_Birth).toLocaleDateString()
       : "Unknown";
+    const age =
+      d.Date_of_Birth && dateOfEntry
+        ? Math.floor(dateDiff(new Date(d.Date_of_Birth), dateOfEntry, "years"))
+        : null;
 
     setTooltip({
       x: event.clientX,
       y: event.clientY,
       content: (
-        <div>
-          <div>
-            <strong>Race:</strong> {race}
+        <div className={"tooltip-list"}>
+          <div style={{ fontSize: "16px" }}>
+            <em>{days} in detention</em>
           </div>
           <div>
-            <strong>Ethnicity:</strong> {ethnicity}
+            <div>Youth ID: </div>
+            <div>
+              <strong>{d.Youth_ID}</strong>
+            </div>
           </div>
           <div>
-            <strong>Date of Birth:</strong> {dob}
+            <div>Race: </div>
+            <div>
+              <strong>{raceEthnicity}</strong>
+            </div>
           </div>
           <div>
-            <strong>Length of Stay:</strong> {d.days} days
+            <div>Gender: </div>
+            <div>
+              <strong>{d.Gender}</strong>
+            </div>
+          </div>
+          <div>
+            <div>
+              Age at
+              {records.detentionType === "secure-detention"
+                ? "Admission"
+                : "Intake"}
+              :
+            </div>
+            <div>
+              <strong>{age}</strong>
+            </div>
+          </div>
+          <div>
+            <div>Pre/Post-Dispo: </div>
+            <div>
+              <strong>
+                {d["Post-Dispo Stay Reason"] ? "Post-Dispo" : "Pre-Dispo"}
+              </strong>
+            </div>
+          </div>
+          <div>
+            <div>Offense Category: </div>
+            <div>
+              <strong>
+                {getBucketForRecord(
+                  d,
+                  "Offense category (pre-dispo)",
+                  records.detentionType
+                )}
+              </strong>
+            </div>
+          </div>
+          <div>
+            <div>Post-Dispo Status: </div>
+            <div>
+              <strong>
+                {d["Post-Dispo Stay Reason"]
+                  ? d["Post-Dispo Stay Reason"]
+                  : "--"}
+              </strong>
+            </div>
           </div>
         </div>
       ),
@@ -476,7 +540,11 @@ const DistributionChart = (records) => {
                               d["Post-Dispo Stay Reason"] === ""
                               ? "Pre-dispo"
                               : "Post-dispo"
-                            : getBucketForRecord(d, records.filterDimension)
+                            : getBucketForRecord(
+                                d,
+                                records.filterDimension,
+                                records.detentionType
+                              )
                         ]
                       : colorScale[
                           records.exploreType === "Pre/post-dispo"
@@ -497,12 +565,35 @@ const DistributionChart = (records) => {
                           d["Post-Dispo Stay Reason"] === ""
                           ? "Pre-dispo"
                           : "Post-dispo"
-                        : getBucketForRecord(d, records.filterDimension)
+                        : getBucketForRecord(
+                            d,
+                            records.filterDimension,
+                            records.detentionType
+                          )
                     )
                       ? 1
                       : 0.3
                   }
                   rx={4}
+                  onClick={() => {
+                    const url =
+                      (linkText.linkOut.includes("http://") ? "" : "http://") +
+                      linkText.linkOut +
+                      "/123"; // assumes this returns a URL string
+                    if (url) window.open(url, "_blank"); // open in new tab
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.setAttribute("stroke", "#000");
+                    e.currentTarget.setAttribute("stroke-width", "1");
+                    e.currentTarget.setAttribute("stroke-opacity", "0.3");
+                    handleMouseOver(e, d);
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.removeAttribute("stroke");
+                    e.currentTarget.removeAttribute("stroke-width");
+                    handleMouseOut(e);
+                  }}
+                  style={{ cursor: "pointer" }}
                 />
                 {showLabel && (
                   <text
