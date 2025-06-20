@@ -5,15 +5,9 @@ const OverridePercentStat = ({ data }) => {
   const svgRef = useRef();
   const [showChart, setShowChart] = useState(false);
 
-  if (
-    !data ||
-    data.length === 0 ||
-    !data[0].timeSeriesDataPercentage ||
-    Object.keys(data[0].timeSeriesDataPercentage).length === 0
-  )
-    return;
-  const finalData = data[0].timeSeriesDataPercentage;
-  // Prepare data sorted by year
+  // Set defaults to avoid conditional hook execution
+  const finalData = data?.[0]?.timeSeriesDataPercentage || {};
+
   const parsedData = Object.entries(finalData)
     .map(([year, stats]) => ({
       year: +year,
@@ -29,86 +23,85 @@ const OverridePercentStat = ({ data }) => {
   const chartHeight = 100;
 
   useEffect(() => {
-    if (showChart) {
-      const svg = d3.select(svgRef.current);
-      svg.selectAll("*").remove();
+    if (!showChart || parsedData.length === 0) return;
 
-      const margin = { top: 20, right: 16, bottom: 20, left: 30 };
-      const innerWidth = chartWidth - margin.left - margin.right;
-      const innerHeight = chartHeight - margin.top - margin.bottom;
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
 
-      const x = d3
-        .scaleLinear()
-        .domain(d3.extent(parsedData, (d) => d.year))
-        .range([0, innerWidth]);
+    const margin = { top: 20, right: 16, bottom: 20, left: 30 };
+    const innerWidth = chartWidth - margin.left - margin.right;
+    const innerHeight = chartHeight - margin.top - margin.bottom;
 
-      const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(parsedData, (d) => d.percent)])
-        .nice()
-        .range([innerHeight, 0]);
+    const x = d3
+      .scaleLinear()
+      .domain(d3.extent(parsedData, (d) => d.year))
+      .range([0, innerWidth]);
 
-      const line = d3
-        .line()
-        .x((d) => x(d.year))
-        .y((d) => y(d.percent));
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(parsedData, (d) => d.percent)])
+      .nice()
+      .range([innerHeight, 0]);
 
-      const chart = svg
-        .attr("width", chartWidth)
-        .attr("height", chartHeight)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+    const line = d3
+      .line()
+      .x((d) => x(d.year))
+      .y((d) => y(d.percent));
 
-      // Draw line
-      chart
-        .append("path")
-        .datum(parsedData)
-        .attr("fill", "none")
-        .attr("stroke", "#5a6b7c")
-        .attr("stroke-width", 2)
-        .attr("d", line);
+    const chart = svg
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
-      // Draw circles
-      chart
-        .selectAll("circle")
-        .data(parsedData)
-        .enter()
-        .append("circle")
-        .attr("cx", (d) => x(d.year))
-        .attr("cy", (d) => y(d.percent))
-        .attr("r", 3.5)
-        .attr("fill", "#1a202c");
+    chart
+      .append("path")
+      .datum(parsedData)
+      .attr("fill", "none")
+      .attr("stroke", "#5a6b7c")
+      .attr("stroke-width", 2)
+      .attr("d", line);
 
-      // Draw labels
-      chart
-        .selectAll("text.label")
-        .data(parsedData)
-        .enter()
-        .append("text")
-        .attr("class", "label")
-        .attr("x", (d) => x(d.year))
-        .attr("y", (d) => y(d.percent) - 8)
-        .attr("text-anchor", "middle")
-        .style("font-size", "10px")
-        .style("fill", "#4a5568")
-        .text((d) => `${d.percent}%`);
+    chart
+      .selectAll("circle")
+      .data(parsedData)
+      .enter()
+      .append("circle")
+      .attr("cx", (d) => x(d.year))
+      .attr("cy", (d) => y(d.percent))
+      .attr("r", 3.5)
+      .attr("fill", "#1a202c");
 
-      // Axes
-      chart
-        .append("g")
-        .attr("transform", `translate(0,${innerHeight})`)
-        .call(
-          d3.axisBottom(x).ticks(parsedData.length).tickFormat(d3.format("d"))
-        );
+    chart
+      .selectAll("text.label")
+      .data(parsedData)
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .attr("x", (d) => x(d.year))
+      .attr("y", (d) => y(d.percent) - 8)
+      .attr("text-anchor", "middle")
+      .style("font-size", "10px")
+      .style("fill", "#4a5568")
+      .text((d) => `${d.percent}%`);
 
-      chart.append("g").call(
-        d3
-          .axisLeft(y)
-          .ticks(4)
-          .tickFormat((d) => `${d}%`)
+    chart
+      .append("g")
+      .attr("transform", `translate(0,${innerHeight})`)
+      .call(
+        d3.axisBottom(x).ticks(parsedData.length).tickFormat(d3.format("d"))
       );
-    }
+
+    chart.append("g").call(
+      d3
+        .axisLeft(y)
+        .ticks(4)
+        .tickFormat((d) => `${d}%`)
+    );
   }, [showChart, parsedData]);
+
+  // Render nothing if there's no usable data
+  if (parsedData.length === 0 || !latestYear) return null;
 
   return (
     <div
@@ -129,11 +122,7 @@ const OverridePercentStat = ({ data }) => {
       </div>
       <div style={{ fontSize: "12px", color: "#4a5568" }}>
         Override Percentage{" "}
-        {
-          Object.keys(data[0].timeSeriesDataPercentage)[
-            Object.keys(data[0].timeSeriesDataPercentage).length - 1
-          ]
-        }
+        {Object.keys(finalData)[Object.keys(finalData).length - 1]}
       </div>
 
       {showChart && (
