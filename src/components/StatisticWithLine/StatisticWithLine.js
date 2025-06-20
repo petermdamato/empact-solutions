@@ -29,85 +29,85 @@ const OverridePercentStat = ({ data }) => {
   const chartHeight = 100;
 
   useEffect(() => {
-    if (!showChart) return;
+    if (showChart) {
+      const svg = d3.select(svgRef.current);
+      svg.selectAll("*").remove();
 
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
+      const margin = { top: 20, right: 16, bottom: 20, left: 30 };
+      const innerWidth = chartWidth - margin.left - margin.right;
+      const innerHeight = chartHeight - margin.top - margin.bottom;
 
-    const margin = { top: 20, right: 16, bottom: 20, left: 30 };
-    const innerWidth = chartWidth - margin.left - margin.right;
-    const innerHeight = chartHeight - margin.top - margin.bottom;
+      const x = d3
+        .scaleLinear()
+        .domain(d3.extent(parsedData, (d) => d.year))
+        .range([0, innerWidth]);
 
-    const x = d3
-      .scaleLinear()
-      .domain(d3.extent(parsedData, (d) => d.year))
-      .range([0, innerWidth]);
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(parsedData, (d) => d.percent)])
+        .nice()
+        .range([innerHeight, 0]);
 
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(parsedData, (d) => d.percent)])
-      .nice()
-      .range([innerHeight, 0]);
+      const line = d3
+        .line()
+        .x((d) => x(d.year))
+        .y((d) => y(d.percent));
 
-    const line = d3
-      .line()
-      .x((d) => x(d.year))
-      .y((d) => y(d.percent));
+      const chart = svg
+        .attr("width", chartWidth)
+        .attr("height", chartHeight)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const chart = svg
-      .attr("width", chartWidth)
-      .attr("height", chartHeight)
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+      // Draw line
+      chart
+        .append("path")
+        .datum(parsedData)
+        .attr("fill", "none")
+        .attr("stroke", "#5a6b7c")
+        .attr("stroke-width", 2)
+        .attr("d", line);
 
-    // Draw line
-    chart
-      .append("path")
-      .datum(parsedData)
-      .attr("fill", "none")
-      .attr("stroke", "#5a6b7c")
-      .attr("stroke-width", 2)
-      .attr("d", line);
+      // Draw circles
+      chart
+        .selectAll("circle")
+        .data(parsedData)
+        .enter()
+        .append("circle")
+        .attr("cx", (d) => x(d.year))
+        .attr("cy", (d) => y(d.percent))
+        .attr("r", 3.5)
+        .attr("fill", "#1a202c");
 
-    // Draw circles
-    chart
-      .selectAll("circle")
-      .data(parsedData)
-      .enter()
-      .append("circle")
-      .attr("cx", (d) => x(d.year))
-      .attr("cy", (d) => y(d.percent))
-      .attr("r", 3.5)
-      .attr("fill", "#1a202c");
+      // Draw labels
+      chart
+        .selectAll("text.label")
+        .data(parsedData)
+        .enter()
+        .append("text")
+        .attr("class", "label")
+        .attr("x", (d) => x(d.year))
+        .attr("y", (d) => y(d.percent) - 8)
+        .attr("text-anchor", "middle")
+        .style("font-size", "10px")
+        .style("fill", "#4a5568")
+        .text((d) => `${d.percent}%`);
 
-    // Draw labels
-    chart
-      .selectAll("text.label")
-      .data(parsedData)
-      .enter()
-      .append("text")
-      .attr("class", "label")
-      .attr("x", (d) => x(d.year))
-      .attr("y", (d) => y(d.percent) - 8)
-      .attr("text-anchor", "middle")
-      .style("font-size", "10px")
-      .style("fill", "#4a5568")
-      .text((d) => `${d.percent}%`);
+      // Axes
+      chart
+        .append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(
+          d3.axisBottom(x).ticks(parsedData.length).tickFormat(d3.format("d"))
+        );
 
-    // Axes
-    chart
-      .append("g")
-      .attr("transform", `translate(0,${innerHeight})`)
-      .call(
-        d3.axisBottom(x).ticks(parsedData.length).tickFormat(d3.format("d"))
+      chart.append("g").call(
+        d3
+          .axisLeft(y)
+          .ticks(4)
+          .tickFormat((d) => `${d}%`)
       );
-
-    chart.append("g").call(
-      d3
-        .axisLeft(y)
-        .ticks(4)
-        .tickFormat((d) => `${d}%`)
-    );
+    }
   }, [showChart, parsedData]);
 
   return (
