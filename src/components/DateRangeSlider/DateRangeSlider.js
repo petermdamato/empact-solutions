@@ -46,10 +46,6 @@ const DateRangeSlider = ({
     maxDate ? maxDate.getTime() : 0,
   ]);
 
-  if (!records || records.length === 0 || !minDate || !maxDate) {
-    return null;
-  }
-
   useEffect(() => {
     clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
@@ -60,6 +56,10 @@ const DateRangeSlider = ({
     }, 300); // debounce delay in ms
     return () => clearTimeout(debounceTimeout.current);
   }, [range]); // only when the range changes
+
+  if (!records || records.length === 0 || !minDate || !maxDate) {
+    return;
+  }
 
   const handleSliderChange = (_, newValue) => {
     setRange(newValue);

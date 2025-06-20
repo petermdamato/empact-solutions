@@ -45,7 +45,7 @@ const EnhancedTooltip = ({
   const [innerData, setInnerData] = useState([]);
   const [expanded, setExpanded] = useState(showChart);
 
-  if (!active || !payload || payload.length === 0) return null;
+  if (!active || !payload || payload.length === 0) return;
 
   useEffect(() => {
     if (showChart && chartData) {
