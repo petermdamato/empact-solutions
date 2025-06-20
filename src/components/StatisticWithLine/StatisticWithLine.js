@@ -2,6 +2,9 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 
 const OverridePercentStat = ({ data }) => {
+  const svgRef = useRef();
+  const [showChart, setShowChart] = useState(false);
+
   if (
     !data ||
     data.length === 0 ||
@@ -9,9 +12,6 @@ const OverridePercentStat = ({ data }) => {
     Object.keys(data[0].timeSeriesDataPercentage).length === 0
   )
     return;
-
-  const svgRef = useRef();
-  const [showChart, setShowChart] = useState(false);
   const finalData = data[0].timeSeriesDataPercentage;
   // Prepare data sorted by year
   const parsedData = Object.entries(finalData)

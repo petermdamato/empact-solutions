@@ -20,6 +20,7 @@ const TileContainerV2 = ({ data }) => {
           {outer.data.map((inner, i) =>
             outer.charts[i] === "distributionV2" ? (
               <div
+                key={"inner-" + i}
                 style={{
                   display: "flex",
                   flexDirection: "column",

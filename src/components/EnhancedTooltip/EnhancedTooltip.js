@@ -81,7 +81,14 @@ const EnhancedTooltip = ({
         setInnerData(showChart ? finalData : []);
       }
     }
-  }, [showChart, chartData, label]);
+  }, [
+    showChart,
+    chartData,
+    chartBreakdowns,
+    chartTitle,
+    valueBreakdowns,
+    label,
+  ]);
 
   // Calculate percentage if needed
   const percentage =
