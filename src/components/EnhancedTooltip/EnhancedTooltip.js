@@ -1,4 +1,3 @@
-// components/EnhancedTooltip/EnhancedTooltip.js
 import { useState, useEffect } from "react";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
 import {
@@ -8,8 +7,6 @@ import {
 } from "@/utils/categorizationUtils";
 
 const transformToCategoryValueArray = (obj, breakdowns, valueBreakdowns) => {
-  const outer = Object.entries(obj);
-
   if (!breakdowns || breakdowns.length === 0 || !valueBreakdowns) {
     return Object.entries(obj).map(([key, value]) => ({
       category: key,
@@ -19,7 +16,6 @@ const transformToCategoryValueArray = (obj, breakdowns, valueBreakdowns) => {
 
   return Object.entries(obj).map(([key, value]) => {
     const result = { category: key };
-
     for (const breakdown of breakdowns) {
       if (value[breakdown]) {
         result[breakdown] = value[breakdown];
@@ -28,6 +24,7 @@ const transformToCategoryValueArray = (obj, breakdowns, valueBreakdowns) => {
     return result;
   });
 };
+
 const EnhancedTooltip = ({
   active,
   payload,
@@ -45,42 +42,40 @@ const EnhancedTooltip = ({
   const [innerData, setInnerData] = useState([]);
   const [expanded, setExpanded] = useState(showChart);
 
-  if (!active || !payload || payload.length === 0) return;
-
   useEffect(() => {
-    if (showChart && chartData) {
-      const transformedData = transformToCategoryValueArray(
-        chartData,
-        chartBreakdowns,
-        valueBreakdowns
-      );
+    if (!showChart || !chartData || !label) return;
 
-      if (showChart && transformedData && transformedData.length > 0) {
-        const normalize = (str) =>
-          str ? str.toLowerCase().replace(/ies$/, "y").replace(/s$/, "") : "";
+    const transformedData = transformToCategoryValueArray(
+      chartData,
+      chartBreakdowns,
+      valueBreakdowns
+    );
 
-        const finalData = transformedData.filter((entry) =>
-          chartTitle.includes("Age")
-            ? getAgeBracket(entry.category) === label
-            : chartTitle.includes("Category")
-            ? normalize(getSimplifiedOffenseCategory(entry.category)) ===
-              normalize(label)
-            : chartTitle.includes("Reason")
-            ? normalize(offenseMap[entry.category]) === normalize(label)
-            : false
-        );
+    const normalize = (str) =>
+      str ? str.toLowerCase().replace(/ies$/, "y").replace(/s$/, "") : "";
 
-        if (
-          finalData.length > 0 &&
-          !finalData[0]["Pre-dispo"] &&
-          !finalData[0].pre
-        ) {
-          finalData.map((entry) => (entry["Pre-dispo"] = entry.value));
-        }
+    const finalData = transformedData.filter((entry) =>
+      chartTitle.includes("Age")
+        ? getAgeBracket(entry.category) === label
+        : chartTitle.includes("Category")
+        ? normalize(getSimplifiedOffenseCategory(entry.category)) ===
+          normalize(label)
+        : chartTitle.includes("Reason")
+        ? normalize(offenseMap[entry.category]) === normalize(label)
+        : false
+    );
 
-        setInnerData(showChart ? finalData : []);
-      }
+    if (
+      finalData.length > 0 &&
+      !finalData[0]["Pre-dispo"] &&
+      !finalData[0].pre
+    ) {
+      finalData.forEach((entry) => {
+        entry["Pre-dispo"] = entry.value;
+      });
     }
+
+    setInnerData(finalData);
   }, [
     showChart,
     chartData,
@@ -90,17 +85,14 @@ const EnhancedTooltip = ({
     label,
   ]);
 
-  // Calculate percentage if needed
+  // Don't render tooltip unless active and payload present
+  if (!active || !payload || payload.length === 0) return null;
+
   const percentage =
     showPercentage && totalValue
       ? `${Math.round((payload[0].value / totalValue) * 100)}%`
       : null;
 
-  // Prepare chart data if needed
-  const displayChartData =
-    showChart && chartData && chartData.length > 0
-      ? chartData.filter((item) => item.category === label)
-      : [];
   return (
     <div
       className="enhanced-tooltip"
@@ -145,7 +137,9 @@ const EnhancedTooltip = ({
               cursor: "pointer",
               fontSize: "12px",
             }}
-          ></button>
+          >
+            {expanded ? "Hide chart" : "Show chart"}
+          </button>
 
           {expanded && innerData.length > 0 && (
             <div style={{ marginTop: "12px", height: "140px" }}>
