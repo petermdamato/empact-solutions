@@ -25,7 +25,7 @@ export default function Overview() {
   const [showScores, setShowScores] = useState("show");
   const [xKey, setXKey] = useState("DST Recommendation");
   const [filteredData, setFilteredData] = useState(datesData);
-  const [autohold, setAutohold] = useState("All");
+  const [autohold, setAutohold] = useState("all");
   const [dstValue, setDstValue] = useState(null);
   const [dstScoreValue, setDstScoreValue] = useState(null);
   const [decisionValue, setDecisionValue] = useState(null);
