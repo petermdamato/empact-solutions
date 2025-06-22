@@ -1,9 +1,9 @@
 import React from "react";
 import * as d3 from "d3";
 
-const chartWidth = 400;
-const rowHeight = 60;
-const margin = { top: 10, right: 100, bottom: 30, left: 150 };
+const rowHeight = 70;
+const margin = { top: 20, right: 20, bottom: 30, left: 240 };
+const labelPadding = 24;
 const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 const OverrideReasonTable = ({ data }) => {
@@ -34,17 +34,13 @@ const OverrideReasonTable = ({ data }) => {
     })),
   }));
 
-  // Calculate total height based on number of reasons
+  const chartWidth = 400; // wider container
   const totalHeight = allReasons.length * rowHeight + margin.bottom;
 
-  // Scales
   const x = d3
     .scaleLinear()
     .domain(d3.extent(years))
     .range([margin.left, chartWidth - margin.right]);
-
-  // Find global max for consistent y-scale across all charts
-  const globalMax = d3.max(series, (s) => d3.max(s.values, (d) => d.value));
 
   const line = d3
     .line()
@@ -52,7 +48,7 @@ const OverrideReasonTable = ({ data }) => {
     .y((d, yScale) => yScale(d.value));
 
   return (
-    <div>
+    <div style={{ overflowX: "auto" }}>
       <svg width={chartWidth} height={totalHeight}>
         {/* X-axis at bottom */}
         <g>
@@ -68,7 +64,6 @@ const OverrideReasonTable = ({ data }) => {
               {year}
             </text>
           ))}
-          {/* X-axis line */}
           <line
             x1={margin.left}
             x2={chartWidth - margin.right}
@@ -79,13 +74,11 @@ const OverrideReasonTable = ({ data }) => {
           />
         </g>
 
-        {/* Individual line charts for each reason */}
         {series.map((s, i) => {
           const rowY = i * rowHeight;
           const chartTop = rowY + margin.top;
           const chartBottom = rowY + rowHeight - margin.top;
 
-          // Individual y-scale for this row
           const y = d3
             .scaleLinear()
             .domain([0, d3.max(s.values, (d) => d.value)])
@@ -99,7 +92,6 @@ const OverrideReasonTable = ({ data }) => {
 
           return (
             <g key={s.reason}>
-              {/* Row background */}
               <rect
                 x={0}
                 y={rowY}
@@ -110,9 +102,8 @@ const OverrideReasonTable = ({ data }) => {
                 strokeWidth={0.5}
               />
 
-              {/* Reason label */}
               <text
-                x={margin.left - 10}
+                x={margin.left - labelPadding}
                 y={rowY + rowHeight / 2}
                 textAnchor="end"
                 alignmentBaseline="middle"
@@ -123,7 +114,7 @@ const OverrideReasonTable = ({ data }) => {
                 {s.reason}
               </text>
 
-              {/* Y-axis ticks for this row */}
+              {/* Y ticks */}
               {y.ticks(3).map((tick) => (
                 <g key={`${s.reason}-${tick}`}>
                   <text
@@ -148,26 +139,23 @@ const OverrideReasonTable = ({ data }) => {
                 </g>
               ))}
 
-              {/* Line chart */}
               <path
                 d={lineGenerator(s.values)}
                 fill="none"
-                stroke={"black"}
+                stroke="black"
                 strokeWidth={2}
               />
 
-              {/* Data points */}
               {s.values.map((d, idx) => (
                 <circle
                   key={idx}
                   cx={x(d.year)}
                   cy={y(d.value)}
                   r={3}
-                  fill={"black"}
+                  fill="black"
                 />
               ))}
 
-              {/* Value labels on points */}
               {s.values.map((d, idx) => (
                 <text
                   key={`label-${idx}`}

@@ -19,7 +19,7 @@ const OverridePercentStat = ({ data }) => {
     .sort((a, b) => a.year - b.year);
 
   const latestYear = parsedData[parsedData.length - 1];
-  const chartWidth = 240;
+  const chartWidth = 260;
   const chartHeight = 100;
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const OverridePercentStat = ({ data }) => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const margin = { top: 20, right: 16, bottom: 20, left: 30 };
+    const margin = { top: 20, right: 16, bottom: 20, left: 40 };
     const innerWidth = chartWidth - margin.left - margin.right;
     const innerHeight = chartHeight - margin.top - margin.bottom;
 

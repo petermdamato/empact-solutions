@@ -11,6 +11,7 @@ const DistributionChartV2 = ({
   const svgRef = useRef();
   const [hoveredReason, setHoveredReason] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
@@ -89,7 +90,11 @@ const DistributionChartV2 = ({
       .attr("width", width)
       .attr("height", height)
       .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+      .attr("transform", `translate(${margin.left},${margin.top})`)
+      .on("mouseleave", () => {
+        setHoveredReason(null);
+        setShowChart(false);
+      });
 
     chart
       .append("text")
@@ -173,9 +178,11 @@ const DistributionChartV2 = ({
         .on("mousemove", (event) => {
           setHoveredReason(d[groupKey]);
           setHoverPosition({ x: event.clientX, y: event.clientY });
+          setShowChart(true);
         })
         .on("mouseleave", () => {
           setHoveredReason(null);
+          setShowChart(false);
         });
 
       chart
@@ -200,7 +207,7 @@ const DistributionChartV2 = ({
   return (
     <>
       <svg ref={svgRef}></svg>
-      {hoveredReason && reasonTableData && (
+      {showChart && hoveredReason && reasonTableData && (
         <div
           style={{
             position: "fixed",
@@ -212,7 +219,7 @@ const DistributionChartV2 = ({
             padding: "12px",
             zIndex: 999,
             boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-            pointerEvents: "none",
+            // pointerEvents: "none",
           }}
         >
           <h4 style={{ margin: "0 0 8px", fontSize: "14px" }}>
