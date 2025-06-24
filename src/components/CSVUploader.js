@@ -138,7 +138,7 @@ export default function CSVUploader() {
             if (!("DST v Actual comparison" in newRow)) {
               const dst = newRow["DST Recommendation"] || "";
               const intake = newRow["Intake Decision"] || "";
-              console.log(dst, intake);
+
               if (
                 (dst === "Released" &&
                   (intake === "Detained" ||

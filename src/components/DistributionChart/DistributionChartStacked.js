@@ -106,7 +106,6 @@ const DistributionChartStacked = ({
       .call(d3.axisBottom(x).tickFormat(""));
 
     formattedData.forEach((d) => {
-      console.log(d, groupKey);
       const xPos = x(d[groupKey]) + x.bandwidth() / 2;
       const label = d[groupKey];
       const words = label.split(/\s+/);

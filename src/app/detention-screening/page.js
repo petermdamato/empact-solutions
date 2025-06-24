@@ -60,7 +60,7 @@ export default function Overview() {
       })
     );
   }, [datesData, dstValue, dstScoreValue, decisionValue]);
-  console.log(datesData, filteredData);
+
   useEffect(() => {
     setTimeSeriesDataPercentage(analyzeOverridesByYear(filteredData));
     setTimeSeriesDataCountByReason(
