@@ -34,8 +34,8 @@ const Heatmap = ({
       return (
         hasScore &&
         hasDecision &&
-        new Date(entry.Admission_Date) <= dates[1] &&
-        new Date(entry.Admission_Date) >= dates[0]
+        new Date(entry.Intake_Date) <= dates[1] &&
+        new Date(entry.Intake_Date) >= dates[0]
       );
     });
 

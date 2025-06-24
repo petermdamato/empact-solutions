@@ -98,6 +98,71 @@ export default function CSVUploader() {
           const transformedData = parsedData.map((row) => {
             const newRow = { ...row };
 
+            // Add "Screened/not screened" column if it doesn't exist
+            if (!("Screened/not screened" in newRow)) {
+              const autoHold = parseInt(newRow["auto_hold"], 10);
+              const riskLevel = String(newRow["RiskLevel"] || "").toLowerCase();
+
+              if (autoHold === 1) {
+                newRow["Screened/not screened"] = "Auto Hold";
+              } else if (riskLevel === "not screened") {
+                newRow["Screened/not screened"] = "Not Screened";
+              } else {
+                newRow["Screened/not screened"] = "Screened";
+              }
+            }
+            // Rename "Intake_Decision" to "Intake Decision" if it exists
+            if ("Intake_Decision" in newRow && !("Intake Decision" in newRow)) {
+              newRow["Intake Decision"] = newRow["Intake_Decision"];
+            }
+            if (!("DST Recommendation" in newRow)) {
+              const rawScore = newRow["DST_Score"];
+              const score =
+                rawScore !== undefined && rawScore !== null && rawScore !== ""
+                  ? Number(rawScore)
+                  : null;
+
+              if (typeof score === "number" && !isNaN(score)) {
+                if (score > 14) {
+                  newRow["DST Recommendation"] = "Detained";
+                } else if (score >= 7 && score <= 14) {
+                  newRow["DST Recommendation"] = "Released with Conditions";
+                } else if (score <= 6) {
+                  newRow["DST Recommendation"] = "Released";
+                }
+              } else {
+                newRow["DST Recommendation"] = ""; // If score is invalid or missing
+              }
+            }
+            // Add "DST v Actual comparison" column if it doesn't exist
+            if (!("DST v Actual comparison" in newRow)) {
+              const dst = newRow["DST Recommendation"] || "";
+              const intake = newRow["Intake Decision"] || "";
+              console.log(dst, intake);
+              if (
+                (dst === "Released" &&
+                  (intake === "Detained" ||
+                    intake === "Released with Conditions")) ||
+                (dst === "Released with Conditions" && intake === "Detained")
+              ) {
+                newRow["DST v Actual comparison"] =
+                  "DST recommends less restrictive";
+              } else if (
+                (dst === "Detained" &&
+                  (intake === "Released" ||
+                    intake === "Released with Conditions")) ||
+                (dst === "Released with Conditions" && intake === "Released")
+              ) {
+                newRow["DST v Actual comparison"] =
+                  "DST recommends more restrictive";
+              } else if (dst === intake && dst !== "") {
+                newRow["DST v Actual comparison"] = "Same";
+              } else {
+                newRow["DST v Actual comparison"] = ""; // fallback if undefined or doesn't match rules
+              }
+            }
+
+            // Normalize date fields
             const dateFields = [
               "Date_of_Birth",
               "ATD_Entry_Date",
@@ -112,17 +177,14 @@ export default function CSVUploader() {
               if (newRow[field]) {
                 const val = newRow[field];
 
-                // If it's a number (likely Excel serial), convert to date
                 if (!isNaN(val) && typeof val === "number") {
-                  // Excel serial date to JS date
-                  const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Excel base date
+                  const excelEpoch = new Date(Date.UTC(1899, 11, 30));
                   const parsedDate = new Date(
                     excelEpoch.getTime() + val * 86400000
                   );
-                  newRow[field] = parsedDate.toISOString().split("T")[0]; // "YYYY-MM-DD"
+                  newRow[field] = parsedDate.toISOString().split("T")[0];
                 }
 
-                // If it's a string that looks like a date, parse and normalize
                 if (typeof val === "string") {
                   const parsedDate = new Date(val);
                   if (!isNaN(parsedDate)) {
@@ -140,6 +202,7 @@ export default function CSVUploader() {
             setCsvData(transformedData);
           }
         };
+
         setFileType(file.name.split(".")[file.name.split(".").length - 1]);
         if (file.name.endsWith(".csv")) {
           Papa.parse(data, {

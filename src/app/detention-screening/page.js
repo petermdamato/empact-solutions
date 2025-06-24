@@ -37,7 +37,7 @@ export default function Overview() {
     const autoholdVal = autohold === "no" ? 0 : 1;
     setDatesData(
       csvData.filter((entry) => {
-        const intake = new Date(entry.Admission_Date);
+        const intake = new Date(entry.Intake_Date);
         const lowerDate = new Date(datesRange[0]);
         const upperDate = new Date(datesRange[1]);
         return (
@@ -60,7 +60,7 @@ export default function Overview() {
       })
     );
   }, [datesData, dstValue, dstScoreValue, decisionValue]);
-
+  console.log(datesData, filteredData);
   useEffect(() => {
     setTimeSeriesDataPercentage(analyzeOverridesByYear(filteredData));
     setTimeSeriesDataCountByReason(
@@ -117,7 +117,7 @@ export default function Overview() {
                 <div style={{ maxWidth: "200px", width: "100%" }}>
                   <DateRangeSlider
                     records={csvData}
-                    accessor={(d) => d.Admission_Date}
+                    accessor={(d) => d.Intake_Date}
                     setDatesRange={setDatesRange}
                   />
                 </div>
