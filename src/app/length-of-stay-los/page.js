@@ -5,15 +5,15 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
+import ColumnChartGeneric from "@/components/ColumnChart/ColumnChartGeneric";
 import ChartCard from "@/components/ChartCard/ChartCard";
-import PieChart from "@/components/PieChart/PieChartV2";
 import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeLengthByScreenedStatus,
   analyzeEntriesByYear,
-  dataAnalysisV2,
+  dataAnalysisLOS,
   analyzeLengthByProgramType,
   analyzeLengthByDispoStatus,
 } from "@/utils/aggFunctions";
@@ -193,7 +193,7 @@ export default function Overview() {
       );
 
       const byRaceEthnicity = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -208,7 +208,7 @@ export default function Overview() {
       });
 
       const bySimplifiedRace = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -233,7 +233,7 @@ export default function Overview() {
       );
 
       const byGender = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -250,7 +250,7 @@ export default function Overview() {
       setDataArray14(byGender);
 
       const byAge = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -267,7 +267,7 @@ export default function Overview() {
       setDataArray15(byAge);
 
       const categories = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -284,7 +284,7 @@ export default function Overview() {
       setDataArray16(categories);
 
       const byReasons = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -301,7 +301,7 @@ export default function Overview() {
       setDataArray18(byReasons);
 
       const byJurisdiction = Object.entries(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -375,7 +375,7 @@ export default function Overview() {
       setDataArray12(overallArrScreened);
 
       setDataArray20(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -385,7 +385,7 @@ export default function Overview() {
       );
 
       setDataArray21(
-        dataAnalysisV2(
+        dataAnalysisLOS(
           finalData,
           `${calculationType}LengthOfStay`,
           +selectedYear,
@@ -495,35 +495,52 @@ export default function Overview() {
               </div>
             </ChartCard>
 
-            {/* LOS by Screened Type */}
+            {/* LOS by Screened/Not Screened */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "310px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray12}
-                    year={selectedYear}
-                    groupByKey={"Screened/not screened"}
-                    type={"secure-detention"}
-                    chartTitle={"LOS by screened/not screened"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
+                  {dataArray12.length > 0 && (
+                    <ColumnChartGeneric
+                      data={dataArray12}
+                      breakdowns={["Pre-dispo"]}
+                      height={300}
+                      margin={{ top: 40, right: 20, bottom: 68, left: 20 }}
+                      chartTitle={"LOS by Screened/not screened"}
+                      colorMapOverride={{
+                        "Pre-dispo": "#5a6b7c",
+                        "Post-dispo": "#d3d3d3",
+                      }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Screened/not screened"}
+                      showChart={false}
+                    />
+                  )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* Pie Chart */}
+            {/* LOS by Pre/Post-Dispo */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray19}
-                    year={selectedYear}
-                    groupByKey={"Pre/post-dispo filter"}
-                    type={"secure-detention"}
-                    chartTitle={"LOS by Pre/Post-Dispo"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
+                  {dataArray19.length > 0 && (
+                    <ColumnChartGeneric
+                      data={dataArray19}
+                      breakdowns={["Pre-dispo"]}
+                      height={300}
+                      margin={{ top: 40, right: 20, bottom: 68, left: 20 }}
+                      chartTitle={"LOS by Pre/Post-Dispo"}
+                      colorMapOverride={{
+                        "Pre-dispo": "#5a6b7c",
+                        "Post-dispo": "#d3d3d3",
+                      }}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      type={"secure-detention"}
+                      groupByKey={"Pre/post-dispo filter"}
+                      showChart={false}
+                    />
+                  )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
@@ -578,16 +595,16 @@ export default function Overview() {
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo", "Post-dispo"]}
+                        breakdowns={["Pre-dispo"]}
                         height={220}
-                        margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "LOS by Race/Ethnicity"
                             : "LOS by Race (Simplified)"
                         }
                         colorMapOverride={{
-                          "Pre-dispo": "#5b6069",
+                          "Pre-dispo": "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
                         setFilterVariable={setFilterVariable}
@@ -607,12 +624,12 @@ export default function Overview() {
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Gender"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -635,12 +652,12 @@ export default function Overview() {
                           entry.category !== "null" &&
                           entry.category !== "Unknown"
                       )}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Age"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -670,12 +687,12 @@ export default function Overview() {
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Reason for Detention"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -695,12 +712,12 @@ export default function Overview() {
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -721,12 +738,12 @@ export default function Overview() {
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Jurisdiction (Pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}

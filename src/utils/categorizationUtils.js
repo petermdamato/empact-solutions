@@ -22,12 +22,15 @@ export const getSimplifiedOffenseCategory = (offenseCategory) => {
   if (/misdemeanor/i.test(category)) {
     return "Misdemeanors";
   }
+  // Check for Status Offense categories
+  if (/status offense/i.test(category)) {
+    return "Status Offense";
+  }
 
   // Check for Technical violations
   const technicalCategories = [
     "Court Order",
     "Warrant",
-    "Status Offense",
     "Probation Violation",
     "ATD Program Failure",
     "Other Technical Violation",
@@ -38,12 +41,7 @@ export const getSimplifiedOffenseCategory = (offenseCategory) => {
     return "Technicals";
   }
 
-  // Return Other for unknown categories
-  if (category === "Unknown") {
-    return "Other";
-  }
-
-  return "Other";
+  return "Unknown";
 };
 
 // Offense Category Mapping
@@ -54,10 +52,12 @@ export const offenseMap = {
   "Felony Drugs": "New Offenses",
   "Other Felony": "New Offenses",
   "Misdemeanor Person": "New Offenses",
+  "Misdemeanor Drugs": "New Offenses",
   "Misdemeanor Property": "New Offenses",
   "Misdemeanor Weapons": "New Offenses",
   "Other Misdemeanor": "New Offenses",
   "Status Offense": "New Offenses",
+  "Contempt of Court": "Technicals",
   "ATD Program Failure": "Technicals",
   "Court Order": "Technicals",
   "Probation Violation": "Technicals",

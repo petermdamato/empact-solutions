@@ -23,7 +23,7 @@ const LineChartV2 = ({
   const svgRef = useRef();
   const containerRef = useRef();
   const pathname = usePathname();
-  const [dimensions, setDimensions] = useState({ width: 0, height: 320 });
+  const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
   const [renderKey, setRenderKey] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -38,7 +38,7 @@ const LineChartV2 = ({
     const measure = () => {
       const width = containerRef.current.clientWidth;
       if (width !== dimensions.width) {
-        setDimensions({ width, height: 320 });
+        setDimensions({ width, height: 300 });
       }
       if (!isInitialized) setIsInitialized(true);
     };
@@ -70,8 +70,8 @@ const LineChartV2 = ({
 
     const margin =
       labels === "Show"
-        ? { top: 20, right: 20, bottom: 30, left: 60 }
-        : { top: 10, right: 10, bottom: 30, left: 50 };
+        ? { top: 20, right: 20, bottom: 40, left: 60 }
+        : { top: 10, right: 10, bottom: 40, left: 50 };
     const { width, height } = dimensions;
 
     svg
@@ -87,7 +87,7 @@ const LineChartV2 = ({
       Object.entries(yearData).forEach(([group, metrics]) => {
         if (!seriesMap.has(group)) seriesMap.set(group, []);
         const value = metrics[metric];
-        if (value != null) {
+        if (!isNaN(value) && value !== null && value !== 0) {
           seriesMap.get(group).push({ year: +year, value, group });
         }
       });
@@ -151,7 +151,8 @@ const LineChartV2 = ({
     const line = d3
       .line()
       .x((d) => xScale(d.year))
-      .y((d) => yScale(d.value));
+      .y((d) => yScale(d.value))
+      .defined((d) => d.value != null && d.value !== 0);
 
     seriesData.forEach((series) => {
       chartGroup
@@ -282,10 +283,14 @@ const LineChartV2 = ({
           }
         });
 
+        const tooltipWidth = 100; // approximate width in px; adjust as needed
+        const chartCenterX = width / 2;
+        const offsetX = mx > chartCenterX ? -tooltipWidth - 12 : 12;
+
         tooltip
           .style("display", "block")
-          .style("left", `${mx + 12}px`)
-          .style("top", `${my + 12}px`)
+          .style("left", `${mx + offsetX}px`)
+          .style("top", `${offsetX === 12 ? my + 12 : my + 24}px`)
           .html(tooltipHTML);
       });
     });

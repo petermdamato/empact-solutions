@@ -56,7 +56,7 @@ const aggregateByLos = (
 
     let lengthOfStay =
       admissionDate && exitDate
-        ? Math.ceil(dateDiff(admissionDate, exitDate, "days"))
+        ? Math.ceil(dateDiff(admissionDate, exitDate, "days")) + 1
         : null;
 
     return {

@@ -306,8 +306,8 @@ const DistributionChart = (records) => {
     return (
       getYear(
         records.detentionType === "secure-detention"
-          ? record.Admission_Date
-          : record.ATD_Entry_Date
+          ? record.Release_Date
+          : record.ATD_Exit_Date
       ) === +records.selectedYear &&
       calculateLengthOfStay(record, records.detentionType)
     );
@@ -528,6 +528,7 @@ const DistributionChart = (records) => {
                 onMouseOut={handleMouseOut}
               >
                 <rect
+                  data-inmate-id={d.Youth_ID}
                   x={xScale(d.Youth_ID + "-" + d.Referral_ID)}
                   y={yScale(days)}
                   width={xScale.bandwidth()}
@@ -575,11 +576,16 @@ const DistributionChart = (records) => {
                       : 0.3
                   }
                   rx={4}
-                  onClick={() => {
+                  onClick={(e) => {
                     const url =
-                      (linkText.linkOut.includes("http://") ? "" : "http://") +
-                      linkText.linkOut +
-                      "/123"; // assumes this returns a URL string
+                      !linkText.linkOut || linkText.linkOut.length === ""
+                        ? "http://localhost:3000/sample-lookup?" +
+                          e.target.getAttribute("data-inmate-id")
+                        : (linkText.linkOut.includes("http://")
+                            ? ""
+                            : "http://") +
+                          linkText.linkOut +
+                          "/123"; // assumes this returns a URL string
                     if (url) window.open(url, "_blank"); // open in new tab
                   }}
                   onMouseOver={(e) => {
@@ -680,7 +686,11 @@ const DistributionChart = (records) => {
           style={{
             position: "absolute",
             left: `${tooltip.x - 390}px`,
-            top: `${tooltip.y > 800 ? tooltip.y - 290 : tooltip.y - 90}px`,
+            top: `${
+              tooltip.y > dimensions.height
+                ? tooltip.y - 360 // show above if in bottom 25%
+                : tooltip.y + 20 // show below otherwise
+            }px`,
             backgroundColor: "white",
             padding: "8px",
             border: "1px solid #ccc",

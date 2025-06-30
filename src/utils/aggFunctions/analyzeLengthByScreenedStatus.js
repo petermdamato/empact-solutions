@@ -14,14 +14,9 @@ const analyzeLengthByScreenedStatus = (filteredData, selectedYear) => {
       : null;
 
     // Only include records where both dates are in 2024
-    if (
-      intake &&
-      release &&
-      +getYear(intake) === +selectedYear &&
-      +getYear(release) === +selectedYear
-    ) {
+    if (intake && release && +getYear(release) === +selectedYear) {
       const scrStatus = row["Screened/not screened"] || "Unknown";
-      const los = differenceInCalendarDays(release, intake);
+      const los = differenceInCalendarDays(release, intake) + 1;
 
       if (!scrGroups[scrStatus]) scrGroups[scrStatus] = [];
       scrGroups[scrStatus].push(los);

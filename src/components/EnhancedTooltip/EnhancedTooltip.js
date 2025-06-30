@@ -38,6 +38,8 @@ const EnhancedTooltip = ({
   chartBreakdowns,
   chartTitle,
   valueBreakdowns = true,
+  categoryPercent,
+  categoryTotal,
 }) => {
   const [innerData, setInnerData] = useState([]);
   const [expanded, setExpanded] = useState(showChart);
@@ -106,7 +108,20 @@ const EnhancedTooltip = ({
         maxWidth: "400px",
       }}
     >
-      <div style={{ marginBottom: "8px", fontWeight: "bold" }}>{label}</div>
+      <div style={{ marginBottom: "8px", fontWeight: "bold" }}>
+        {label}
+        {categoryPercent != null && (
+          <span
+            style={{
+              fontWeight: "normal",
+              marginLeft: "8px",
+              fontSize: "12px",
+            }}
+          >
+            ({Math.round(categoryPercent * 10) / 10}% of total)
+          </span>
+        )}
+      </div>
       {payload.map((entry, index) => (
         <div
           key={`item-${index}`}
@@ -151,7 +166,7 @@ const EnhancedTooltip = ({
                 showChart={true}
                 breakdowns={chartBreakdowns}
                 height={180}
-                margin={{ top: 0, right: 20, bottom: 40, left: 20 }}
+                margin={{ top: 0, right: 40, bottom: 40, left: 20 }}
                 chartTitle={chartTitle}
                 hideLegend={true}
                 compact={true}

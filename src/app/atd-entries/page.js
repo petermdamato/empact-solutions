@@ -21,6 +21,7 @@ import {
   categorizeYoc,
   categorizeAge,
 } from "@/utils/categories";
+import { offenseMap } from "@/utils/categorizationUtils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 
@@ -30,6 +31,7 @@ const parseDateYear = (dateStr) => {
 
   return isNaN(year) ? null : year;
 };
+
 const groupReasons = (data) => {
   const result = {
     "New Offense": {},
@@ -38,17 +40,14 @@ const groupReasons = (data) => {
 
   for (const [label, counts] of Object.entries(data)) {
     let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
+    group = offenseMap[label]
+      ? offenseMap[label]
+      : label.toLowerCase().includes("misdemeanor") ||
+        label.toLowerCase().includes("felony")
+      ? "New Offense"
+      : label.toLowerCase().includes("other")
+      ? "Other"
+      : label;
 
     if (!result[group]) result[group] = {};
 
@@ -60,6 +59,7 @@ const groupReasons = (data) => {
 
   return result;
 };
+
 const groupOffenseCategories = (data) => {
   const result = {
     Felony: {},
@@ -339,10 +339,10 @@ export default function Overview() {
           "simplifiedReferralSource",
           "alternative-to-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([category, values]) => {
         return {
-          category: cat,
-          "Pre-dispo": value,
+          category: category,
+          ...values,
         };
       });
 
@@ -464,10 +464,10 @@ export default function Overview() {
                       data={dataArray12}
                       breakdowns={["total"]}
                       height={340}
-                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Entries by ATD Program Type"}
                       colorMapOverride={{
-                        total: "#5b6069",
+                        total: "#5a6b7c",
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -545,16 +545,16 @@ export default function Overview() {
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo", "Post-dispo"]}
+                        breakdowns={["Pre-dispo"]}
                         height={220}
-                        margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
+                        margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "Entries by Race/Ethnicity"
                             : "Entries by Race (Simplified)"
                         }
                         colorMapOverride={{
-                          "Pre-dispo": "#5b6069",
+                          "Pre-dispo": "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
                         setFilterVariable={setFilterVariable}
@@ -574,12 +574,12 @@ export default function Overview() {
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Entries by Gender"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -598,12 +598,12 @@ export default function Overview() {
                   {dataArray15.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray15}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Entries by Age"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -633,12 +633,12 @@ export default function Overview() {
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Entries by Reason for Detention"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -658,12 +658,12 @@ export default function Overview() {
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Entries by Offense Category (pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -684,12 +684,12 @@ export default function Overview() {
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Pre-dispo"]}
                       height={250}
-                      margin={{ top: 20, right: 20, bottom: 10, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Entries by Jurisdiction"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}

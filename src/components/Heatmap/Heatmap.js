@@ -131,206 +131,426 @@ const Heatmap = ({
       >
         {chartTitle}
       </div>
-      <div style={{ display: "flex", width: "100%", alignItems: "stretch" }}>
-        {/* Y-axis label (rotated) */}
-        <div
-          style={{
-            writingMode: "vertical-rl",
-            transform: "rotate(180deg)",
-            fontWeight: 600,
-            fontSize: "14px",
-            textAlign: "center",
-            padding: "4px 0",
-            color: "#264361",
-            marginRight: "8px",
-          }}
-        >
-          {yKey}
-        </div>
-        <div style={{ flex: 1 }}>
+      {showScores === "hide" ? (
+        <div style={{ display: "flex", width: "100%", alignItems: "stretch" }}>
           {/* Y-axis label (rotated) */}
           <div
             style={{
+              writingMode: "vertical-rl",
+              transform: "rotate(180deg)",
               fontWeight: 600,
               fontSize: "14px",
               textAlign: "center",
               padding: "4px 0",
               color: "#264361",
-            }}
-          ></div>
-
-          {/* X-axis label */}
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: "14px",
-              textAlign: "center",
-              color: "#264361",
-              marginBottom: "8px",
+              marginRight: "8px",
             }}
           >
-            {xKey.replace("_", " ")}
+            {yKey}
           </div>
-          {groupSpans.length > 0 && (
+          <div style={{ flex: 1 }}>
+            {/* Y-axis label (rotated) */}
             <div
-              className="heatmap-grid"
               style={{
-                display: "grid",
-                gridTemplateColumns: gridTemplateColumns,
-                gridTemplateRows: "auto",
-                alignItems: "stretch",
+                fontWeight: 600,
+                fontSize: "14px",
+                textAlign: "center",
+                padding: "4px 0",
+                color: "#264361",
+              }}
+            ></div>
+
+            {/* X-axis label */}
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: "14px",
+                textAlign: "center",
+                color: "#264361",
+                marginBottom: "8px",
               }}
             >
-              {groupSpans.map((group, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    setDstScoreValue(null);
-                    group.label === ""
-                      ? null
-                      : dstValue === group.label
-                      ? setDstValue(null)
-                      : setDstValue(group.label);
-                  }}
-                  style={{
-                    gridColumn: `span ${group.span}`,
-                    textAlign: "center",
-                    fontWeight: 500,
-                    borderBottom: "1px solid #ccc",
-                    borderRight:
-                      idx < groupSpans.length - 1 ? "2px solid #ccc" : "none",
-                    padding: "6px 0",
-                    cursor: group.label === "" ? "auto" : "pointer",
-                    backgroundColor:
-                      dstValue === group.label ? "#bfe9fd" : "inherit",
-                  }}
-                >
-                  {group.label}
-                </div>
-              ))}
+              {xKey.replace("_", " ")}
             </div>
-          )}
-
-          {/* Outer grid for axis labels and heatmap */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "auto 1fr",
-              gridTemplateRows: "auto 1fr",
-              gap: "8px",
-              alignItems: "center",
-            }}
-          >
-            {/* Heatmap grid */}
-            <div
-              className="heatmap-grid"
-              style={{
-                gridColumn: "2 / span 1",
-                gridRow: "2 / span 1",
-                gridTemplateColumns: gridTemplateColumns,
-                gridTemplateRows: `auto repeat(${yLabels.length}, 1fr)`,
-              }}
-            >
-              <div className="heatmap-corner" />
-
-              {xLabels.map((x, index) => (
-                <div
-                  key={`x-${x}`}
-                  onClick={() => {
-                    if (showScores === "hide") {
-                      setDstScoreValue(null);
-                      x === dstValue ? setDstValue(null) : setDstValue(x);
-                    }
-                  }}
-                  className="heatmap-label x-label"
-                  style={{
-                    borderRight: superHeaderBorders.includes(index + 1)
-                      ? "2px solid #ccc"
-                      : undefined,
-                    cursor: showScores ? "pointer" : "auto",
-                    backgroundColor:
-                      showScores === "hide" && dstValue === x
-                        ? "#bfe9fd"
-                        : dstScoreValue === x
-                        ? "#bfe9fd"
-                        : "inherit",
-                  }}
-                >
-                  {x}
-                </div>
-              ))}
-
-              {yLabels.map((y) => (
-                <React.Fragment key={`row-${y}`}>
+            {groupSpans.length > 0 && (
+              <div
+                className="heatmap-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: gridTemplateColumns,
+                  gridTemplateRows: "auto",
+                  alignItems: "stretch",
+                }}
+              >
+                {groupSpans.map((group, idx) => (
                   <div
-                    className="heatmap-label y-label"
-                    onClick={() =>
-                      y === decisionValue
-                        ? setDecisionValue(null)
-                        : setDecisionValue(y)
-                    }
+                    key={idx}
+                    onClick={() => {
+                      setDstScoreValue(null);
+                      group.label === ""
+                        ? null
+                        : dstValue === group.label
+                        ? setDstValue(null)
+                        : setDstValue(group.label);
+                    }}
                     style={{
-                      cursor: "pointer",
+                      gridColumn: `span ${group.span}`,
+                      textAlign: "center",
+                      fontWeight: 500,
+                      borderBottom: "1px solid #ccc",
+                      borderRight:
+                        idx < groupSpans.length - 1 ? "2px solid #ccc" : "none",
+                      padding: "6px 0",
+                      cursor: group.label === "" ? "auto" : "pointer",
                       backgroundColor:
-                        decisionValue === y ? "#bfe9fd" : "inherit",
+                        dstValue === group.label ? "#bfe9fd" : "inherit",
                     }}
                   >
-                    {y}
+                    {group.label}
                   </div>
-                  {xLabels.map((x, index) => {
-                    const count = counts[`${x}|${y}`] || 0;
-                    return (
-                      <div
-                        key={`${x}|${y}`}
-                        className="heatmap-cell"
-                        onClick={() => {
-                          setDstValue(null);
-                          if (showScores === "hide") {
-                            if (x === dstValue && y === decisionValue) {
-                              setDstValue(null);
-                              setDecisionValue(null);
-                            } else {
-                              setDstValue(x);
-                              setDecisionValue(y);
+                ))}
+              </div>
+            )}
+
+            {/* Outer grid for axis labels and heatmap */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr",
+                gridTemplateRows: "auto 1fr",
+                gap: "8px",
+                alignItems: "center",
+              }}
+            >
+              {/* Heatmap grid */}
+              <div
+                className="heatmap-grid"
+                style={{
+                  gridColumn: "2 / span 1",
+                  gridRow: "2 / span 1",
+                  gridTemplateColumns: gridTemplateColumns,
+                  gridTemplateRows: `auto repeat(${yLabels.length}, 1fr)`,
+                }}
+              >
+                <div className="heatmap-corner" />
+
+                {xLabels.map((x, index) => (
+                  <div
+                    key={`x-${x}`}
+                    onClick={() => {
+                      if (showScores === "hide") {
+                        setDstScoreValue(null);
+                        x === dstValue ? setDstValue(null) : setDstValue(x);
+                      }
+                    }}
+                    className="heatmap-label x-label"
+                    style={{
+                      borderRight: superHeaderBorders.includes(index + 1)
+                        ? "2px solid #ccc"
+                        : undefined,
+                      cursor: showScores ? "pointer" : "auto",
+                      backgroundColor:
+                        showScores === "hide" && dstValue === x
+                          ? "#bfe9fd"
+                          : dstScoreValue === x
+                          ? "#bfe9fd"
+                          : "inherit",
+                    }}
+                  >
+                    {x}
+                  </div>
+                ))}
+
+                {yLabels.map((y) => (
+                  <React.Fragment key={`row-${y}`}>
+                    <div
+                      className="heatmap-label y-label"
+                      onClick={() =>
+                        y === decisionValue
+                          ? setDecisionValue(null)
+                          : setDecisionValue(y)
+                      }
+                      style={{
+                        cursor: "pointer",
+                        backgroundColor:
+                          decisionValue === y ? "#bfe9fd" : "inherit",
+                      }}
+                    >
+                      {y}
+                    </div>
+                    {xLabels.map((x, index) => {
+                      const count = counts[`${x}|${y}`] || 0;
+                      return (
+                        <div
+                          key={`${x}|${y}`}
+                          className="heatmap-cell"
+                          onClick={() => {
+                            setDstValue(null);
+                            if (showScores === "hide") {
+                              if (x === dstValue && y === decisionValue) {
+                                setDstValue(null);
+                                setDecisionValue(null);
+                              } else {
+                                setDstValue(x);
+                                setDecisionValue(y);
+                              }
+                            } else if (showScores === "show") {
+                              if (x === dstScoreValue && y === decisionValue) {
+                                setDstScoreValue(null);
+                                setDecisionValue(null);
+                                setDstValue(null);
+                              } else {
+                                setDstValue(null);
+                                setDstScoreValue(x);
+                                setDecisionValue(y);
+                              }
                             }
-                          } else if (showScores === "show") {
-                            if (x === dstScoreValue && y === decisionValue) {
-                              setDstScoreValue(null);
-                              setDecisionValue(null);
-                              setDstValue(null);
-                            } else {
-                              setDstValue(null);
-                              setDstScoreValue(x);
-                              setDecisionValue(y);
-                            }
-                          }
-                        }}
-                        style={{
-                          backgroundColor: getColor(count),
-                          color: count / maxCount > 0.5 ? "white" : "black",
-                          borderRight: superHeaderBorders.includes(index + 1)
-                            ? "2px solid #ccc"
-                            : undefined,
-                          cursor: "pointer",
-                          outline:
-                            (showScores === "hide" &&
-                              x === dstValue &&
-                              y === decisionValue) ||
-                            (dstScoreValue === x && decisionValue === y)
-                              ? "2px solid #333"
+                          }}
+                          style={{
+                            backgroundColor: getColor(count),
+                            color: count / maxCount > 0.5 ? "white" : "black",
+                            borderRight: superHeaderBorders.includes(index + 1)
+                              ? "2px solid #ccc"
                               : undefined,
-                        }}
-                      >
-                        {count > 0 ? count.toLocaleString() : ""}
-                      </div>
-                    );
-                  })}
-                </React.Fragment>
-              ))}
+                            cursor: "pointer",
+                            outline:
+                              (showScores === "hide" &&
+                                x === dstValue &&
+                                y === decisionValue) ||
+                              (dstScoreValue === x && decisionValue === y)
+                                ? "2px solid #333"
+                                : undefined,
+                          }}
+                        >
+                          {count > 0 ? count.toLocaleString() : ""}
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div
+            style={{
+              textAlign: "center",
+              fontWeight: "600",
+              fontSize: "14px",
+              marginBottom: "8px",
+            }}
+          >
+            DST Recommends
+          </div>
+          <div
+            style={{ display: "flex", width: "100%", alignItems: "stretch" }}
+          >
+            {/* Y-axis label (rotated) */}
+            <div
+              style={{
+                writingMode: "vertical-rl",
+                transform: "rotate(180deg)",
+                fontWeight: 600,
+                fontSize: "14px",
+                textAlign: "center",
+                padding: "4px 0",
+                color: "#264361",
+                marginRight: "8px",
+              }}
+            >
+              {yKey}
+            </div>
+            <div style={{ flex: 1 }}>
+              {/* Y-axis label (rotated) */}
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  textAlign: "center",
+                  padding: "4px 0",
+                  color: "#264361",
+                }}
+              ></div>
+
+              {/* Outer grid for axis labels and heatmap */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gridTemplateRows: "auto 1fr",
+                  gap: "8px",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  className="heatmap-grid"
+                  style={{
+                    gridColumn: "2 / span 1",
+                    gridRow: "2 / span 1",
+                    display: "grid",
+                    gridTemplateColumns: gridTemplateColumns,
+                    gridTemplateRows: `auto auto repeat(${yLabels.length}, 1fr)`,
+                  }}
+                >
+                  {/* Super header row */}
+                  <div></div> {/* top-left corner cell */}
+                  {(() => {
+                    const groups = [
+                      { label: "Released", min: -3, max: 6 },
+                      { label: "Released with Conditions", min: 7, max: 14 },
+                      { label: "Detained", min: 15, max: Infinity },
+                    ];
+
+                    return groups.map((group, idx) => {
+                      const columns = xLabels.filter(
+                        (x) => x >= group.min && x <= group.max
+                      );
+                      if (columns.length === 0) return null;
+
+                      return (
+                        <div
+                          key={`super-${group.label}`}
+                          style={{
+                            gridColumn: `span ${columns.length}`,
+                            textAlign: "center",
+                            fontWeight: "400",
+                            padding: "6px 0",
+                            backgroundColor: "#f4f4f4",
+                            borderBottom: "1px solid #ccc",
+                            borderRight:
+                              idx < groups.length - 1
+                                ? "2px solid #ccc"
+                                : "none",
+                            fontSize: "14px",
+                            cursor: group.label === "" ? "auto" : "pointer",
+                            backgroundColor:
+                              dstValue === group.label ? "#bfe9fd" : "inherit",
+                          }}
+                          onClick={() => {
+                            setDstScoreValue(null);
+                            group.label === ""
+                              ? null
+                              : dstValue === group.label
+                              ? setDstValue(null)
+                              : setDstValue(group.label);
+                          }}
+                        >
+                          {group.label}
+                        </div>
+                      );
+                    });
+                  })()}
+                  {/* X labels row */}
+                  <div></div> {/* left-side empty for y-labels */}
+                  {xLabels.map((x, index) => (
+                    <div
+                      key={`x-${x}`}
+                      onClick={() => {
+                        if (showScores === "hide") {
+                          setDstScoreValue(null);
+                          x === dstValue ? setDstValue(null) : setDstValue(x);
+                        }
+                      }}
+                      className="heatmap-label x-label"
+                      style={{
+                        borderRight: superHeaderBorders.includes(index + 1)
+                          ? "2px solid #ccc"
+                          : undefined,
+                        cursor: showScores === "hide" ? "pointer" : "auto",
+                        backgroundColor:
+                          showScores === "hide" && dstValue === x
+                            ? "#bfe9fd"
+                            : dstScoreValue === x
+                            ? "#bfe9fd"
+                            : "inherit",
+                        fontSize: "12px",
+                        padding: "6px 4px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {x}
+                    </div>
+                  ))}
+                  {yLabels.map((y) => (
+                    <React.Fragment key={`row-${y}`}>
+                      <div
+                        className="heatmap-label y-label"
+                        onClick={() =>
+                          y === decisionValue
+                            ? setDecisionValue(null)
+                            : setDecisionValue(y)
+                        }
+                        style={{
+                          cursor: "pointer",
+                          backgroundColor:
+                            decisionValue === y ? "#bfe9fd" : "inherit",
+                        }}
+                      >
+                        {y}
+                      </div>
+                      {xLabels.map((x, index) => {
+                        const count = counts[`${x}|${y}`] || 0;
+                        return (
+                          <div
+                            key={`${x}|${y}`}
+                            className="heatmap-cell"
+                            onClick={() => {
+                              setDstValue(null);
+                              if (showScores === "hide") {
+                                if (x === dstValue && y === decisionValue) {
+                                  setDstValue(null);
+                                  setDecisionValue(null);
+                                } else {
+                                  setDstValue(x);
+                                  setDecisionValue(y);
+                                }
+                              } else if (showScores === "show") {
+                                if (
+                                  x === dstScoreValue &&
+                                  y === decisionValue
+                                ) {
+                                  setDstScoreValue(null);
+                                  setDecisionValue(null);
+                                  setDstValue(null);
+                                } else {
+                                  setDstValue(null);
+                                  setDstScoreValue(x);
+                                  setDecisionValue(y);
+                                }
+                              }
+                            }}
+                            style={{
+                              backgroundColor: getColor(count),
+                              color: count / maxCount > 0.5 ? "white" : "black",
+                              borderRight: superHeaderBorders.includes(
+                                index + 1
+                              )
+                                ? "2px solid #ccc"
+                                : undefined,
+                              cursor: "pointer",
+                              outline:
+                                (showScores === "hide" &&
+                                  x === dstValue &&
+                                  y === decisionValue) ||
+                                (dstScoreValue === x && decisionValue === y)
+                                  ? "2px solid #333"
+                                  : undefined,
+                            }}
+                          >
+                            {count > 0 ? count.toLocaleString() : ""}
+                          </div>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

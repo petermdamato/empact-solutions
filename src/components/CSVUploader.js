@@ -100,7 +100,7 @@ export default function CSVUploader() {
 
             // Add "Screened/not screened" column if it doesn't exist
             if (!("Screened/not screened" in newRow)) {
-              const autoHold = parseInt(newRow["auto_hold"], 10);
+              const autoHold = parseInt(newRow["Auto_Hold"]);
               const riskLevel = String(newRow["RiskLevel"] || "").toLowerCase();
 
               if (autoHold === 1) {

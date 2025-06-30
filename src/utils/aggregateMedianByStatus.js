@@ -44,7 +44,7 @@ const aggregateMedianByStatus = (
     const intakeDate = getIntakeDate(record);
     const releaseDate = getReleaseDate(record);
     return intakeDate && releaseDate
-      ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24)
+      ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24) + 1
       : null;
   };
 

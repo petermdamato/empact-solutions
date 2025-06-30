@@ -98,7 +98,7 @@ export default function Overview() {
   }, [csvData]);
 
   return (
-    <div className="max-w-xl mx-auto mt-10">
+    <div style={{ width: "100%" }}>
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div
@@ -129,8 +129,8 @@ export default function Overview() {
           </Header>
           <div>
             <div style={{ display: "flex", width: "100%" }}>
-              <div style={{ flex: 1, paddingRight: "12px" }}>
-                {dataArray1 && (
+              {dataArray1 && (
+                <div style={{ flex: 1 }}>
                   <PillContainer
                     display={"double"}
                     data={[
@@ -153,9 +153,10 @@ export default function Overview() {
                     setLegendOptions={setLegendOptions}
                     setSelectedLegendOptions={setSelectedLegendOptions}
                   />
-                )}
-              </div>
-              <div style={{ flex: 1, paddingLeft: "12px" }}>
+                </div>
+              )}
+
+              <div style={{ flex: 1 }}>
                 {dataArray2 && (
                   <PillContainer
                     display={"double"}

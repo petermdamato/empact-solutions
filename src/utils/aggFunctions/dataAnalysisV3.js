@@ -195,6 +195,7 @@ const getAgeAtAdmission = (dob, intake, bracketed = true) => {
       : 0);
 
   if (bracketed) {
+    if (age < 11) return "10 and younger";
     if (age >= 11 && age <= 13) return "11-13";
     if (age >= 14 && age <= 17) return "14-17";
     if (age >= 18) return "18+";
@@ -313,7 +314,12 @@ const analyzeData = (
 
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
     const raceSimplified = getRaceSimplified(row.Race, row.Ethnicity);
-    const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
+    const offenseOverall =
+      row["Post-Dispo Stay Reason"] && row["Post-Dispo Stay Reason"].length > 0
+        ? row["Post-Dispo Stay Reason"].toLowerCase().includes("other")
+          ? "Other"
+          : row["Post-Dispo Stay Reason"]
+        : offenseMap[row.OffenseCategory] || "Other";
     const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
       row.OffenseCategory
     );
@@ -385,7 +391,9 @@ const analyzeData = (
 
     if (calculationType === "countAdmissions") {
       const admissions = group.filter((d) => {
-        return d.intakeDate && d.intakeDate.getFullYear() === year;
+        return (
+          d.intakeDate && d.intakeDate >= startDate && d.intakeDate >= endDate
+        );
       });
       results[key] = admissions.length;
       hasValidData = true;
@@ -404,10 +412,9 @@ const analyzeData = (
             d.intakeDate &&
             d.releaseDate &&
             // For length of stay calculations, consider all stays that either started or ended in the target year
-            (d.intakeDate.getFullYear() === year ||
-              d.releaseDate.getFullYear() === year)
+            d.releaseDate.getFullYear() === year
         )
-        .map((d) => differenceInCalendarDays(d.releaseDate, d.intakeDate));
+        .map((d) => differenceInCalendarDays(d.releaseDate, d.intakeDate) + 1);
 
       if (stays.length > 0) {
         hasValidData = true;

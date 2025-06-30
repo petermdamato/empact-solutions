@@ -21,6 +21,10 @@ const getSimplifiedReferralSource = (source) => {
     return "Court";
   }
 
+  if (s.includes("school")) {
+    return "School";
+  }
+
   return "Other";
 };
 

@@ -24,11 +24,33 @@ const LineChartContainerV2 = ({
     <div
       className="line-chart-grid"
       ref={ref}
-      style={{ width: "100%", height: "100%" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: charts.length > 1 ? "row" : "column", // Adjust based on chart count
+        overflow: "hidden", // Prevent overflow
+      }}
     >
       {charts.map((chart, index) => (
-        <div className="line-chart-item" key={index}>
-          <div className="line-chart-header" style={{ paddingLeft: "12px" }}>
+        <div
+          className="line-chart-item"
+          key={index}
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0, // Allow shrinking
+            overflow: "hidden",
+          }}
+        >
+          <div
+            className="line-chart-header"
+            style={{
+              paddingLeft: "12px",
+              flexShrink: 0, // Don't let header shrink
+            }}
+          >
             {selectorChild &&
               selectorChild[index] === "on" &&
               selectorPlacement === "left" &&
@@ -49,19 +71,27 @@ const LineChartContainerV2 = ({
               selectorPlacement === "right" &&
               children}
           </div>
-          <LineChartV2
-            data={data}
-            header={chart}
-            comparison={comparison}
-            metric={chart}
-            labels={selectedLabelsChoice}
-            selectedValue={selectedValue[index]}
-            width={width}
-            height={height}
-            selectedLegendOptions={selectedLegendOptions}
-            selectedLegendDetails={selectedLegendDetails}
-            detentionType={detentionType}
-          />
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0, // Critical for chart sizing
+              overflow: "hidden",
+            }}
+          >
+            <LineChartV2
+              data={data}
+              header={chart}
+              comparison={comparison}
+              metric={chart}
+              labels={selectedLabelsChoice}
+              selectedValue={selectedValue[index]}
+              width={width}
+              height={height}
+              selectedLegendOptions={selectedLegendOptions}
+              selectedLegendDetails={selectedLegendDetails}
+              detentionType={detentionType}
+            />
+          </div>
         </div>
       ))}
     </div>

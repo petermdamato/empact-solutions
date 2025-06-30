@@ -51,7 +51,7 @@ const aggregateCalculationByStatus = (
 
       const stayLengthDays =
         releaseDate && intakeDate
-          ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24)
+          ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24) + 1
           : null;
 
       if (stayLengthDays) {
@@ -90,7 +90,7 @@ const aggregateCalculationByStatus = (
     const releaseDate = getReleaseDate(record);
     const stayLengthDays =
       releaseDate && intakeDate
-        ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24)
+        ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24) + 1
         : null;
 
     // Get the category based on OffenseCategory

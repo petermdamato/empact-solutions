@@ -1,6 +1,20 @@
 import getSimplifiedOffenseCategory from "../helper";
 
 function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
+  const years = data.map((item) => {
+    // Get the Admission_Date
+    const dateStr = item.Admission_Date;
+
+    // Convert to Date object - adjust this based on your actual date format
+    const date = new Date(dateStr);
+
+    // Extract year
+    return date.getFullYear();
+  });
+
+  // If you want unique years only
+  const uniqueYears = [...new Set(years)].filter((entry) => !isNaN(entry));
+
   const getDates = (record) => {
     if (detentionType === "secure-detention") {
       return {
@@ -87,56 +101,83 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
   };
 
   const results = {};
+  const validYears = new Set();
 
   data.forEach((record) => {
     const { entry, exit } = getDates(record);
     if (!entry) return;
 
+    const entryYear = entry.getFullYear();
+    const exitYear = exit ? exit.getFullYear() : null;
+
     const key = groupKey(record, entry);
-    const year = entry.getFullYear();
-    const los = exit
-      ? Math.max(0, Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)))
-      : null;
 
-    if (!results[year]) results[year] = {};
-    if (!results[year][key]) {
-      results[year][key] = {
-        entries: 0,
-        exits: 0,
-        totalLOS: 0,
-        countLOS: 0,
-        lengthOfStays: [],
-        dailyCounts: {},
-      };
-    }
+    // Loop through all years to find the matching bucket by "between" logic
+    for (const yr of uniqueYears) {
+      const startOfYear = new Date(`${yr}-01-01`);
+      const endOfYear = new Date(`${yr}-12-31`);
 
-    const yearObj = results[year][key];
-    yearObj.entries += 1;
-    if (exit && exit.getFullYear() === year) {
-      yearObj.exits += 1;
-      if (los !== null) {
-        yearObj.totalLOS += los;
-        yearObj.countLOS += 1;
-        yearObj.lengthOfStays.push(los);
+      if (entry >= startOfYear && entry <= endOfYear) {
+        validYears.add(yr);
+
+        if (!results[yr]) results[yr] = {};
+        if (!results[yr][key]) {
+          results[yr][key] = {
+            entries: 0,
+            exits: 0,
+            totalLOS: 0,
+            countLOS: 0,
+            lengthOfStays: [],
+            dailyCounts: {},
+          };
+        }
+
+        results[yr][key].entries += 1;
+
+        // Daily counts for ADP within the year
+        const range = yearRange(startOfYear, endOfYear);
+        for (const date of range) {
+          const dateStr = date.toISOString().slice(0, 10);
+          if (entry <= date && (!exit || exit >= date)) {
+            results[yr][key].dailyCounts[dateStr] =
+              (results[yr][key].dailyCounts[dateStr] || 0) + 1;
+          }
+        }
+
+        break; // once placed in the correct year, stop checking
       }
     }
-
-    // Daily counts for ADP
-    const range = yearRange(
-      new Date(`${year}-01-01`),
-      new Date(`${year}-12-31`)
-    );
-    for (const date of range) {
-      const dateStr = date.toISOString().slice(0, 10);
-      if (entry <= date && (!exit || exit >= date)) {
-        yearObj.dailyCounts[dateStr] = (yearObj.dailyCounts[dateStr] || 0) + 1;
+    // If released, increment exits and LOS in exit year
+    if (exitYear) {
+      validYears.add(exitYear);
+      if (!results[exitYear]) results[exitYear] = {};
+      if (!results[exitYear][key]) {
+        results[exitYear][key] = {
+          entries: 0,
+          exits: 0,
+          totalLOS: 0,
+          countLOS: 0,
+          lengthOfStays: [],
+          dailyCounts: {},
+        };
       }
+
+      const los = Math.max(
+        0,
+        Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)) + 1
+      );
+
+      results[exitYear][key].exits += 1;
+      results[exitYear][key].totalLOS += los;
+      results[exitYear][key].countLOS += 1;
+      results[exitYear][key].lengthOfStays.push(los);
     }
   });
 
   // Finalize metrics
   const final = {};
   for (const year in results) {
+    if (!validYears.has(Number(year))) continue;
     final[year] = {};
     for (const key in results[year]) {
       const obj = results[year][key];
@@ -158,10 +199,10 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
       }
 
       const baseMetrics = {
-        averageDailyPopulation: Number(adp.toFixed(2)),
+        averageDailyPopulation: Number(adp.toFixed(1)),
         lengthOfStayCount: obj.countLOS,
         averageLengthOfStay: obj.countLOS
-          ? Number((obj.totalLOS / obj.countLOS).toFixed(2))
+          ? Number((obj.totalLOS / obj.countLOS).toFixed(1))
           : null,
         medianLengthOfStay: medianLOS ? medianLOS : null,
       };

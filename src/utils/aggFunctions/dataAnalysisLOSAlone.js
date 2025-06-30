@@ -60,9 +60,7 @@ function analyzeAdmissionsOnly(
   programType = "secure-detention"
 ) {
   const parseDate = (str) => (str ? new Date(str) : null);
-  const startDate = new Date(`${targetYear}-01-01`);
-  const endDate = new Date(`${targetYear}-12-31`);
-  const isTargetYear = (date) => date && date >= startDate && date <= endDate;
+  const isTargetYear = (date) => date && date.getFullYear() === targetYear;
   const today = new Date();
 
   const getAge = (dob, intake) => {
@@ -133,18 +131,6 @@ function analyzeAdmissionsOnly(
         val = getAgeBracket(age);
       } else if (group === "AgeDetail") {
         val = age;
-      } else if (group === "OffenseCategory") {
-        const postDispoReason = row["Post-Dispo Stay Reason"];
-        if (
-          postDispoReason &&
-          postDispoReason.toLowerCase().includes("other")
-        ) {
-          val = "Other";
-        } else if (postDispoReason) {
-          val = postDispoReason;
-        } else {
-          val = row.OffenseCategory || "Unknown";
-        }
       } else {
         val = row[group] || "Unknown";
       }
@@ -226,7 +212,6 @@ const getAgeAtAdmission = (dob, intake, bracketed = true) => {
     new Date(intakeDate.getFullYear(), birth.getMonth(), birth.getDate())
       ? 1
       : 0);
-
   if (bracketed) {
     if (age < 11) return "10 and younger";
     if (age >= 11 && age <= 13) return "11-13";
@@ -259,8 +244,6 @@ const analyzeData = (
   programType = "secure-detention",
   options = {}
 ) => {
-  const startDate = new Date(`${year}-01-01`);
-  const endDate = new Date(`${year}-12-31`);
   if (!csvData || !Array.isArray(csvData) || csvData.length === 0) {
     return { error: "No data provided or invalid data format" };
   }
@@ -269,6 +252,7 @@ const analyzeData = (
     return { error: "Calculation type and year are required" };
   }
 
+  // Validate calculation type
   const validCalculations = [
     "countAdmissions",
     "countReleases",
@@ -290,6 +274,7 @@ const analyzeData = (
     return { error: "Year must be a valid number" };
   }
 
+  // Validate groupBy
   const validGroupBys = [
     "Gender",
     "Age",
@@ -312,8 +297,11 @@ const analyzeData = (
     };
   }
 
-  const parseDate = (str) => (str ? new Date(str) : null);
+  const results = {};
+  const startDate = new Date(`${year}-01-01`);
+  const endDate = new Date(`${year}-12-31`);
 
+  // Helper to calculate median
   const median = (arr) => {
     if (arr.length === 0) return null;
     const sorted = [...arr].sort((a, b) => a - b);
@@ -334,62 +322,64 @@ const analyzeData = (
       programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
     );
 
-    if (!entryDate || entryDate < startDate || entryDate > endDate) return acc;
+    // Skip if entry date is invalid or not in target year
+    if (!entryDate || !exitDate || exitDate.getFullYear() !== year) return acc;
 
-    const dispo =
-      row["Post-Dispo Stay Reason"] === null ||
-      row["Post-Dispo Stay Reason"] === ""
-        ? "Pre-dispo"
-        : "Post-dispo";
+    // Prepare derived fields
+    const age = getAgeAtAdmission(
+      row.Date_of_Birth,
+      entryDate,
+      groupBy === "Age"
+    );
+    const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
+    const raceSimplified = getRaceSimplified(row.Race, row.Ethnicity);
+    const offenseOverall =
+      row["Post-Dispo Stay Reason"] && row["Post-Dispo Stay Reason"].length > 0
+        ? row["Post-Dispo Stay Reason"].toLowerCase().includes("other")
+          ? "Other"
+          : row["Post-Dispo Stay Reason"]
+        : offenseMap[row.OffenseCategory] || "Other";
+    const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
+      row.OffenseCategory
+    );
+    const facility = row.Facility || "Unknown";
+    const referralSource = row.Referral_Source || "Unknown";
 
+    // Determine the key based on groupBy
     let key;
     switch (groupBy) {
       case "Gender":
         key = row.Gender || "Unknown";
         break;
       case "Age":
+        key = age;
+        break;
       case "AgeDetail":
-        key = getAgeAtAdmission(
-          row.Date_of_Birth,
-          entryDate,
-          groupBy === "Age"
-        );
+        key = age;
         break;
       case "RaceEthnicity":
-        key = getRaceEthnicity(row.Race, row.Ethnicity);
+        key = raceEth;
         break;
       case "RaceSimplified":
-        key = getRaceSimplified(row.Race, row.Ethnicity);
+        key = raceSimplified;
         break;
       case "OffenseCategory":
-        key =
-          row["Post-Dispo Stay Reason"] &&
-          row["Post-Dispo Stay Reason"].length > 0
-            ? row["Post-Dispo Stay Reason"].toLowerCase().includes("other")
-              ? "Other"
-              : row["Post-Dispo Stay Reason"]
-            : row.OffenseCategory || "Unknown";
+        key = row.OffenseCategory || "Unknown";
         break;
       case "OffenseOverall":
-        key =
-          row["Post-Dispo Stay Reason"] &&
-          row["Post-Dispo Stay Reason"].length > 0
-            ? row["Post-Dispo Stay Reason"].toLowerCase().includes("other")
-              ? "Other"
-              : row["Post-Dispo Stay Reason"]
-            : offenseMap[row.OffenseCategory] || "Other";
+        key = offenseOverall;
         break;
       case "SimplifiedOffense":
-        key = getSimplifiedOffenseCategory(row.OffenseCategory);
+        key = simplifiedOffenseCategory;
         break;
       case "Facility":
-        key = row.Facility || "Unknown";
+        key = facility;
         break;
       case "Referral_Source":
-        key = row.Referral_Source || "Unknown";
+        key = referralSource;
         break;
       case "simplifiedReferralSource":
-        key = getSimplifiedReferralSource(row.Referral_Source || "Unknown");
+        key = getSimplifiedReferralSource(referralSource);
         break;
       default:
         key = "All";
@@ -397,101 +387,68 @@ const analyzeData = (
 
     if (!acc[key]) {
       acc[key] = {
-        "Pre-dispo": { entries: 0, lengthsOfStay: [] },
-        "Post-dispo": { entries: 0, lengthsOfStay: [] },
+        entries: 0,
+        lengthsOfStay: [],
       };
     }
 
-    acc[key][dispo].entries++;
+    acc[key].entries++;
 
+    // Calculate length of stay if exit date is valid
     if (exitDate && !isNaN(exitDate)) {
       const lengthOfStay = differenceInCalendarDays(exitDate, entryDate) + 1;
       if (lengthOfStay >= 0) {
-        acc[key][dispo].lengthsOfStay.push(lengthOfStay);
+        acc[key].lengthsOfStay.push(lengthOfStay);
       }
     }
 
     return acc;
   }, {});
 
-  const results = Object.entries(grouped).map(([key, group]) => {
-    const preDispo = group["Pre-dispo"];
-    const postDispo = group["Post-dispo"];
-
-    let preValue = null;
-    let postValue = null;
-    let overallValue = null;
-
+  // Calculate metrics for each group
+  for (const [key, group] of Object.entries(grouped)) {
     if (calculationType === "countAdmissions") {
-      preValue = preDispo.entries || 0;
-      postValue = postDispo.entries || 0;
-      overallValue = preValue + postValue;
+      results[key] = group.entries;
     } else if (calculationType === "averageLengthOfStay") {
-      const preAvg = preDispo.lengthsOfStay.length
-        ? preDispo.lengthsOfStay.reduce((sum, v) => sum + v, 0) /
-          preDispo.lengthsOfStay.length
-        : null;
-      const postAvg = postDispo.lengthsOfStay.length
-        ? postDispo.lengthsOfStay.reduce((sum, v) => sum + v, 0) /
-          postDispo.lengthsOfStay.length
-        : null;
-
-      const combinedLOS = preDispo.lengthsOfStay.concat(
-        postDispo.lengthsOfStay
-      );
-      const overallAvg = combinedLOS.length
-        ? combinedLOS.reduce((sum, v) => sum + v, 0) / combinedLOS.length
-        : null;
-
-      preValue = preAvg;
-      postValue = postAvg;
-      overallValue = overallAvg;
+      results[key] =
+        group.lengthsOfStay.length > 0
+          ? group.lengthsOfStay.reduce((sum, days) => sum + days, 0) /
+            group.lengthsOfStay.length
+          : null;
     } else if (calculationType === "medianLengthOfStay") {
-      const median = (arr) => {
-        if (!arr.length) return null;
-        const sorted = arr.slice().sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        return sorted.length % 2 === 0
-          ? (sorted[mid - 1] + sorted[mid]) / 2
-          : sorted[mid];
-      };
-
-      const preMedian = median(preDispo.lengthsOfStay);
-      const postMedian = median(postDispo.lengthsOfStay);
-      const combinedMedian = median(
-        preDispo.lengthsOfStay.concat(postDispo.lengthsOfStay)
-      );
-
-      preValue = preMedian;
-      postValue = postMedian;
-      overallValue = combinedMedian;
+      results[key] = median(group.lengthsOfStay);
+    } else if (calculationType === "countReleases") {
+      // Not implemented in analyzeEntriesByYear; you can add logic here if needed
+      results[key] = null;
+    } else if (calculationType === "averageDailyPopulation") {
+      // Not implemented in analyzeEntriesByYear; you can add logic here if needed
+      results[key] = null;
     }
+  }
 
-    // Round if requested
-    if (options.round) {
-      if (typeof preValue === "number")
-        preValue = Math.round(preValue * 100) / 100;
-      if (typeof postValue === "number")
-        postValue = Math.round(postValue * 100) / 100;
-      if (typeof overallValue === "number")
-        overallValue = Math.round(overallValue * 100) / 100;
+  // Round results if requested
+  if (options.round) {
+    for (const key in results) {
+      if (results[key] !== null && typeof results[key] === "number") {
+        results[key] = Math.round(results[key] * 100) / 100;
+      }
     }
+  }
 
-    return {
-      category: key,
-      "Pre-dispo": preValue,
-      "Post-dispo": postValue,
-      total: overallValue,
-    };
-  });
-
-  // Optional sort
+  // Sort results if requested
   if (options.sort) {
-    results.sort((a, b) => {
-      const aTotal = (a["Pre-dispo"] || 0) + (a["Post-dispo"] || 0);
-      const bTotal = (b["Pre-dispo"] || 0) + (b["Post-dispo"] || 0);
-      return options.sort === "desc" ? bTotal - aTotal : aTotal - bTotal;
-    });
+    const sortedResults = {};
+    Object.keys(results)
+      .sort((a, b) => {
+        if (options.sort === "desc") {
+          return (results[b] || 0) - (results[a] || 0);
+        }
+        return (results[a] || 0) - (results[b] || 0);
+      })
+      .forEach((key) => {
+        sortedResults[key] = results[key];
+      });
+    return sortedResults;
   }
 
   return results;

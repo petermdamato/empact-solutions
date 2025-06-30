@@ -14,6 +14,8 @@ export function categorizeAge(record, incarcerationType) {
 
   if (dob === undefined || intake === undefined) {
     group = "Unknown";
+  } else if (getAge(dob, intake) < 11) {
+    group = "10 and younger";
   } else if (getAge(dob, intake) <= 13) {
     group = "11-13";
   } else if (getAge(dob, intake) <= 17) {

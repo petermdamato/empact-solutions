@@ -23,11 +23,10 @@ const median = (arr) => {
  * @param {number} year - The year to analyze
  * @returns {Object} - Entry stats for the year
  */
-const analyzeEntriesByYear = (
-  data,
-  year,
-  detentionType = "secure-detention"
-) => {
+const analyzeExits = (data, year, detentionType = "secure-detention") => {
+  const startOfYear = new Date(`${year}-01-01`);
+  const endOfYear = new Date(`${year}-12-31`);
+
   const results = {
     totalEntries: 0,
     previousTotalEntries: 0,
@@ -37,17 +36,8 @@ const analyzeEntriesByYear = (
   };
 
   const overallLengths = [];
-
-  const intakeStart = `${year}-01-01`;
-  const intakeEnd = `${year}-12-31`;
-  const intakeStartDate = new Date(intakeStart);
-  const intakeEndDate = new Date(intakeEnd);
-
-  // Previous year range
-  const prevStartDate = new Date(intakeStart);
-  prevStartDate.setFullYear(intakeStartDate.getFullYear() - 1);
-  const prevEndDate = new Date(intakeEnd);
-  prevEndDate.setFullYear(intakeEndDate.getFullYear() - 1);
+  const successLengths = [];
+  const unsuccessLengths = [];
 
   data.forEach((row) => {
     const entryDate =
@@ -59,12 +49,11 @@ const analyzeEntriesByYear = (
         ? parseDate(row.Release_Date)
         : parseDate(row.ATD_Exit_Date);
 
-    if (entryDate && entryDate >= prevStartDate && entryDate <= prevEndDate) {
+    if (exitDate && exitDate.getFullYear() === year - 1) {
       results.previousTotalEntries++;
     }
 
-    if (!entryDate || entryDate < intakeStartDate || entryDate > intakeEndDate)
-      return;
+    if (!exitDate || exitDate.getFullYear() !== year || !exitDate) return;
 
     // Count exits
     results.totalEntries++;
@@ -95,4 +84,4 @@ const analyzeEntriesByYear = (
   return results;
 };
 
-export default analyzeEntriesByYear;
+export default analyzeExits;

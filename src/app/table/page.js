@@ -22,7 +22,7 @@ export default function Overview() {
   const [loading, setLoading] = useState(true);
 
   const onSelectChange = (e) => {
-    setSelectedYear(e.target.value);
+    setSelectedYear(+e);
   };
 
   useEffect(() => {

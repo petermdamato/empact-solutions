@@ -16,7 +16,7 @@ const defaultColorPalette = [
 const StackedBarChartGeneric = ({
   data,
   height,
-  margin = { top: 0, right: 40, bottom: 20, left: 20 },
+  margin,
   chartTitle,
   showChart = false,
   context = "number",
@@ -80,7 +80,7 @@ const StackedBarChartGeneric = ({
       const text = tempSvg
         .append("text")
         .text(d.category)
-        .style("font-size", 14);
+        .style("font-size", 12);
       const width = text.node().getBBox().width;
       if (width > maxLabelWidth) maxLabelWidth = width;
       text.remove();
@@ -233,6 +233,7 @@ const StackedBarChartGeneric = ({
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
         const width = xScale(value) > 0 ? Math.max(xScale(value), 2) : 0;
+
         barsLayer
           .append("rect")
           .attr("x", xOffset)
@@ -252,23 +253,24 @@ const StackedBarChartGeneric = ({
         const tempText = chart
           .append("text")
           .text(labelText)
-          .attr("font-size", 14)
+          .attr("font-size", 10)
           .style("visibility", "hidden");
 
         const textWidth = tempText.node().getBBox().width;
         tempText.remove();
 
-        labelsLayer
-          .append("text")
-          .style("opacity", labelText > 0 ? 1 : 0)
-          .attr("x", width + 8)
-          .attr("y", yScale(d.category) + yScale.bandwidth() / 2)
-          .attr("dy", "0.35em")
-          .attr("text-anchor", "start")
-          .attr("fill", "black")
-          .style("font-size", 14)
-          .style("user-select", "none")
-          .text(Math.round(labelText * 10) / 10);
+        if (textWidth + 4 < width) {
+          labelsLayer
+            .append("text")
+            .attr("x", xOffset + width / 2)
+            .attr("y", yScale(d.category) + yScale.bandwidth() / 2)
+            .attr("dy", "0.35em")
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .style("font-size", 10)
+            .style("user-select", "none")
+            .text(Math.round(labelText * 10) / 10);
+        }
 
         xOffset += width;
       });
@@ -292,8 +294,7 @@ const StackedBarChartGeneric = ({
       .attr("class", "y-axis")
       .selectAll(".tick text")
       .text((d) => (d === "" ? "N/A" : d))
-      .attr("font-size", 14)
-      .call(wrap, 106);
+      .call(wrap, 96);
   }, [
     data,
     height,
@@ -320,15 +321,10 @@ const StackedBarChartGeneric = ({
         <div
           style={{
             position: "absolute",
-            left: `${
-              tooltipPosition.x < 400
-                ? tooltipPosition.x - 420
-                : tooltipPosition.x
-            }px`,
+            left: `${tooltipPosition.x}px`,
             top: `${tooltipPosition.y}px`,
             pointerEvents: "none",
             zIndex: 100,
-            width: "420px",
           }}
         >
           <EnhancedTooltip

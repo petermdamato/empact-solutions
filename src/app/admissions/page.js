@@ -21,13 +21,14 @@ import {
   categorizeYoc,
   categorizeAge,
 } from "@/utils/categories";
+import { offenseMap } from "@/utils/categorizationUtils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 import dynamic from "next/dynamic";
 const ZipMap = dynamic(() => import("@/components/ZipMap/ZipMap"), {
   ssr: false,
 });
-
+const colors = ["#5a6b7c", "#d5d5d5"];
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
   const year = date.getFullYear();
@@ -36,6 +37,7 @@ const parseDateYear = (dateStr) => {
 };
 
 const groupReasons = (data) => {
+  offenseMap;
   const result = {
     "New Offense": {},
     Technical: {},
@@ -43,17 +45,14 @@ const groupReasons = (data) => {
 
   for (const [label, counts] of Object.entries(data)) {
     let group;
-    const lower = label.toLowerCase();
-
-    if (lower.includes("felony")) {
-      group = "New Offense";
-    } else if (lower.includes("misdemeanor")) {
-      group = "New Offense";
-    } else if (label === "Status Offense") {
-      group = "New Offense";
-    } else {
-      group = "Technical";
-    }
+    group = offenseMap[label]
+      ? offenseMap[label]
+      : label.toLowerCase().includes("misdemeanor") ||
+        label.toLowerCase().includes("felony")
+      ? "New Offense"
+      : label.toLowerCase().includes("other")
+      ? "Other"
+      : label;
 
     if (!result[group]) result[group] = {};
 
@@ -279,6 +278,7 @@ export default function Overview() {
       ).map(([race, values]) => ({
         category: race,
         ...values,
+        total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
       }));
 
       const simplifiedRaceData = Object.entries(
@@ -286,6 +286,7 @@ export default function Overview() {
       ).map(([race, values]) => ({
         category: race,
         ...values,
+        total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
       }));
 
       setRaceData({
@@ -302,6 +303,7 @@ export default function Overview() {
         ([gender, values]) => ({
           category: gender,
           ...values,
+          total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         })
       );
 
@@ -311,6 +313,7 @@ export default function Overview() {
         ([age, values]) => ({
           category: age,
           ...values,
+          total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         })
       );
 
@@ -323,16 +326,19 @@ export default function Overview() {
         ([offense, values]) => ({
           category: offense,
           ...values,
+          total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         })
       );
 
       setDataArray16(byOffenseCategory);
 
       const byReasons = groupReasons(detData.byGroup.OffenseCategory);
+
       const groupedByReasons = Object.entries(byReasons).map(
         ([offense, values]) => ({
           category: offense,
           ...values,
+          total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         })
       );
 
@@ -346,10 +352,11 @@ export default function Overview() {
           "simplifiedReferralSource",
           "secure-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([category, values]) => {
         return {
-          category: cat,
-          "Pre-dispo": value,
+          category: category,
+          ...values,
+          total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         };
       });
 
@@ -452,10 +459,11 @@ export default function Overview() {
           {/* Column 1 */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 33%",
               display: "flex",
               flexDirection: "column",
               gap: "12px",
+              width: "100%",
             }}
           >
             {/* Change Statistics */}
@@ -500,33 +508,29 @@ export default function Overview() {
             {/* Admissions by Type */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray12}
-                    year={selectedYear}
-                    groupByKey={"Screened/not screened"}
-                    type={"secure-detention"}
-                    chartTitle={"Admissions by screened/not screened"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
-                </ResponsiveContainer>
+                <PieChart
+                  records={dataArray12}
+                  year={selectedYear}
+                  groupByKey={"Screened/not screened"}
+                  type={"secure-detention"}
+                  chartTitle={"Admissions by screened/not screened"}
+                  setFilterVariable={setFilterVariable}
+                  filterVariable={filterVariable}
+                />
               </div>
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray19}
-                    year={selectedYear}
-                    groupByKey={"Pre/post-dispo filter"}
-                    type={"secure-detention"}
-                    chartTitle={"Admissions by Pre/Post-Dispo"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
-                </ResponsiveContainer>
+                <PieChart
+                  records={dataArray19}
+                  year={selectedYear}
+                  groupByKey={"Pre/post-dispo filter"}
+                  type={"secure-detention"}
+                  chartTitle={"Admissions by Pre/Post-Dispo"}
+                  setFilterVariable={setFilterVariable}
+                  filterVariable={filterVariable}
+                />
               </div>
             </ChartCard>
           </div>
@@ -534,10 +538,11 @@ export default function Overview() {
           {/* Column 2 */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 33%",
               display: "flex",
               flexDirection: "column",
               gap: "12px",
+              width: "100%",
             }}
           >
             {/* Admissions by Race/Ethnicity */}
@@ -580,17 +585,18 @@ export default function Overview() {
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo", "Post-dispo"]}
+                        breakdowns={["total"]}
                         height={220}
-                        margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 40, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "Admissions by Race/Ethnicity"
                             : "Admissions by Race (Simplified)"
                         }
                         colorMapOverride={{
-                          "Pre-dispo": "#5b6069",
-                          "Post-dispo": "#d3d3d3",
+                          "Pre-dispo": colors[0],
+                          total: colors[0],
+                          "Post-dispo": colors[1],
                         }}
                         setFilterVariable={setFilterVariable}
                         filterVariable={filterVariable}
@@ -610,13 +616,14 @@ export default function Overview() {
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["total"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Admissions by Gender"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
+                        "Pre-dispo": colors[0],
+                        total: colors[0],
+                        "Post-dispo": colors[1],
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -634,13 +641,14 @@ export default function Overview() {
                   {dataArray15.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray15}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["total"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Admissions by Age"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
+                        "Pre-dispo": colors[0],
+                        total: colors[0],
+                        "Post-dispo": colors[1],
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -656,10 +664,11 @@ export default function Overview() {
           {/* Column 3 */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 33%",
               display: "flex",
               flexDirection: "column",
-              gap: "4px",
+              gap: "12px",
+              width: "100%",
             }}
           >
             {/* Admissions by Reason */}
@@ -669,13 +678,14 @@ export default function Overview() {
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["total"]}
                       height={180}
-                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
                       chartTitle={"Admissions by Reason for Detention"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
+                        "Pre-dispo": colors[0],
+                        total: colors[0],
+                        "Post-dispo": colors[1],
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -694,13 +704,14 @@ export default function Overview() {
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["total"]}
                       height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Admissions by Offense Category (pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
+                        "Pre-dispo": colors[0],
+                        total: colors[0],
+                        "Post-dispo": colors[1],
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -720,13 +731,14 @@ export default function Overview() {
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["total"]}
                       height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Admissions by Jurisdiction"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
-                        "Post-dispo": "#d3d3d3",
+                        "Pre-dispo": colors[0],
+                        total: colors[0],
+                        "Post-dispo": colors[1],
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}

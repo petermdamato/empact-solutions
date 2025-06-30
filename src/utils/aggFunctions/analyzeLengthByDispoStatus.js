@@ -30,12 +30,7 @@ const analyzeLengthByDispoStatus = (
         : null;
     // Only include records where both dates are in 2024
 
-    if (
-      intake &&
-      release &&
-      +getYear(intake) === +selectedYear &&
-      +getYear(release) === +selectedYear
-    ) {
+    if (intake && release && +getYear(release) === +selectedYear) {
       // const dispStatus = row["Pre/post-dispo filter"] || "Unknown";
       const dispStatus =
         row["Post-Dispo Stay Reason"] === null ||
@@ -43,7 +38,7 @@ const analyzeLengthByDispoStatus = (
           ? "Pre-dispo"
           : "Post-dispo";
 
-      const los = differenceInCalendarDays(release, intake);
+      const los = differenceInCalendarDays(release, intake) + 1;
 
       if (!dispoGroups[dispStatus]) dispoGroups[dispStatus] = [];
       dispoGroups[dispStatus].push(los);

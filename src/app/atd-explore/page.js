@@ -175,7 +175,7 @@ export default function Overview() {
             style={{
               display: "flex",
               flexDirection: "column",
-              flexGrow: 1,
+              maxHeight: "790px",
             }}
           >
             {/* Top Row */}

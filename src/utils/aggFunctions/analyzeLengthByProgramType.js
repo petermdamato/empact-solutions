@@ -32,14 +32,9 @@ const analyzeByProgramType = (
         : null;
 
     // Only include records where both dates are in 2024
-    if (
-      intake &&
-      release &&
-      +getYear(intake) === +selectedYear &&
-      +getYear(release) === +selectedYear
-    ) {
+    if (intake && release && +getYear(release) === +selectedYear) {
       const program = row.ATD_Program_Name || "Unknown";
-      const los = differenceInCalendarDays(release, intake);
+      const los = differenceInCalendarDays(release, intake) + 1;
 
       if (!lengthsByProgram[program]) lengthsByProgram[program] = [];
       lengthsByProgram[program].push(los);

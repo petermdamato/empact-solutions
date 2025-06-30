@@ -10,9 +10,41 @@ const PieChart = ({
   groupByKey,
   setFilterVariable,
   filterVariable,
+  detentionType = "secure-detention",
 }) => {
-  const radius = size / 2;
-  const color = ["#5b6069", "#d3d3d3"];
+  const containerRef = useRef();
+  const [containerSize, setContainerSize] = useState({
+    width: size,
+    height: size,
+  });
+
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setContainerSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
+      }
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) observer.unobserve(containerRef.current);
+    };
+  }, []);
+  const margin = { top: 24, right: 24, bottom: 24, left: 24 };
+  const width = containerSize.width - margin.left - margin.right;
+  const height = containerSize.height - margin.top - margin.bottom;
+  const radius = Math.min(width, height) / 2 - 40;
+  const color =
+    detentionType === "secure-detention"
+      ? ["#5a6b7c", "#d5d5d5", "#979ca4"]
+      : ["#5b6069", "#d3d3d3"];
+
   const svgRef = useRef();
   const pathRefs = useRef([]);
   const [tooltipData, setTooltipData] = useState(null);
@@ -23,6 +55,11 @@ const PieChart = ({
     .arc()
     .innerRadius(0)
     .outerRadius(radius - 10);
+
+  const outerArc = d3
+    .arc()
+    .innerRadius(radius + 4)
+    .outerRadius(radius + 4);
 
   useEffect(() => {
     if (!records || records.length === 0) return;
@@ -100,62 +137,88 @@ const PieChart = ({
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md inline-block relative">
       <div className="text-center font-semibold mb-2">{chartTitle}</div>
-      <div className="centered-chart">
-        <svg ref={svgRef} width={size} height={size}>
-          <g transform={`translate(${radius},${radius})`}>
-            {pieData.map((d, i) => (
-              <g key={i}>
-                <path
-                  ref={(el) => (pathRefs.current[i] = el)}
-                  d={arcGen(d)}
-                  fill={color[i]}
-                  stroke="white"
-                  strokeWidth={1.5}
-                  onClick={() => handleClick(d)}
-                  onMouseMove={(e) => handleMouseOver(e, d)}
-                  onMouseOut={handleMouseOut}
-                />
-                <text
-                  data-label-index={i}
-                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                    arcGen.centroid(d)[1]
-                  })`}
-                  textAnchor="start"
-                  alignmentBaseline="middle"
-                  fontSize={14}
-                  fill="#fff"
-                  fontWeight="bold"
-                >
-                  {d.data.category}
-                </text>
-                <text
-                  data-label-index={i}
-                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                    arcGen.centroid(d)[1] + 16
-                  })`}
-                  textAnchor="start"
-                  alignmentBaseline="middle"
-                  fontSize={12}
-                  fontWeight="bold"
-                  fill="#fff"
-                >
-                  {d.data.value}
-                </text>
-                <text
-                  data-label-index={i}
-                  transform={`translate(${arcGen.centroid(d)[0] + 4},${
-                    arcGen.centroid(d)[1] + 32
-                  })`}
-                  textAnchor="start"
-                  alignmentBaseline="middle"
-                  fontSize={12}
-                  fontWeight="bold"
-                  fill="#fff"
-                >
-                  {Math.round(d.data.percentage * 1000) / 10}%
-                </text>
-              </g>
-            ))}
+      <div
+        ref={containerRef}
+        className="centered-chart"
+        style={{ width: "100%", height: "100%" }}
+      >
+        <svg
+          ref={svgRef}
+          width={width + margin.left + margin.right}
+          height={height + margin.top + margin.bottom}
+        >
+          <g
+            transform={`translate(${
+              (width + margin.left + margin.right) / 2
+            }, ${(height + margin.top + margin.bottom) / 2})`}
+          >
+            {(() => {
+              const usedLabelAngles = [];
+
+              return pieData.map((d, i) => {
+                const angle = (d.startAngle + d.endAngle) / 2;
+                const angleDegrees = (angle * 180) / Math.PI;
+
+                const isTooClose = usedLabelAngles.some(
+                  (prev) => Math.abs(prev - angleDegrees) < 45
+                );
+
+                const renderLabel = !isTooClose;
+                if (renderLabel) usedLabelAngles.push(angleDegrees);
+
+                return (
+                  <g key={i}>
+                    <path
+                      ref={(el) => (pathRefs.current[i] = el)}
+                      d={arcGen(d)}
+                      fill={color[i]}
+                      stroke="white"
+                      strokeWidth={1.5}
+                      onClick={() => handleClick(d)}
+                      onMouseMove={(e) => handleMouseOver(e, d)}
+                      onMouseOut={handleMouseOut}
+                    />
+                    {renderLabel && (
+                      <>
+                        <text
+                          data-label-index={i}
+                          transform={`translate(${outerArc.centroid(d)[0]},${
+                            outerArc.centroid(d)[1]
+                          })`}
+                          textAnchor={
+                            outerArc.centroid(d)[0] > 0 ? "start" : "end"
+                          }
+                          alignmentBaseline="middle"
+                          fontSize={12}
+                          dy={-6}
+                          fontWeight={700}
+                          fill="#333"
+                        >
+                          {`${d.data.category}`}
+                        </text>
+                        <text
+                          data-label-index={i}
+                          transform={`translate(${outerArc.centroid(d)[0]},${
+                            outerArc.centroid(d)[1]
+                          })`}
+                          textAnchor={
+                            outerArc.centroid(d)[0] > 0 ? "start" : "end"
+                          }
+                          alignmentBaseline="middle"
+                          dy={8}
+                          fontSize={12}
+                          fill="#333"
+                        >
+                          {`${d.data.value} (${
+                            Math.round(d.data.percentage * 1000) / 10
+                          }%)`}
+                        </text>
+                      </>
+                    )}
+                  </g>
+                );
+              });
+            })()}
           </g>
         </svg>
       </div>

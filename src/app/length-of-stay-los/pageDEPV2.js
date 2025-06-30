@@ -11,14 +11,16 @@ import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
+  analyzeLengthByScreenedStatus,
   analyzeEntriesByYear,
-  dataAnalysisV3,
-  analyzeDailyPopByProgramType,
-  analyzeDailyPopByDispoStatus,
+  dataAnalysisV2,
+  analyzeLengthByProgramType,
+  analyzeLengthByDispoStatus,
 } from "@/utils/aggFunctions";
 import {
   chooseCategoryV2 as chooseCategory,
   categorizeRaceEthnicity,
+  categorizeYoc,
   categorizeAge,
 } from "@/utils/categories";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
@@ -34,15 +36,14 @@ const parseDateYear = (dateStr) => {
 export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const [filterVariable, setFilterVariable] = useState(null);
   const [finalData, setFinalData] = useState(csvData);
-  const [incarcerationType] = useState("alternative-to-detention");
-  const [programType, setProgramType] = useState("All Program Types");
+  const [selectedYear, setSelectedYear] = useState(2024);
+
+  const [incarcerationType] = useState("secure-detention");
+  const [calculationType, setCalculationType] = useState("average");
+  const [programType] = useState("All Program Types");
+  const [filterVariable, setFilterVariable] = useState(null);
   const [yearsArray, setYearsArray] = useState([2024]);
-  const [programTypeArray, setProgramTypeArray] = useState([
-    "All Program Types",
-  ]);
   const [raceType, setRaceType] = useState("RaceEthnicity");
 
   const [dataArray11, setDataArray11] = useState([]);
@@ -73,6 +74,7 @@ export default function Overview() {
     };
   }, []);
 
+  // Pull in for the filter of types
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
       const [key, value] = Object.entries(filterVariable)[0];
@@ -100,11 +102,7 @@ export default function Overview() {
             (record) => categorizeAge(record, incarcerationType) === value
           )
         );
-      } else if (
-        key === "Gender" ||
-        key === "Screened/not screened" ||
-        key === "Facility"
-      ) {
+      } else if (key === "Gender" || key === "Screened/not screened") {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(
             (record) => record[key] === value
@@ -140,25 +138,25 @@ export default function Overview() {
     }
   }, [filterVariable, csvData, raceType]);
 
+  // Race array 2
+  // Gender array 3
+  // Age array 4
+
   useEffect(() => {
     if (programType === "All Program Types") {
       setDataArray11([
         {
           title: "Statistics",
-          current: dataAnalysisV3(
+          current: analyzeEntriesByYear(
             finalData,
-            "averageDailyPopulation",
             +selectedYear,
-            null,
-            "alternative-to-detention"
-          ).All,
-          previous: dataAnalysisV3(
+            "secure-detention"
+          ),
+          previous: analyzeEntriesByYear(
             finalData,
-            "averageDailyPopulation",
             +selectedYear - 1,
-            null,
-            "alternative-to-detention"
-          ).All,
+            "secure-detention"
+          ),
         },
       ]);
     } else {
@@ -168,7 +166,7 @@ export default function Overview() {
 
       setDataArray11([
         {
-          title: "Average Daily Population",
+          title: "Average Length of Stay",
           header: analyzeEntriesByYear(intermediate, +selectedYear),
           current: analyzeEntriesByYear(intermediate, +selectedYear),
         },
@@ -178,39 +176,29 @@ export default function Overview() {
 
   useEffect(() => {
     setYearsArray(
-      [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
+      [...new Set(finalData.map((obj) => parseDateYear(obj.Admission_Date)))]
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
-      .filter((entry) => entry !== null && entry !== "")
-      .sort((a, b) => a - b);
-
-    const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
-
-    setProgramTypeArray(programTypeArrayFinal);
-  }, [finalData]);
+  }, [csvData]);
 
   useEffect(() => {
-    if (dataArray11.length > 0 && dataArray11[0].current) {
+    if (
+      dataArray11.length > 0 &&
+      dataArray11[0].current?.entriesByProgramType
+    ) {
       // Set overall
-      const byProgram = Object.entries(
-        analyzeDailyPopByProgramType(finalData, +selectedYear)
-      ).map(([program, value]) => {
-        return {
-          category: program,
-          averageDailyPopulation: value,
-        };
-      });
-      setDataArray12(byProgram);
+      setDataArray12(
+        analyzeLengthByProgramType(finalData, +selectedYear, incarcerationType)
+      );
 
       const byRaceEthnicity = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "RaceEthnicity",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([race, value]) => {
         return {
@@ -220,12 +208,12 @@ export default function Overview() {
       });
 
       const bySimplifiedRace = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "RaceSimplified",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([race, value]) => {
         return {
@@ -245,12 +233,12 @@ export default function Overview() {
       );
 
       const byGender = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "Gender",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([gender, value]) => {
         return {
@@ -262,12 +250,12 @@ export default function Overview() {
       setDataArray14(byGender);
 
       const byAge = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "Age",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([age, value]) => {
         return {
@@ -279,12 +267,12 @@ export default function Overview() {
       setDataArray15(byAge);
 
       const categories = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "SimplifiedOffense",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([cat, value]) => {
         return {
@@ -296,12 +284,12 @@ export default function Overview() {
       setDataArray16(categories);
 
       const byReasons = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "OffenseOverall",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([cat, value]) => {
         return {
@@ -313,12 +301,12 @@ export default function Overview() {
       setDataArray18(byReasons);
 
       const byJurisdiction = Object.entries(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "simplifiedReferralSource",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([cat, value]) => {
         return {
@@ -329,48 +317,84 @@ export default function Overview() {
 
       setDataArray17(byJurisdiction);
 
-      const byDispoStatus = Object.entries(
-        analyzeDailyPopByDispoStatus(finalData, +selectedYear)
-      ).map(([dispStatus, value]) => {
-        return {
-          category: dispStatus,
-          value: Math.round(value * 10) / 10,
-        };
+      const byStatus = analyzeLengthByDispoStatus(
+        finalData,
+        +selectedYear,
+        "secure-detention"
+      );
+      let overallArr = [];
+
+      byStatus.forEach((status) => {
+        overallArr.push({
+          category: status.category,
+          value:
+            calculationType === "average"
+              ? Math.round(status.averageLengthOfStay * 10) / 10
+              : status.medianLengthOfStay,
+        });
       });
 
-      const totalSum = byDispoStatus.reduce(
+      const totalSum = overallArr.reduce(
         (accumulator, currentValue) => accumulator + currentValue.value,
         0
       );
 
-      byDispoStatus.map((entry) => {
+      overallArr.map((entry) => {
         entry.percentage = entry.value / totalSum;
         return entry;
       });
 
-      setDataArray19(byDispoStatus);
+      setDataArray19(overallArr);
+
+      const byScreenedStatus = analyzeLengthByScreenedStatus(
+        finalData,
+        +selectedYear
+      );
+      let overallArrScreened = [];
+
+      byScreenedStatus.forEach((status) => {
+        overallArrScreened.push({
+          category: status.category,
+          value:
+            calculationType === "average"
+              ? Math.round(status.averageLengthOfStay * 10) / 10
+              : status.medianLengthOfStay,
+        });
+      });
+
+      const totalSumScreened = overallArrScreened.reduce(
+        (accumulator, currentValue) => accumulator + currentValue.value,
+        0
+      );
+
+      overallArrScreened.map((entry) => {
+        entry.percentage = entry.value / totalSumScreened;
+        return entry;
+      });
+
+      setDataArray12(overallArrScreened);
 
       setDataArray20(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "AgeDetail",
-          "alternative-to-detention"
+          "secure-detention"
         )
       );
 
       setDataArray21(
-        dataAnalysisV3(
+        dataAnalysisV2(
           finalData,
-          "averageDailyPopulation",
+          `${calculationType}LengthOfStay`,
           +selectedYear,
           "OffenseCategory",
-          "alternative-to-detention"
+          "secure-detention"
         )
       );
     }
-  }, [dataArray11, raceType]);
+  }, [dataArray11, calculationType, raceType]);
 
   // Update dataArray13 when raceType changes
   useEffect(() => {
@@ -407,12 +431,12 @@ export default function Overview() {
         >
           <Header
             title={`${
-              incarcerationType === "alternative-to-detention"
-                ? "ATD Utilization"
+              incarcerationType === "secure-detention"
+                ? "Secure Detention Utilization"
                 : incarcerationType
             }`}
-            subtitle={`Average Daily Population - All Programs`}
-            dekWithYear={`Showing average daily population in ATDs for ${selectedYear}`}
+            subtitle={`Average LOS`}
+            dekWithYear={`Showing LOS in secure detention for ${selectedYear}`}
             showFilterInstructions
           >
             <Selector
@@ -421,9 +445,15 @@ export default function Overview() {
               selectedValue={selectedYear}
               setValue={setSelectedYear}
             />
+            <Selector
+              values={["average", "median"]}
+              variable={"Calculation"}
+              selectedValue={calculationType}
+              setValue={setCalculationType}
+            />
             <DownloadButton
               elementRef={contentRef}
-              filename={`alternative-to-detention-average-daily-population-${selectedYear}.pdf`}
+              filename={`secure-detention-length-of-stay-${selectedYear}.pdf`}
             />
           </Header>
         </div>
@@ -445,34 +475,39 @@ export default function Overview() {
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
                     data={[
-                      Math.round(dataArray11[0]?.current * 10) / 10,
-
-                      dataArray11[0]?.previous,
+                      Math.round(
+                        dataArray11[0]?.current[
+                          calculationType === "average"
+                            ? "avgLengthOfStay"
+                            : "medianLengthOfStay"
+                        ] * 10
+                      ) / 10,
+                      Math.round(
+                        dataArray11[0]?.previous[
+                          calculationType === "average"
+                            ? "avgLengthOfStay"
+                            : "medianLengthOfStay"
+                        ] * 10
+                      ) / 10,
                     ]}
                   />
                 </ResponsiveContainer>
               </div>
             </ChartCard>
 
-            {/* ADP by ATD Type */}
+            {/* LOS by Screened Type */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  {dataArray12.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray12}
-                      breakdowns={["averageDailyPopulation"]}
-                      height={300}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                      chartTitle={"ADP by ATD Program Type"}
-                      colorMapOverride={{
-                        averageDailyPopulation: "#5a6b7c",
-                      }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
-                      groupByKey={"Facility"}
-                    />
-                  )}
+                  <PieChart
+                    records={dataArray12}
+                    year={selectedYear}
+                    groupByKey={"Screened/not screened"}
+                    type={"secure-detention"}
+                    chartTitle={"LOS by screened/not screened"}
+                    setFilterVariable={setFilterVariable}
+                    filterVariable={filterVariable}
+                  />
                 </ResponsiveContainer>
               </div>
             </ChartCard>
@@ -484,10 +519,10 @@ export default function Overview() {
                     records={dataArray19}
                     year={selectedYear}
                     groupByKey={"Pre/post-dispo filter"}
-                    type={"alternative-to-detention"}
-                    chartTitle={"ADP by Pre/Post-Dispo"}
-                    filterVariable={filterVariable}
+                    type={"secure-detention"}
+                    chartTitle={"LOS by Pre/Post-Dispo"}
                     setFilterVariable={setFilterVariable}
+                    filterVariable={filterVariable}
                   />
                 </ResponsiveContainer>
               </div>
@@ -503,7 +538,7 @@ export default function Overview() {
               gap: "12px",
             }}
           >
-            {/* ADP by Race/Ethnicity */}
+            {/* Entries by Race/Ethnicity */}
             <ChartCard width="100%">
               <div
                 style={{
@@ -524,8 +559,8 @@ export default function Overview() {
                 >
                   <h5 style={{ fontSize: "14px" }}>
                     {raceType === "RaceEthnicity"
-                      ? "ADP by Race/Ethnicity"
-                      : "ADP by Youth of Color vs. White"}
+                      ? "LOS by Race/Ethnicity"
+                      : "LOS by Youth of Color vs. White"}
                   </h5>
                   <Selector
                     values={["RaceEthnicity", "RaceSimplified"]}
@@ -538,68 +573,74 @@ export default function Overview() {
                     }}
                   />
                 </div>
-                <div style={{ height: "250px", width: "100%" }}>
+                <div style={{ height: "270px", width: "100%" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo"]}
+                        breakdowns={["Pre-dispo", "Post-dispo"]}
                         height={220}
-                        margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
-                            ? "ADP by Race/Ethnicity"
-                            : "ADP by Race (Simplified)"
+                            ? "LOS by Race/Ethnicity"
+                            : "LOS by Race (Simplified)"
                         }
                         colorMapOverride={{
-                          "Pre-dispo": "#5a6b7c",
+                          "Pre-dispo": "#5b6069",
                           "Post-dispo": "#d3d3d3",
                         }}
                         setFilterVariable={setFilterVariable}
                         filterVariable={filterVariable}
                         groupByKey={"Race/Ethnicity"}
+                        showChart={false}
                       />
                     )}
                   </ResponsiveContainer>
                 </div>
               </div>
             </ChartCard>
-            {/* ADP by Gender */}
+            {/* LOS by Gender */}
             <ChartCard width="100%">
               <div style={{ height: "200px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                      chartTitle={"ADP by Gender"}
+                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      chartTitle={"LOS by Gender"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
+                        "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Gender"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* ADP by Age */}
+            {/* LOS by Age */}
             <ChartCard width="100%">
               <div style={{ height: "200px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray15.length > 0 && (
                     <StackedBarChartGeneric
-                      data={dataArray15}
-                      breakdowns={["Pre-dispo"]}
+                      data={dataArray15.filter(
+                        (entry) =>
+                          entry.category !== "null" &&
+                          entry.category !== "Unknown"
+                      )}
+                      breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                      chartTitle={"ADP by Age"}
+                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      chartTitle={"LOS by Age"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
+                        "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -607,7 +648,6 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -623,19 +663,19 @@ export default function Overview() {
               gap: "4px",
             }}
           >
-            {/* ADP by Reason */}
+            {/* LOS by Reason */}
             <ChartCard width="100%">
-              <div style={{ height: "180px", width: "100%" }}>
+              <div style={{ height: "160px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                      chartTitle={"ADP by Reason for Detention"}
+                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+                      chartTitle={"LOS by Reason for Detention"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
+                        "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -643,25 +683,24 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            {/* ADP by Category */}
+            {/* LOS by Category */}
             <ChartCard width="100%">
               <div style={{ height: "260px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                      chartTitle={"ADP by Offense Category (pre-dispo)"}
+                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
+                        "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -669,31 +708,31 @@ export default function Overview() {
                       groupByKey={"Category"}
                       showChart={true}
                       innerData={dataArray21}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
 
-            {/* ADP by Jurisdiction */}
+            {/* LOS by Jurisdiction */}
             <ChartCard width="100%">
-              <div style={{ height: "250px", width: "100%" }}>
+              <div style={{ height: "260px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                      chartTitle={"ADP by Jurisdiction"}
+                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      chartTitle={"LOS by Jurisdiction (Pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
+                        "Pre-dispo": "#5b6069",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Jurisdiction"}
+                      showChart={false}
                     />
                   )}
                 </ResponsiveContainer>

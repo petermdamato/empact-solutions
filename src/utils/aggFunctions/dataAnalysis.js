@@ -51,7 +51,7 @@ const getAgeAtAdmission = (dob, intake) => {
     new Date(intakeDate.getFullYear(), birth.getMonth(), birth.getDate())
       ? 1
       : 0);
-
+  if (age < 11) return "10 and younger";
   if (age >= 11 && age <= 13) return "11-13";
   if (age >= 14 && age <= 17) return "14-17";
   if (age >= 18) return "18+";
@@ -88,7 +88,12 @@ const analyzeData = (
         : parseDate(row.ATD_Entry_Date)
     );
     const raceEth = getRaceEthnicity(row.Race, row.Ethnicity);
-    const offenseOverall = offenseMap[row.OffenseCategory] || "Other";
+    const offenseOverall =
+      row["Post-Dispo Stay Reason"] && row["Post-Dispo Stay Reason"].length > 0
+        ? row["Post-Dispo Stay Reason"].toLowerCase().includes("other")
+          ? "Other"
+          : row["Post-Dispo Stay Reason"]
+        : offenseMap[row.OffenseCategory] || "Other";
 
     const key =
       groupBy === "Gender"
@@ -118,7 +123,9 @@ const analyzeData = (
   for (const [key, group] of Object.entries(grouped)) {
     if (calculationType === "countAdmissions") {
       results[key] = group.filter((d) => {
-        return d.intakeDate && d.intakeDate.getFullYear() === year;
+        return (
+          d.intakeDate && d.intakeDate <= endDate && d.intakeDate >= startDate
+        );
       }).length;
     } else if (calculationType === "countReleases") {
       results[key] = group.filter(
@@ -135,10 +142,9 @@ const analyzeData = (
           (d) =>
             d.intakeDate &&
             d.releaseDate &&
-            d.intakeDate.getFullYear() === year &&
             d.releaseDate.getFullYear() === year
         )
-        .map((d) => differenceInCalendarDays(d.releaseDate, d.intakeDate));
+        .map((d) => differenceInCalendarDays(d.releaseDate, d.intakeDate) + 1);
 
       stays.sort((a, b) => a - b);
       const median = stays.length

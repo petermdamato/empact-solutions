@@ -161,7 +161,7 @@ export default function Overview() {
         .sort((a, b) => a - b)
     );
   }, [csvData]);
-  console.log(finalData);
+
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].current) {
       const byRaceEthnicity = Object.entries(
@@ -441,33 +441,29 @@ export default function Overview() {
             {/* ADP by Screened Type */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray12}
-                    year={selectedYear}
-                    groupByKey={"Screened/not screened"}
-                    type={"secure-detention"}
-                    chartTitle={"LOS by screened/not screened"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
-                </ResponsiveContainer>
+                <PieChart
+                  records={dataArray12}
+                  year={selectedYear}
+                  groupByKey={"Screened/not screened"}
+                  type={"secure-detention"}
+                  chartTitle={"ADP by screened/not screened"}
+                  setFilterVariable={setFilterVariable}
+                  filterVariable={filterVariable}
+                />
               </div>
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray19}
-                    year={selectedYear}
-                    groupByKey={"Pre/post-dispo filter"}
-                    type={"secure-detention"}
-                    chartTitle={"ADP by Pre/Post-Dispo"}
-                    setFilterVariable={setFilterVariable}
-                    filterVariable={filterVariable}
-                  />
-                </ResponsiveContainer>
+                <PieChart
+                  records={dataArray19}
+                  year={selectedYear}
+                  groupByKey={"Pre/post-dispo filter"}
+                  type={"secure-detention"}
+                  chartTitle={"ADP by Pre/Post-Dispo"}
+                  setFilterVariable={setFilterVariable}
+                  filterVariable={filterVariable}
+                />
               </div>
             </ChartCard>
           </div>
@@ -523,14 +519,14 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["Pre-dispo", "Post-dispo"]}
                         height={220}
-                        margin={{ top: 0, right: 20, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "ADP by Race/Ethnicity"
                             : "ADP by Race (Simplified)"
                         }
                         colorMapOverride={{
-                          "Pre-dispo": "#5b6069",
+                          "Pre-dispo": "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
                         setFilterVariable={setFilterVariable}
@@ -552,10 +548,10 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Gender"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -580,10 +576,10 @@ export default function Overview() {
                       )}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Age"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -615,10 +611,10 @@ export default function Overview() {
                       data={dataArray18}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Reason for Detention"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -640,10 +636,10 @@ export default function Overview() {
                       data={dataArray16}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Offense Category (pre-dispo)"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -665,10 +661,10 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["Pre-dispo", "Post-dispo"]}
                       height={250}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Jurisdiction"}
                       colorMapOverride={{
-                        "Pre-dispo": "#5b6069",
+                        "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}

@@ -13,6 +13,9 @@ const StackedBarChart = ({
 }) => {
   const svgRef = useRef();
   const [parentWidth, setParentWidth] = useState(0); // State to store parent width
+  const tooltips =
+    chartTitle === "Population by gender" ||
+    chartTitle === "Population by race/ethnicity";
 
   // Observe the parent width using ResizeObserver
   useEffect(() => {
@@ -108,7 +111,32 @@ const StackedBarChart = ({
             )
           : 0
       )
-      .attr("fill", Constants.prePostColors.pre);
+      .attr("fill", Constants.prePostColors.pre)
+      .on("mouseover", function (event, d) {
+        if (tooltips) {
+          tooltip.style("display", "block").html(`
+          <div style="display: flex; justify-content: space-between; gap: 8px;">
+            <span><strong>${d.category}</strong></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px;">
+            <span>Pre-dispo population: </span><span>${d.pre}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px;">
+            <span>Percent of total population: </span><span>${Math.round(
+              (d.pre * 100) / totalCount
+            )}%</span>
+          </div>
+        `);
+        }
+      })
+      .on("mousemove", function (event) {
+        tooltip
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY - 28 + "px");
+      })
+      .on("mouseout", function () {
+        tooltip.style("display", "none");
+      });
 
     // Add post bars
     chart
@@ -159,7 +187,33 @@ const StackedBarChart = ({
             )
           : 0
       )
-      .attr("fill", Constants.prePostColors.post);
+      .attr("fill", Constants.prePostColors.post)
+      .on("mouseover", function (event, d) {
+        if (tooltip) {
+          tooltip.style("display", "block").html(`
+          <div style="display: flex; justify-content: space-between; gap: 8px;">
+            <span><strong>${d.category}</strong></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px;">
+            <span>Post-dispo population: </span><span>${d.post}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px;">
+            <span>Percent of total population: </span><span>${Math.round(
+              (d.post * 100) / totalCount
+            )}%</span>
+          </div>
+        `);
+        }
+      })
+      .on("mousemove", function (event) {
+        tooltip
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY - 28 + "px");
+      })
+      .on("mouseout", function () {
+        tooltip.style("display", "none");
+      });
+
     let textWidths = [];
     const labels = chart
       .selectAll(".label-invisible")
@@ -183,6 +237,20 @@ const StackedBarChart = ({
       const bbox = this.getBBox(); // Get the bounding box of the text element
       textWidths.push(bbox.width); // Log the width of the text
     });
+
+    const tooltip = d3
+      .select("body")
+      .append("div")
+      .attr("class", "stacked-bar-tooltip")
+      .style("position", "absolute")
+      .style("background", "white")
+      .style("border", "1px solid #ccc")
+      .style("padding", "8px")
+      .style("border-radius", "4px")
+      .style("pointer-events", "none")
+      .style("font-size", "12px")
+      .style("display", "none");
+
     // Add labels
     chart
       .selectAll(".label-percent")

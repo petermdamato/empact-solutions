@@ -62,7 +62,7 @@ export default function Overview() {
   }, [csvData]);
 
   return (
-    <div className="max-w-xl mx-auto mt-10">
+    <div style={{ width: "100%" }}>
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div
@@ -91,46 +91,51 @@ export default function Overview() {
               filename="secure-detention-length-of-stay-distribution.pdf"
             />
           </Header>
-          <div style={{ display: "flex" }}>
+          <div style={{ display: "flex", width: "100%" }}>
             {dataArray1 && (
-              <PillContainer
-                display={"double"}
-                data={[
-                  {
-                    title: "LOS distribution trends (days)",
-                    subtitle:
-                      "Each bar = 1 release within the selected time period. Hover over the legend to highlight a category.",
-                    data: dataArray1,
-                    charts: ["distribution"],
-                    chartTitles: ["LOS Distribution"],
-                    detentionType: ["secure-detention"],
-                    selectedYear: [selectedYear],
-                    exploreType: [exploreType],
-                  },
-                ]}
-                legendOptions={legendOptions}
-                selectedLegendOptions={selectedLegendOptions}
-                setLegendOptions={setLegendOptions}
-                setSelectedLegendOptions={setSelectedLegendOptions}
-              />
+              <div style={{ flex: 1 }}>
+                <PillContainer
+                  display={"double"}
+                  data={[
+                    {
+                      title: "LOS distribution trends (days)",
+                      subtitle:
+                        "Each bar = 1 release within the selected time period. Hover over the legend to highlight a category.",
+                      data: dataArray1,
+                      charts: ["distribution"],
+                      chartTitles: ["LOS Distribution"],
+                      detentionType: ["secure-detention"],
+                      selectedYear: [selectedYear],
+                      exploreType: [exploreType],
+                    },
+                  ]}
+                  legendOptions={legendOptions}
+                  selectedLegendOptions={selectedLegendOptions}
+                  setLegendOptions={setLegendOptions}
+                  setSelectedLegendOptions={setSelectedLegendOptions}
+                />
+              </div>
             )}
             {dataArray2 && (
-              <PillContainer
-                display={"double"}
-                data={[
-                  {
-                    title: "Number of releases within LOS bucket",
-                    subtitle: "Hover over the legend to highlight a category.",
-                    data: dataArray2,
-                    charts: ["stacked-column"],
-                    chartTitles: ["Number of releases within LOS bucket"],
-                    detentionType: ["secure-detention"],
-                    selectedYear: [selectedYear],
-                    exploreType: [exploreType],
-                  },
-                ]}
-                selectedLegendOptions={selectedLegendOptions}
-              />
+              <div style={{ flex: 1 }}>
+                <PillContainer
+                  display={"double"}
+                  data={[
+                    {
+                      title: "Number of releases within LOS bucket",
+                      subtitle:
+                        "Hover over the legend to highlight a category.",
+                      data: dataArray2,
+                      charts: ["stacked-column"],
+                      chartTitles: ["Number of releases within LOS bucket"],
+                      detentionType: ["secure-detention"],
+                      selectedYear: [selectedYear],
+                      exploreType: [exploreType],
+                    },
+                  ]}
+                  selectedLegendOptions={selectedLegendOptions}
+                />
+              </div>
             )}
           </div>
         </div>

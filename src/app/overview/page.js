@@ -67,7 +67,7 @@ export default function Overview() {
       },
       { post: 0, pre: 0 }
     );
-    console.log(statusData, selectedYear);
+    console.log(statusData);
     setDataArray2([
       [columnAgg.pre + columnAgg.post, statusData.previousPeriodCount],
       Object.entries(columnAgg).map(([key, value]) => ({
