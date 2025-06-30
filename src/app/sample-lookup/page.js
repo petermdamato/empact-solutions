@@ -4,9 +4,18 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import "./styles.css";
 import { useCSV } from "@/context/CSVContext";
+import { useState, useEffect } from "react";
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const [youthId, setYouthId] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setYouthId(window.location?.search.replace("?", ""));
+    }
+  }, []);
+
   return (
     // Top-level container
     <div
