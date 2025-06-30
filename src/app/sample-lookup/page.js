@@ -41,10 +41,7 @@ export default function Overview() {
         >
           <Header
             title="Inmate Lookup"
-            dekWithYear={`Showing info on Youth ID ${window.location?.search.replace(
-              "?",
-              ""
-            )}`}
+            dekWithYear={`Showing info on Youth ID ${youthId}`}
           ></Header>
         </div>
 
