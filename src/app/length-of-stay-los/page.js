@@ -12,7 +12,7 @@ import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeLengthByScreenedStatus,
-  analyzeEntriesByYear,
+  analyzeLOSByYear,
   dataAnalysisLOS,
   analyzeLengthByProgramType,
   analyzeLengthByDispoStatus,
@@ -147,12 +147,12 @@ export default function Overview() {
       setDataArray11([
         {
           title: "Statistics",
-          current: analyzeEntriesByYear(
+          current: analyzeLOSByYear(
             finalData,
             +selectedYear,
             "secure-detention"
           ),
-          previous: analyzeEntriesByYear(
+          previous: analyzeLOSByYear(
             finalData,
             +selectedYear - 1,
             "secure-detention"
@@ -167,8 +167,8 @@ export default function Overview() {
       setDataArray11([
         {
           title: "Average Length of Stay",
-          header: analyzeEntriesByYear(intermediate, +selectedYear),
-          current: analyzeEntriesByYear(intermediate, +selectedYear),
+          header: analyzeLOSByYear(intermediate, +selectedYear),
+          current: analyzeLOSByYear(intermediate, +selectedYear),
         },
       ]);
     }
@@ -200,10 +200,11 @@ export default function Overview() {
           "RaceEthnicity",
           "secure-detention"
         )
-      ).map(([race, value]) => {
+      ).map(([race, values]) => {
         return {
           category: race,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -215,10 +216,11 @@ export default function Overview() {
           "RaceSimplified",
           "secure-detention"
         )
-      ).map(([race, value]) => {
+      ).map(([race, values]) => {
         return {
           category: race,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -240,10 +242,11 @@ export default function Overview() {
           "Gender",
           "secure-detention"
         )
-      ).map(([gender, value]) => {
+      ).map(([gender, values]) => {
         return {
           category: gender,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -257,10 +260,11 @@ export default function Overview() {
           "Age",
           "secure-detention"
         )
-      ).map(([age, value]) => {
+      ).map(([age, values]) => {
         return {
           category: age,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -274,10 +278,11 @@ export default function Overview() {
           "SimplifiedOffense",
           "secure-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([cat, values]) => {
         return {
           category: cat,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -291,10 +296,11 @@ export default function Overview() {
           "OffenseOverall",
           "secure-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([cat, values]) => {
         return {
           category: cat,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -308,10 +314,11 @@ export default function Overview() {
           "simplifiedReferralSource",
           "secure-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([cat, values]) => {
         return {
           category: cat,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -327,6 +334,7 @@ export default function Overview() {
       byStatus.forEach((status) => {
         overallArr.push({
           category: status.category,
+          count: status.count,
           value:
             calculationType === "average"
               ? Math.round(status.averageLengthOfStay * 10) / 10
@@ -335,12 +343,12 @@ export default function Overview() {
       });
 
       const totalSum = overallArr.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.value,
+        (accumulator, currentValue) => accumulator + currentValue.count,
         0
       );
 
       overallArr.map((entry) => {
-        entry.percentage = entry.value / totalSum;
+        entry.percentage = entry.count / totalSum;
         return entry;
       });
 
@@ -355,6 +363,7 @@ export default function Overview() {
       byScreenedStatus.forEach((status) => {
         overallArrScreened.push({
           category: status.category,
+          count: status.numberOfReleases,
           value:
             calculationType === "average"
               ? Math.round(status.averageLengthOfStay * 10) / 10
@@ -363,12 +372,12 @@ export default function Overview() {
       });
 
       const totalSumScreened = overallArrScreened.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.value,
+        (accumulator, currentValue) => accumulator + currentValue.count,
         0
       );
 
       overallArrScreened.map((entry) => {
-        entry.percentage = entry.value / totalSumScreened;
+        entry.percentage = entry.count / totalSumScreened;
         return entry;
       });
 
@@ -474,6 +483,7 @@ export default function Overview() {
               <div style={{ maxHeight: "60px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption={"days in detention"}
                     data={[
                       Math.round(
                         dataArray11[0]?.current[
@@ -502,12 +512,14 @@ export default function Overview() {
                   {dataArray12.length > 0 && (
                     <ColumnChartGeneric
                       data={dataArray12}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
+                      calculationType={calculationType}
                       height={300}
                       margin={{ top: 40, right: 20, bottom: 68, left: 20 }}
                       chartTitle={"LOS by Screened/not screened"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -526,12 +538,14 @@ export default function Overview() {
                   {dataArray19.length > 0 && (
                     <ColumnChartGeneric
                       data={dataArray19}
-                      breakdowns={["Pre-dispo"]}
+                      calculationType={calculationType}
+                      breakdowns={["Total"]}
                       height={300}
                       margin={{ top: 40, right: 20, bottom: 68, left: 20 }}
                       chartTitle={"LOS by Pre/Post-Dispo"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -595,7 +609,8 @@ export default function Overview() {
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo"]}
+                        breakdowns={["Total"]}
+                        calculationType={calculationType}
                         height={220}
                         margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
                         chartTitle={
@@ -605,6 +620,7 @@ export default function Overview() {
                         }
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
+                          Total: "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
                         setFilterVariable={setFilterVariable}
@@ -624,12 +640,14 @@ export default function Overview() {
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={200}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -652,12 +670,14 @@ export default function Overview() {
                           entry.category !== "null" &&
                           entry.category !== "Unknown"
                       )}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={200}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -687,12 +707,14 @@ export default function Overview() {
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={180}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -712,12 +734,14 @@ export default function Overview() {
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={260}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -738,12 +762,14 @@ export default function Overview() {
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={260}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Jurisdiction (Pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}

@@ -13,6 +13,7 @@ const ColumnChartGeneric = ({
   filterVariable,
   setFilterVariable,
   groupByKey,
+  calculationType,
   context = "number",
 }) => {
   const svgRef = useRef();
@@ -112,6 +113,7 @@ const ColumnChartGeneric = ({
           {
             name: d.category,
             value: d.value,
+            count: d.count,
             color: defaultColor,
           },
         ],
@@ -156,7 +158,7 @@ const ColumnChartGeneric = ({
       .on("mouseout", function () {
         d3.select(this).attr("fill", "transparent");
       })
-      .on("mousemove", (event, d) => handleMouseMove(event, d))
+      .on("mousemove", handleMouseOut)
       .on("click", (event, d) => handleClick(event, d));
 
     // bars with direct click
@@ -230,6 +232,7 @@ const ColumnChartGeneric = ({
             payload={tooltipData.payload}
             label={tooltipData.label}
             chartTitle={chartTitle}
+            calculationType={calculationType}
             valueFormatter={(value) =>
               `${Math.round(value * 10) / 10}${
                 context === "percentage" ? "%" : ""

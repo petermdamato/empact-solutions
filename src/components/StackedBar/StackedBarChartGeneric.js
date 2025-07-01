@@ -25,6 +25,7 @@ const StackedBarChartGeneric = ({
   colorMapOverride = {},
   filterVariable,
   setFilterVariable,
+  calculationType,
   groupByKey,
   hasSelector = false,
   valueBreakdowns,
@@ -173,22 +174,39 @@ const StackedBarChartGeneric = ({
         0
       );
 
-      setTooltipData({
-        active: true,
-        payload: breakdowns.map((breakdown) => ({
-          name: breakdown,
-          value: d[breakdown] ?? 0,
-          color:
-            colorMap[breakdown] ||
-            colors[breakdowns.indexOf(breakdown) % colors.length],
-        })),
-        label: d.category,
-        categoryTotal: totalForThisCategory,
-        categoryPercent:
-          totalAcrossAllCategories > 0
-            ? (totalForThisCategory / totalAcrossAllCategories) * 100
-            : null,
-      });
+      setTooltipData(
+        chartTitle.includes("LOS")
+          ? {
+              active: true,
+              payload: breakdowns.map((breakdown) => ({
+                name: breakdown,
+                value: d[breakdown] ?? 0,
+                count: d["Releases"] ?? 0,
+                color:
+                  colorMap[breakdown] ||
+                  colors[breakdowns.indexOf(breakdown) % colors.length],
+              })),
+              label: d.category,
+              categoryTotal: totalForThisCategory,
+              categoryPercent: null,
+            }
+          : {
+              active: true,
+              payload: breakdowns.map((breakdown) => ({
+                name: breakdown,
+                value: d[breakdown] ?? 0,
+                color:
+                  colorMap[breakdown] ||
+                  colors[breakdowns.indexOf(breakdown) % colors.length],
+              })),
+              label: d.category,
+              categoryTotal: totalForThisCategory,
+              categoryPercent:
+                totalAcrossAllCategories > 0
+                  ? (totalForThisCategory / totalAcrossAllCategories) * 100
+                  : null,
+            }
+      );
 
       setTooltipPosition({
         x: x + 10, // Add small offset
@@ -321,8 +339,8 @@ const StackedBarChartGeneric = ({
           style={{
             position: "absolute",
             left: `${
-              tooltipPosition.x < 400
-                ? tooltipPosition.x - 420
+              tooltipPosition.x > 400
+                ? tooltipPosition.x - 320
                 : tooltipPosition.x
             }px`,
             top: `${tooltipPosition.y}px`,
@@ -338,7 +356,8 @@ const StackedBarChartGeneric = ({
             chartData={showChart ? innerData : []}
             showChart={showChart}
             label={tooltipData.label}
-            chartTitle={groupByKey}
+            chartTitle={chartTitle}
+            groupByKey={groupByKey}
             valueFormatter={(value) => {
               let identifier;
               const title = chartTitle;
@@ -362,6 +381,7 @@ const StackedBarChartGeneric = ({
               (sum, item) => sum + item.value,
               0
             )}
+            calculationType={calculationType}
             valueBreakdowns={valueBreakdowns}
             categoryTotal={tooltipData.categoryTotal}
             categoryPercent={tooltipData.categoryPercent}

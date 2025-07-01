@@ -5,7 +5,10 @@ const ChangeStatistics = ({ data, caption }) => {
 
   const previous = data[1];
   const current = data[0];
-  const percentageChange = ((current - previous) / previous) * 100;
+  const percentageChange =
+    previous === 0 || previous === null
+      ? null
+      : ((current - previous) / previous) * 100;
   const isPositive = percentageChange >= 0;
 
   return (
@@ -41,7 +44,10 @@ const ChangeStatistics = ({ data, caption }) => {
           >
             {isPositive ? "▲" : "▼"}
           </span>
-          {Math.abs(percentageChange).toFixed(0)}%
+          {percentageChange === null
+            ? "--"
+            : Math.abs(percentageChange).toFixed(0)}
+          %
         </div>
         <div style={{ fontSize: "14px", color: "gray" }}>vs. previous year</div>
       </div>

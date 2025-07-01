@@ -6,7 +6,7 @@ import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
 import ChartCard from "@/components/ChartCard/ChartCard";
-import PieChart from "@/components/PieChart/PieChartV2";
+import PieChart from "@/components/PieChart/PieChartV3";
 import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
@@ -195,9 +195,17 @@ export default function Overview() {
       dataArray11.length > 0 &&
       dataArray11[0].current?.entriesByProgramType
     ) {
+      const lengthByProgram = analyzeLengthByProgramType(
+        finalData,
+        +selectedYear,
+        incarcerationType
+      );
       // Set overall
       setDataArray12(
-        analyzeLengthByProgramType(finalData, +selectedYear, incarcerationType)
+        lengthByProgram.map((entry) => {
+          entry.Releases = entry.count;
+          return entry;
+        })
       );
 
       const byRaceEthnicity = Object.entries(
@@ -208,10 +216,11 @@ export default function Overview() {
           "RaceEthnicity",
           "alternative-to-detention"
         )
-      ).map(([race, value]) => {
+      ).map(([race, values]) => {
         return {
           category: race,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -223,10 +232,11 @@ export default function Overview() {
           "RaceSimplified",
           "alternative-to-detention"
         )
-      ).map(([race, value]) => {
+      ).map(([race, values]) => {
         return {
           category: race,
-          "Pre-dispo": value,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -248,10 +258,11 @@ export default function Overview() {
           "Gender",
           "alternative-to-detention"
         )
-      ).map(([gender, value]) => {
+      ).map(([race, values]) => {
         return {
-          category: gender,
-          "Pre-dispo": value,
+          category: race,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -265,10 +276,11 @@ export default function Overview() {
           "Age",
           "alternative-to-detention"
         )
-      ).map(([age, value]) => {
+      ).map(([race, values]) => {
         return {
-          category: age,
-          "Pre-dispo": value,
+          category: race,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -282,10 +294,11 @@ export default function Overview() {
           "SimplifiedOffense",
           "alternative-to-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([race, values]) => {
         return {
-          category: cat,
-          "Pre-dispo": value,
+          category: race,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -299,10 +312,11 @@ export default function Overview() {
           "OffenseOverall",
           "alternative-to-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([race, values]) => {
         return {
-          category: cat,
-          "Pre-dispo": value,
+          category: race,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -316,10 +330,11 @@ export default function Overview() {
           "simplifiedReferralSource",
           "alternative-to-detention"
         )
-      ).map(([cat, value]) => {
+      ).map(([race, values]) => {
         return {
-          category: cat,
-          "Pre-dispo": value,
+          category: race,
+          Total: values.los,
+          Releases: values.count,
         };
       });
 
@@ -336,6 +351,7 @@ export default function Overview() {
       byStatus.forEach((status) => {
         overallArr.push({
           category: status.category,
+          count: status.count,
           value:
             calculationType === "average"
               ? Math.round(status.averageLengthOfStay * 10) / 10
@@ -344,12 +360,12 @@ export default function Overview() {
       });
 
       const totalSum = overallArr.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.value,
+        (accumulator, currentValue) => accumulator + currentValue.count,
         0
       );
 
       overallArr.map((entry) => {
-        entry.percentage = entry.value / totalSum;
+        entry.percentage = entry.count / totalSum;
         return entry;
       });
 
@@ -457,6 +473,7 @@ export default function Overview() {
               <div style={{ maxHeight: "60px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption={"days in ATD"}
                     data={[
                       Math.round(
                         dataArray11[0]?.current[
@@ -487,12 +504,13 @@ export default function Overview() {
                       data={dataArray12}
                       breakdowns={[`${calculationType}LengthOfStay`]}
                       height={340}
-                      margin={{ top: 20, right: 40, bottom: 10, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 10, left: 20 }}
                       chartTitle={"LOS by ATD Program Type"}
                       colorMapOverride={{
                         averageLengthOfStay: "#5a6b7c",
                         medianLengthOfStay: "#5a6b7c",
                       }}
+                      calculationType={calculationType}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Facility"}
@@ -509,6 +527,7 @@ export default function Overview() {
                   <PieChart
                     records={dataArray19}
                     year={selectedYear}
+                    calculationType={calculationType}
                     groupByKey={"Pre/post-dispo filter"}
                     type={"alternative-to-detention"}
                     title={"LOS by Pre/Post-Dispo"}
@@ -570,7 +589,7 @@ export default function Overview() {
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo"]}
+                        breakdowns={["Total"]}
                         height={220}
                         margin={{ top: 0, right: 40, bottom: 20, left: 20 }}
                         chartTitle={
@@ -580,8 +599,10 @@ export default function Overview() {
                         }
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
+                          Total: "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
+                        calculationType={calculationType}
                         setFilterVariable={setFilterVariable}
                         filterVariable={filterVariable}
                         groupByKey={"Race/Ethnicity"}
@@ -599,12 +620,14 @@ export default function Overview() {
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={200}
                       margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Gender"}
+                      calculationType={calculationType}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -627,12 +650,14 @@ export default function Overview() {
                           entry.category !== "null" &&
                           entry.category !== "Unknown"
                       )}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
+                      calculationType={calculationType}
                       height={200}
                       margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -663,12 +688,14 @@ export default function Overview() {
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={180}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -689,12 +716,14 @@ export default function Overview() {
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={260}
+                      calculationType={calculationType}
                       margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -716,12 +745,13 @@ export default function Overview() {
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo"]}
+                      breakdowns={["Total"]}
                       height={240}
                       margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}

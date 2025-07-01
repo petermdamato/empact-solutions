@@ -322,9 +322,6 @@ const analyzeData = (
       programType === "secure-detention" ? row.Release_Date : row.ATD_Exit_Date
     );
 
-    // Skip if entry date is invalid or not in target year
-    if (!entryDate || !exitDate || exitDate.getFullYear() !== year) return acc;
-
     // Prepare derived fields
     const age = getAgeAtAdmission(
       row.Date_of_Birth,
@@ -388,17 +385,26 @@ const analyzeData = (
     if (!acc[key]) {
       acc[key] = {
         entries: 0,
+        releases: 0,
         lengthsOfStay: [],
       };
     }
 
-    acc[key].entries++;
+    // Increment admissions if entry date is in target year
+    if (entryDate && entryDate.getFullYear() === year) {
+      acc[key].entries++;
+    }
 
-    // Calculate length of stay if exit date is valid
-    if (exitDate && !isNaN(exitDate)) {
-      const lengthOfStay = differenceInCalendarDays(exitDate, entryDate) + 1;
-      if (lengthOfStay >= 0) {
-        acc[key].lengthsOfStay.push(lengthOfStay);
+    // Increment releases if exit date is in target year
+    if (exitDate && exitDate.getFullYear() === year) {
+      acc[key].releases++;
+
+      // Calculate length of stay
+      if (entryDate && !isNaN(entryDate)) {
+        const lengthOfStay = differenceInCalendarDays(exitDate, entryDate) + 1;
+        if (lengthOfStay >= 0) {
+          acc[key].lengthsOfStay.push(lengthOfStay);
+        }
       }
     }
 
@@ -409,20 +415,24 @@ const analyzeData = (
   for (const [key, group] of Object.entries(grouped)) {
     if (calculationType === "countAdmissions") {
       results[key] = group.entries;
-    } else if (calculationType === "averageLengthOfStay") {
-      results[key] =
-        group.lengthsOfStay.length > 0
-          ? group.lengthsOfStay.reduce((sum, days) => sum + days, 0) /
-            group.lengthsOfStay.length
-          : null;
-    } else if (calculationType === "medianLengthOfStay") {
-      results[key] = median(group.lengthsOfStay);
     } else if (calculationType === "countReleases") {
-      // Not implemented in analyzeEntriesByYear; you can add logic here if needed
-      results[key] = null;
+      results[key] = group.releases;
+    } else if (calculationType === "averageLengthOfStay") {
+      results[key] = {
+        count: group.lengthsOfStay.length,
+        los:
+          group.lengthsOfStay.length > 0
+            ? group.lengthsOfStay.reduce((sum, days) => sum + days, 0) /
+              group.lengthsOfStay.length
+            : null,
+      };
+    } else if (calculationType === "medianLengthOfStay") {
+      results[key] = {
+        count: group.lengthsOfStay.length,
+        los: median(group.lengthsOfStay),
+      };
     } else if (calculationType === "averageDailyPopulation") {
-      // Not implemented in analyzeEntriesByYear; you can add logic here if needed
-      results[key] = null;
+      results[key] = null; // Placeholder for future implementation
     }
   }
 

@@ -11,14 +11,15 @@ export function categorizeAge(record, incarcerationType) {
       ? record["Admission_Date"]
       : record["ATD_Entry_Date"];
   const dob = record["Date_of_Birth"];
+  const age = Math.floor(getAge(dob, intake));
 
   if (dob === undefined || intake === undefined) {
     group = "Unknown";
-  } else if (getAge(dob, intake) < 11) {
+  } else if (age < 11) {
     group = "10 and younger";
-  } else if (getAge(dob, intake) <= 13) {
+  } else if (age <= 13) {
     group = "11-13";
-  } else if (getAge(dob, intake) <= 17) {
+  } else if (age <= 17) {
     group = "14-17";
   } else {
     group = "18+";

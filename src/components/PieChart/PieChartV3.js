@@ -8,6 +8,7 @@ const PieChart = ({
   size = 300,
   chartTitle = "Pie Chart",
   groupByKey,
+  calculationType,
   setFilterVariable,
   filterVariable,
   detentionType = "secure-detention",
@@ -118,6 +119,7 @@ const PieChart = ({
         {
           name: d.data.category,
           value: d.data.value,
+          count: d.data.count ?? 0,
           color: color[pieData.indexOf(d)],
           percentage: Math.round(d.data.percentage * 1000) / 10,
         },
@@ -238,7 +240,10 @@ const PieChart = ({
           <EnhancedTooltip
             active={tooltipData.active}
             payload={tooltipData.payload}
+            chartBreakdowns={["Pre-dispo", "Post-dispo"]}
             label={tooltipData.label}
+            chartTitle={chartTitle}
+            calculationType={calculationType}
             valueFormatter={(value) => {
               let identifier;
               const title = chartTitle;

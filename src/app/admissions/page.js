@@ -475,6 +475,7 @@ export default function Overview() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption={"admissions"}
                     data={[
                       dataArray11[0]?.body?.totalEntries,
                       dataArray11[0]?.body?.previousTotalEntries,

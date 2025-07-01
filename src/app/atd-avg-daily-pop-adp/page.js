@@ -444,6 +444,7 @@ export default function Overview() {
               <div style={{ maxHeight: "60px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption="avg. daily pop."
                     data={[
                       Math.round(dataArray11[0]?.current * 10) / 10,
 
@@ -546,11 +547,7 @@ export default function Overview() {
                         breakdowns={["Pre-dispo"]}
                         height={220}
                         margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                        chartTitle={
-                          raceType === "RaceEthnicity"
-                            ? "ADP by Race/Ethnicity"
-                            : "ADP by Race (Simplified)"
-                        }
+                        chartTitle={""}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
                           "Post-dispo": "#d3d3d3",

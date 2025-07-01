@@ -139,6 +139,7 @@ export default function Overview() {
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
       const [key, value] = Object.entries(filterVariable)[0];
+      console.log(key, value);
       if (key === "Race/Ethnicity") {
         if (raceType === "RaceEthnicity") {
           setFinalData(
@@ -446,6 +447,7 @@ export default function Overview() {
               <div style={{ maxHeight: "60px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption={"entries to ATD"}
                     data={[
                       dataArray11[0]?.body?.totalEntries,
                       dataArray11[0]?.body?.previousTotalEntries,
@@ -547,12 +549,8 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["Pre-dispo"]}
                         height={220}
-                        margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
-                        chartTitle={
-                          raceType === "RaceEthnicity"
-                            ? "Entries by Race/Ethnicity"
-                            : "Entries by Race (Simplified)"
-                        }
+                        margin={{ top: 0, right: 40, bottom: 20, left: 20 }}
+                        chartTitle={""}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
                           "Post-dispo": "#d3d3d3",

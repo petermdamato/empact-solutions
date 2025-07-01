@@ -429,6 +429,7 @@ export default function Overview() {
               <div style={{ maxHeight: "60px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption="avg. daily pop."
                     data={[
                       Math.round(dataArray11[0]?.current * 10) / 10,
                       dataArray11[0]?.previous,
@@ -517,16 +518,13 @@ export default function Overview() {
                     {dataArray13.length > 0 && (
                       <StackedBarChartGeneric
                         data={dataArray13}
-                        breakdowns={["Pre-dispo", "Post-dispo"]}
+                        breakdowns={["Total"]}
                         height={220}
-                        margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
-                        chartTitle={
-                          raceType === "RaceEthnicity"
-                            ? "ADP by Race/Ethnicity"
-                            : "ADP by Race (Simplified)"
-                        }
+                        margin={{ top: 0, right: 60, bottom: 20, left: 20 }}
+                        chartTitle={""}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
+                          Total: "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
                         setFilterVariable={setFilterVariable}
@@ -546,9 +544,9 @@ export default function Overview() {
                   {dataArray14.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray14}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Total"]}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -574,12 +572,13 @@ export default function Overview() {
                           entry.category !== "null" &&
                           entry.category !== "Unknown"
                       )}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Total"]}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -609,12 +608,13 @@ export default function Overview() {
                   {dataArray18.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray18}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Total"]}
                       height={180}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}
@@ -634,12 +634,13 @@ export default function Overview() {
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Total"]}
                       height={260}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                       }}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
@@ -659,12 +660,13 @@ export default function Overview() {
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
-                      breakdowns={["Pre-dispo", "Post-dispo"]}
+                      breakdowns={["Total"]}
                       height={250}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
+                        Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
                       setFilterVariable={setFilterVariable}

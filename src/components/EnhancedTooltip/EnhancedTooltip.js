@@ -36,7 +36,9 @@ const EnhancedTooltip = ({
   showChart = false,
   chartData,
   chartBreakdowns,
+  calculationType,
   chartTitle,
+  groupByKey,
   valueBreakdowns = true,
   categoryPercent,
   categoryTotal,
@@ -105,7 +107,7 @@ const EnhancedTooltip = ({
         padding: "12px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         minWidth: "200px",
-        maxWidth: "400px",
+        maxWidth: "320px",
       }}
     >
       <div style={{ marginBottom: "8px", fontWeight: "bold" }}>
@@ -122,23 +124,45 @@ const EnhancedTooltip = ({
           </span>
         )}
       </div>
-      {payload.map((entry, index) => (
-        <div
-          key={`item-${index}`}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "4px",
-            color: entry.color,
-          }}
-        >
-          <span>{entry.name}:</span>
-          <span>
-            {valueFormatter(entry.value)}
-            {percentage && ` (${percentage})`}
-          </span>
-        </div>
-      ))}
+      {payload.map((entry, index) =>
+        chartTitle?.includes("LOS") ? (
+          <div
+            key={`item-${index}`}
+            style={{
+              marginBottom: "4px",
+              color: entry.color,
+            }}
+          >
+            <br />
+            <span>
+              {calculationType
+                ? calculationType[0].toUpperCase() + calculationType.slice(1)
+                : ""}{" "}
+              LOS: <strong>{valueFormatter(entry.value)}</strong>
+            </span>
+            <br />
+            <span>
+              Total releases: <strong>{entry.count}</strong>
+            </span>
+          </div>
+        ) : (
+          <div
+            key={`item-${index}`}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "4px",
+              color: entry.color,
+            }}
+          >
+            <span>{entry.name}:</span>
+            <span>
+              {valueFormatter(entry.value)}
+              {percentage && ` (${percentage})`}
+            </span>
+          </div>
+        )
+      )}
 
       {showChart && (
         <>
@@ -167,7 +191,7 @@ const EnhancedTooltip = ({
                 breakdowns={chartBreakdowns}
                 height={180}
                 margin={{ top: 0, right: 40, bottom: 40, left: 20 }}
-                chartTitle={chartTitle}
+                chartTitle={groupByKey}
                 hideLegend={true}
                 compact={true}
                 colorMapOverride={colorMapOverride}
