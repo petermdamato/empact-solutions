@@ -88,7 +88,9 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
+    let programTypeArrayInt = [
+      ...new Set(csvData.map((obj) => obj["ATD_Program_Name"])),
+    ]
       .filter((entry) => entry !== null && entry !== "")
       .sort((a, b) => a - b);
 

@@ -9,13 +9,12 @@
 
 .tile-container-two {
   background-color: transparent;
-  flex-grow: 1;
-  justify-content: space-between;
   gap: 4px;
-  padding: 8px;
-  width: 100%;
+  display: flex;
 }
 
 .tile-container-two > .container-tile {
+  flex: 1 1 50%;
   background-color: transparent;
+  box-sizing: border-box;
 }

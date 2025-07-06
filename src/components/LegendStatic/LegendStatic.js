@@ -19,7 +19,7 @@ const getColor = (paletteType) => {
 
 // Simple hash-color generator based on index
 const getText = (type) => {
-  const successArray = ["Successful", "Unsuccessful"];
+  const successArray = ["Undisrupted", "Disrupted"];
   const staticArray = ["Pre-dispo", "Post-dispo"];
   return type === "static"
     ? staticArray

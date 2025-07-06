@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import "./Heatmap.css";
+import Button from "@mui/material/Button";
 
 const Heatmap = ({
   data,
@@ -14,6 +15,8 @@ const Heatmap = ({
   setDstScoreValue,
   decisionValue,
   setDecisionValue,
+  children,
+  setRecordsTableObject,
 }) => {
   const { xLabels, yLabels, counts, maxCount, min, max } = useMemo(() => {
     if (!data || data.length === 0) {
@@ -63,7 +66,6 @@ const Heatmap = ({
       ...filtered.map((entry) => entry["DST_Score"])
     );
 
-    let xLabels = Array.from(xSet).sort((a, b) => a - b);
     const yOrder = ["Released", "Released with Conditions", "Detained"];
     let yLabels = Array.from(ySet).sort((a, b) => {
       const indexA = yOrder.indexOf(a);
@@ -73,6 +75,13 @@ const Heatmap = ({
       if (indexB !== -1) return 1;
       return a.localeCompare(b);
     });
+
+    let xLabels;
+    if (showScores === "hide") {
+      xLabels = ["Released", "Released with Conditions", "Detained"];
+    } else {
+      xLabels = Array.from(xSet).sort((a, b) => a - b);
+    }
 
     const max = Math.max(...Object.values(countMap), 0);
 
@@ -104,10 +113,9 @@ const Heatmap = ({
   const groupings =
     showScores && xKey === "DST_Score"
       ? [
-          { label: "", min: -Infinity, max: min },
-          { label: "Released", min: min, max: 8 },
-          { label: "Released with Conditions", min: 8, max: 14 },
-          { label: "Detained", min: 15, max: max / 2 },
+          { label: "Released", min: -Infinity, max: 6 },
+          { label: "Released with Conditions", min: 6, max: 14 },
+          { label: "Detained", min: 15, max: Infinity },
         ]
       : [];
 
@@ -127,9 +135,32 @@ const Heatmap = ({
   return (
     <div>
       <div
-        style={{ textAlign: "center", fontWeight: "600", marginBottom: "8px" }}
+        style={{
+          borderTop: "1px solid #d3d3d3",
+          paddingTop: "16px",
+          display: "flex",
+          justifyContent: "space-between",
+          marginLeft: "8px",
+          fontWeight: "600",
+          marginBottom: "8px",
+        }}
       >
         {chartTitle}
+        <Button
+          variant="outlined"
+          onClick={() => setRecordsTableObject(true)}
+          sx={{
+            backgroundColor: "#333a43",
+            height: "26px",
+            marginRight: "8px",
+            color: "#fff",
+            "&:hover": {
+              backgroundColor: "#4a5568",
+            },
+          }}
+        >
+          View Table
+        </Button>
       </div>
       {showScores === "hide" ? (
         <div style={{ display: "flex", width: "100%", alignItems: "stretch" }}>
@@ -232,7 +263,8 @@ const Heatmap = ({
                   gridTemplateRows: `auto repeat(${yLabels.length}, 1fr)`,
                 }}
               >
-                <div className="heatmap-corner" />
+                {children}
+                {/* <div className="heatmap-corner" /> */}
 
                 {xLabels.map((x, index) => (
                   <div
@@ -280,6 +312,12 @@ const Heatmap = ({
                     </div>
                     {xLabels.map((x, index) => {
                       const count = counts[`${x}|${y}`] || 0;
+                      const isSelected = x === dstValue && y === decisionValue;
+
+                      const fadeOut =
+                        (dstValue && x !== dstValue) ||
+                        (decisionValue && y !== decisionValue);
+
                       return (
                         <div
                           key={`${x}|${y}`}
@@ -313,13 +351,8 @@ const Heatmap = ({
                               ? "2px solid #ccc"
                               : undefined,
                             cursor: "pointer",
-                            outline:
-                              (showScores === "hide" &&
-                                x === dstValue &&
-                                y === decisionValue) ||
-                              (dstScoreValue === x && decisionValue === y)
-                                ? "2px solid #333"
-                                : undefined,
+                            outline: isSelected ? "2px solid #333" : undefined,
+                            opacity: fadeOut ? 0.3 : 1,
                           }}
                         >
                           {count > 0 ? count.toLocaleString() : ""}
@@ -342,7 +375,7 @@ const Heatmap = ({
               marginBottom: "8px",
             }}
           >
-            DST Recommends
+            DST Recommendation
           </div>
           <div
             style={{ display: "flex", width: "100%", alignItems: "stretch" }}
@@ -395,7 +428,7 @@ const Heatmap = ({
                   }}
                 >
                   {/* Super header row */}
-                  <div></div> {/* top-left corner cell */}
+                  {children} {/* top-left corner cell */}
                   {(() => {
                     const groups = [
                       { label: "Released", min: -3, max: 6 },
@@ -492,6 +525,28 @@ const Heatmap = ({
                       </div>
                       {xLabels.map((x, index) => {
                         const count = counts[`${x}|${y}`] || 0;
+                        const isSelected =
+                          (showScores === "hide" &&
+                            x === dstValue &&
+                            y === decisionValue) ||
+                          (showScores === "show" &&
+                            x === dstScoreValue &&
+                            y === decisionValue);
+
+                        const fadeOut =
+                          (dstScoreValue && x !== dstScoreValue) ||
+                          (showScores === "show" &&
+                            dstValue &&
+                            !groupings.some(
+                              (group) =>
+                                x >= group.min &&
+                                x <= group.max &&
+                                group.label === dstValue
+                            )) ||
+                          (showScores === "show" &&
+                            decisionValue &&
+                            y !== decisionValue);
+
                         return (
                           <div
                             key={`${x}|${y}`}
@@ -530,13 +585,11 @@ const Heatmap = ({
                                 ? "2px solid #ccc"
                                 : undefined,
                               cursor: "pointer",
-                              outline:
-                                (showScores === "hide" &&
-                                  x === dstValue &&
-                                  y === decisionValue) ||
-                                (dstScoreValue === x && decisionValue === y)
-                                  ? "2px solid #333"
-                                  : undefined,
+                              outline: isSelected
+                                ? "2px solid #333"
+                                : undefined,
+                              opacity: fadeOut ? 0.3 : 1,
+                              transition: "opacity 0.2s ease",
                             }}
                           >
                             {count > 0 ? count.toLocaleString() : ""}

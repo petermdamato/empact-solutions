@@ -4,7 +4,10 @@ export function analyzeOverridesByReasonByYear(data) {
   const yearlyBuckets = {};
 
   data.forEach((record) => {
+    if (!record.Admission_Date || record.Admission_Date === null) return;
+
     const year = new Date(record.Admission_Date).getFullYear();
+
     const reason = record.Override_Reason?.trim();
 
     if (!reason) return;

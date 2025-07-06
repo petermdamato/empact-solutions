@@ -1,19 +1,33 @@
 import getSimplifiedOffenseCategory from "../helper";
+import * as d3 from "d3";
 
 function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
-  const years = data.map((item) => {
-    // Get the Admission_Date
-    const dateStr = item.Admission_Date;
+  const entryYears = data
+    .map((item) => {
+      const d = new Date(
+        detentionType === "alternative-to-detention"
+          ? item.ATD_Entry_Date
+          : item.Admission_Date
+      );
+      return isNaN(d) ? null : d.getFullYear();
+    })
+    .filter((y) => y !== null);
 
-    // Convert to Date object - adjust this based on your actual date format
-    const date = new Date(dateStr);
+  const exitYears = data
+    .map((item) => {
+      const d = new Date(
+        detentionType === "alternative-to-detention"
+          ? item.ATD_Exit_Date
+          : item.Release_Date
+      );
+      return isNaN(d) ? null : d.getFullYear();
+    })
+    .filter((y) => y !== null);
 
-    // Extract year
-    return date.getFullYear();
-  });
+  const minYear = Math.min(Math.min(...entryYears), Math.min(...exitYears));
+  const maxYear = Math.max(Math.max(...entryYears), Math.max(...exitYears));
 
-  // If you want unique years only
-  const uniqueYears = [...new Set(years)].filter((entry) => !isNaN(entry));
+  const uniqueYears = d3.range(minYear, maxYear + 1);
 
   const getDates = (record) => {
     if (detentionType === "secure-detention") {
@@ -107,7 +121,6 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
     const { entry, exit } = getDates(record);
     if (!entry) return;
 
-    const entryYear = entry.getFullYear();
     const exitYear = exit ? exit.getFullYear() : null;
 
     const key = groupKey(record, entry);

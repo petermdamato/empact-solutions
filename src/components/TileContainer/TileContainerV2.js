@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import Tile from "./../Tile/Tile";
+import React from "react";
+import TileV2 from "./../Tile/TileV2";
 import DistributionChartV2 from "../DistributionChart/DistributionChartV2";
 import DistributionChartStacked from "../DistributionChart/DistributionChartStacked";
 import OverridePercentStat from "../StatisticWithLine/StatisticWithLine";
@@ -7,59 +7,62 @@ import OverridePercentStat from "../StatisticWithLine/StatisticWithLine";
 import "./TileContainer.css";
 
 const TileContainerV2 = ({ data }) => {
-  const [chartData, setChartData] = useState([]);
-
-  useEffect(() => {
-    setChartData(data);
-  }, [data]);
+  const outer = data[0];
 
   return (
     <div className="tile-container-two">
-      {chartData.map((outer, i) => (
-        <Tile key={"tile-" + i}>
-          {outer.data.map((inner, i) =>
-            outer.charts[i] === "distributionV2" ? (
+      {outer.charts.map((chartType, i) => (
+        <TileV2 key={`tile-${i}`}>
+          {chartType === "distributionV2" ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+                width: "100%",
+                height: "auto",
+              }}
+            >
               <div
-                key={"inner-" + i}
                 style={{
                   display: "flex",
-                  flexDirection: "column",
-                  position: "relative",
+                  justifyContent: "flex-end",
+                  height: "0",
+                  marginTop: "0",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    height: "60px",
-                    marginTop: "-40px",
-                  }}
-                >
-                  <OverridePercentStat data={chartData} />
-                </div>
-                <DistributionChartV2
-                  key={"distribution-stacked-chart-" + i}
-                  data={chartData}
-                  width={400}
-                  height={300}
-                  margin={{ top: 20, right: 60, bottom: 30, left: 110 }}
-                  chartTitle={outer.chartTitles[i]}
-                />
+                <OverridePercentStat data={outer.timeSeriesDataPercentage} />
               </div>
-            ) : outer.charts[i] === "distributionStacked" ? (
+              <DistributionChartV2
+                data={outer}
+                width={400}
+                height={300}
+                margin={{ top: 20, right: 60, bottom: 30, left: 110 }}
+                chartTitle={outer.chartTitles[i]}
+              />
+            </div>
+          ) : chartType === "distributionStacked" ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+                width: "100%",
+                height: "auto",
+              }}
+            >
               <DistributionChartStacked
-                key={"distribution-stacked-chart-" + i}
-                data={chartData}
+                data={outer}
                 width={400}
                 height={300}
                 margin={{ top: 20, right: 20, bottom: 30, left: 20 }}
                 caption={outer.chartTitles[i]}
               />
-            ) : (
-              <></>
-            )
+            </div>
+          ) : (
+            <div key={`empty-${i}`}></div>
           )}
-        </Tile>
+        </TileV2>
       ))}
     </div>
   );

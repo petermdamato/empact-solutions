@@ -35,17 +35,21 @@ const aggregateByStatus = (
     return intakeDate >= prevStartDate && intakeDate <= prevEndDate;
   });
 
-  // Function to determine category
   const determineCategory = (record) => {
-    const postStatus = record.Post_Adjudicated_Status?.toLowerCase() || "";
+    const postStatus = record.Post_Adjudicated_Status;
+    const postReason = record["Post-Dispo Stay Reason"];
     const offenseCategory = record.OffenseCategory?.toLowerCase() || "";
 
     // First check Post_Adjudicated_Status
-    if (postStatus.includes("awaiting")) {
-      return "Awaiting Placement";
-    }
-    if (postStatus.includes("other")) {
-      return "Other";
+    if (postReason) {
+      const lowerStatus = postReason.toLowerCase();
+      if (lowerStatus.includes("awaiting")) {
+        return "Awaiting Placement";
+      } else if (lowerStatus.includes("confinement")) {
+        return "Confinement to Secure Detention";
+      } else if (lowerStatus.includes("other")) {
+        return "Other";
+      }
     }
 
     // Then check OffenseCategory
@@ -71,6 +75,7 @@ const aggregateByStatus = (
     return {
       Category: determineCategory(record),
       Dispo_Status: dispoStatus,
+      Dispo_Reason: record["Post-Dispo Stay Reason"],
     };
   });
 
@@ -78,16 +83,19 @@ const aggregateByStatus = (
   const result = {
     "Awaiting Placement": { post: 0, pre: 0 },
     Other: { post: 0, pre: 0 },
+    "Confinement to Secure Detention": { post: 0, pre: 0 },
     "New Offense": { post: 0, pre: 0 },
     Technical: { post: 0, pre: 0 },
   };
 
   // Aggregate counts
-  classified.forEach(({ Category, Dispo_Status }) => {
-    if (Dispo_Status.toLowerCase() === "post-dispo") {
-      result[Category].post += 1;
-    } else {
+  classified.forEach(({ Category, Dispo_Reason }) => {
+    if (Dispo_Reason === null || Dispo_Reason === "") {
       result[Category].pre += 1;
+    } else if (Dispo_Reason.toLowerCase().includes("other")) {
+      result["Other"].post += 1;
+    } else {
+      result[Category].post += 1;
     }
   });
 

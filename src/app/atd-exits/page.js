@@ -8,10 +8,20 @@ import { useCSV } from "@/context/CSVContext";
 import ChartCard from "@/components/ChartCard/ChartCard";
 import { ResponsiveContainer } from "recharts";
 import { useEffect, useState, useRef } from "react";
-import RecordsTable from "@/components/RecordsTable/RecordsTable";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
+import StackedBarChartCentered from "@/components/StackedBar/StackedBarChartCentered";
 import "./styles.css";
-import { analyzeExitsByYear } from "@/utils/aggFunctions";
+import {
+  analyzeExitsByYear,
+  analyzeExitsByExploreType,
+  analyzeExitsByDisruptionType,
+  analyzeDisruptionPercentsByYear,
+} from "@/utils/aggFunctions";
+import { categorizeRaceEthnicity, categorizeYoc } from "@/utils/categories";
+import {
+  getSimplifiedOffenseCategory,
+  getAgeBracket,
+} from "@/utils/categorizationUtils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LegendStatic from "@/components/LegendStatic/LegendStatic";
 import * as Constants from "./../../constants";
@@ -21,6 +31,11 @@ const parseDateYear = (dateStr) => {
   const year = date.getFullYear();
 
   return isNaN(year) ? null : year;
+};
+
+const getAge = (dob, intake) => {
+  if (!dob || !intake) return null;
+  return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
 };
 
 export default function Overview() {
@@ -33,15 +48,14 @@ export default function Overview() {
   const [calculationType, setCalculationType] = useState("Average");
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
-  const [programTypeArray, setProgramTypeArray] = useState([
-    "All Program Types",
-  ]);
+  const [breakdownType, setBreakdownType] = useState("Overall Total");
 
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
   const [dataArray4, setDataArray4] = useState([]);
   const [dataArray5, setDataArray5] = useState([]);
+  const [dataArray6, setDataArray6] = useState([]);
 
   // Add keydown event handler
   useEffect(() => {
@@ -59,13 +73,68 @@ export default function Overview() {
   }, []);
 
   useEffect(() => {
+    setFinalData(csvData);
+  }, [breakdownType]);
+
+  // Pull in for the filter of types
+  useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
       const [key, value] = Object.entries(filterVariable)[0];
-      if (key === "Facility") {
+
+      if (
+        key === "Gender" ||
+        key === "Screened/not screened" ||
+        key === "Facility"
+      ) {
         setFinalData(
           JSON.parse(JSON.stringify(csvData)).filter(
             (record) => record[key] === value
           )
+        );
+      } else if (key === "Disruption_Type") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            return +record[`ATD_Exit_${value.replaceAll(" ", "_")}`] === 1;
+          })
+        );
+      }
+      // Start here
+      else if (key === "Age at Intake") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            const age = getAge(
+              new Date(record.Date_of_Birth),
+              new Date(record.ATD_Entry_Date)
+            );
+
+            return getAgeBracket(age) === value;
+          })
+        );
+      } else if (key === "Offense Category") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            return (
+              getSimplifiedOffenseCategory(record.OffenseCategory) === value
+            );
+          })
+        );
+      } else if (key === "Race/Ethnicity") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            return (
+              categorizeRaceEthnicity(record.Race, record.Ethnicity) === value
+            );
+          })
+        );
+      } else if (key === "YOC/White") {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter((record) => {
+            return categorizeYoc(record.Race, record.Ethnicity) === value;
+          })
+        );
+      } else {
+        setFinalData(
+          JSON.parse(JSON.stringify(csvData)).filter((record) => record)
         );
       }
     } else {
@@ -95,22 +164,6 @@ export default function Overview() {
         },
       ]);
     }
-
-    setDataArray5(
-      programType === "All Program Types"
-        ? finalData.filter((record) => {
-            return (
-              record.ATD_Exit_Date &&
-              parseDateYear(record.ATD_Exit_Date) === +selectedYear
-            );
-          })
-        : finalData.filter(
-            (record) =>
-              record.Facility === programType &&
-              record.ATD_Exit_Date &&
-              parseDateYear(record.ATD_Exit_Date) === +selectedYear
-          )
-    );
   }, [finalData, selectedYear, programType]);
 
   useEffect(() => {
@@ -119,13 +172,6 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(finalData.map((obj) => obj.Facility))]
-      .filter((entry) => entry !== null && entry !== "")
-      .sort((a, b) => a - b);
-
-    const programTypeArrayFinal = [...programTypeArrayInt, "All Program Types"];
-
-    setProgramTypeArray(programTypeArrayFinal);
   }, [finalData]);
 
   useEffect(() => {
@@ -138,45 +184,73 @@ export default function Overview() {
       }));
       // Set overall
       setDataArray2(byProgramType);
+
       let chartArray = [];
       let chartObj = {
         category: programType,
-        successful: dataArray1[0].body?.successfulExits,
-        unsuccessful: dataArray1[0].body?.unsuccessfulExits,
+        undisrupted: dataArray1[0].body?.successfulExits,
+        disrupted: dataArray1[0].body?.unsuccessfulExits,
+        total:
+          dataArray1[0].body?.successfulExits +
+          dataArray1[0].body?.unsuccessfulExits,
       };
       chartArray.push(chartObj);
 
-      setDataArray3(chartArray);
-      // Set LOS data
-      let chartArrayLOS = [];
-      let chartObjLOS = {
-        category: programType,
-        total:
-          calculationType.toLowerCase() === "average"
-            ? dataArray1[0].body?.successfulAvgLengthOfStay +
-              dataArray1[0].body?.unsuccessfulAvgLengthOfStay
-            : dataArray1[0].body?.successfulMedianLengthOfStay +
-              dataArray1[0].body?.unsuccessfulMedianLengthOfStay,
-        successful:
-          calculationType.toLowerCase() === "average"
-            ? Math.round(dataArray1[0].body?.successfulAvgLengthOfStay * 10) /
-              10
-            : Math.round(
-                dataArray1[0].body?.successfulMedianLengthOfStay * 10
-              ) / 10,
-        unsuccessful:
-          calculationType.toLowerCase() === "average"
-            ? Math.round(dataArray1[0].body?.unsuccessfulAvgLengthOfStay * 10) /
-              10
-            : Math.round(
-                dataArray1[0].body?.unsuccessfulMedianLengthOfStay * 10
-              ) / 10,
-      };
-      chartArrayLOS.push(chartObjLOS);
+      const byExploreType = analyzeExitsByExploreType(
+        finalData,
+        +selectedYear,
+        breakdownType
+      );
+      // By disruption type
+      const exploreTypeBreakdown = Object.entries(
+        byExploreType.exitsByBreakdown
+      ).map(([program, values]) => ({
+        category: program,
+        ...values,
+      }));
 
-      setDataArray4(chartArrayLOS);
+      setDataArray3(
+        breakdownType === "Overall Total" ? chartArray : exploreTypeBreakdown
+      );
+
+      const byDisruptionType = analyzeExitsByDisruptionType(
+        finalData,
+        +selectedYear
+      );
+      // By disruption type
+      const disruptionTypeBreakdown = Object.entries(
+        byDisruptionType.byDisruptionType
+      ).map(([program, values]) => ({
+        category: program,
+        disrupted: 1,
+        undisrupted: 1,
+        total: values.count,
+      }));
+
+      setDataArray4(disruptionTypeBreakdown);
+      // Set overall
+      const byExitType = analyzeExitsByExploreType(
+        finalData,
+        +selectedYear,
+        "Exit To"
+      );
+      // By disruption type
+      const exitTypeBreakdown = Object.entries(byExitType.exitsByBreakdown).map(
+        ([program, values]) => ({
+          category: program,
+          ...values,
+        })
+      );
+      setDataArray5(exitTypeBreakdown);
+
+      const percentsByYear = analyzeDisruptionPercentsByYear(
+        finalData,
+        breakdownType
+      );
+
+      setDataArray6(percentsByYear);
     }
-  }, [dataArray1, calculationType]);
+  }, [dataArray1, calculationType, breakdownType]);
 
   return (
     // Top-level container
@@ -215,17 +289,30 @@ export default function Overview() {
             showFilterInstructions
           >
             <Selector
+              values={[
+                "Overall Total",
+                "Race/Ethnicity",
+                "YOC/White",
+                "Gender",
+                "Age at Intake",
+                "Offense Category",
+              ]}
+              variable={"Explore"}
+              selectedValue={breakdownType}
+              setValue={setBreakdownType}
+            />
+            <Selector
               values={yearsArray}
               variable={"Year"}
               selectedValue={selectedYear}
               setValue={setSelectedYear}
             />
-            <Selector
+            {/* <Selector
               values={programTypeArray}
               variable={"Program Type"}
               selectedValue={programType}
               setValue={setProgramType}
-            />{" "}
+            />{" "} */}
             <DownloadButton
               elementRef={contentRef}
               filename={`alternative-to-detention-exits-${selectedYear}.pdf`}
@@ -238,10 +325,12 @@ export default function Overview() {
           {/* Column 1 */}
           <div
             style={{
-              flex: 1,
+              flexBasis: "40%",
+              flexShrink: 0,
+              flexGrow: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "12px",
             }}
           >
             {/* Change Statistics */}
@@ -249,6 +338,7 @@ export default function Overview() {
               <div style={{ maxHeight: "60px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
+                    caption={"ATD exits"}
                     data={[
                       dataArray1[0]?.body?.totalExits,
                       dataArray1[0]?.body?.previousTotalExits,
@@ -260,19 +350,40 @@ export default function Overview() {
 
             {/* Exits by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "400px", width: "100%" }}>
+              <div style={{ height: "360px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray2.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray2}
-                      breakdowns={["unsuccessful", "successful"]}
-                      height={400}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={""}
+                      breakdowns={["total"]}
+                      height={360}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      chartTitle={"Exits by ATD Program Type"}
                       colorMapOverride={Constants.successColors}
                       setFilterVariable={setFilterVariable}
                       filterVariable={filterVariable}
                       groupByKey={"Facility"}
+                    />
+                  )}
+                </ResponsiveContainer>
+              </div>
+            </ChartCard>
+
+            {/* ATD Disruption Type */}
+            <ChartCard width="100%">
+              <div style={{ height: "240px", width: "100%" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  {dataArray4.length > 0 && (
+                    <StackedBarChartGeneric
+                      data={dataArray4}
+                      breakdowns={["total"]}
+                      height={240}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      chartTitle={"Exits by ATD Disruption Type"}
+                      colorMapOverride={Constants.successColors}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Disruption_Type"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -283,7 +394,9 @@ export default function Overview() {
           {/* Column 2 */}
           <div
             style={{
-              flex: 1,
+              flexBasis: "60%",
+              flexShrink: 0,
+              flexGrow: 0,
               display: "flex",
               flexDirection: "column",
               gap: "24px",
@@ -291,7 +404,7 @@ export default function Overview() {
           >
             {/* Success breakdown */}
             <ChartCard width="100%">
-              <div style={{ height: "140px", width: "100%" }}>
+              <div style={{ height: "300px", width: "100%" }}>
                 <div style={{ position: "relative" }}>
                   <div style={{ position: "absolute", right: "14px", top: 0 }}>
                     <LegendStatic type="success" />
@@ -299,36 +412,38 @@ export default function Overview() {
                 </div>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray3.length > 0 && (
-                    <StackedBarChartGeneric
+                    <StackedBarChartCentered
                       data={dataArray3}
-                      breakdowns={["unsuccessful", "successful"]}
-                      height={140}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={`Exits by ${programType}`}
+                      tooltipPayload={dataArray6}
+                      breakdowns={["disrupted", "undisrupted"]}
+                      height={300}
+                      margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
+                      chartTitle={`Exits by ${breakdownType}`}
                       colorMapOverride={Constants.successColors}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={breakdownType}
                     />
                   )}
                 </ResponsiveContainer>
               </div>
             </ChartCard>
-            <Selector
-              values={["Average", "Median"]}
-              variable={"Calculation"}
-              selectedValue={calculationType}
-              setValue={setCalculationType}
-            />
-            {/* LOS breakdown */}
             <ChartCard width="100%">
-              <div style={{ height: "140px", width: "100%" }}>
+              <div style={{ height: "390px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  {dataArray4.length > 0 && (
+                  {dataArray5.length > 0 && (
                     <StackedBarChartGeneric
-                      data={dataArray4}
-                      breakdowns={["unsuccessful", "successful"]}
-                      height={140}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                      chartTitle={`${calculationType} LOS by ${programType}`}
+                      data={dataArray5}
+                      breakdowns={["total"]}
+                      height={390}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      chartTitle={"Exits by Exit To Type"}
                       colorMapOverride={Constants.successColors}
+                      setFilterVariable={setFilterVariable}
+                      filterVariable={filterVariable}
+                      groupByKey={"Exit To"}
+                      sorted={true}
+                      labelContext={"percent"}
                     />
                   )}
                 </ResponsiveContainer>
@@ -338,9 +453,9 @@ export default function Overview() {
         </div>
 
         {/* Table at bottom */}
-        <div style={{ height: "500px", padding: "24px", overflow: "auto" }}>
+        {/* <div style={{ height: "500px", padding: "24px", overflow: "auto" }}>
           <RecordsTable data={dataArray5} />
-        </div>
+        </div> */}
       </div>
     </div>
   );

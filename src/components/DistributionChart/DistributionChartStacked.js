@@ -1,25 +1,44 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState, useLayoutEffect } from "react";
 import * as d3 from "d3";
 
 const DistributionChartStacked = ({
   data,
   keysArray = ["no", "yes"],
   height,
-  width,
 }) => {
   const svgRef = useRef();
+  const containerRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 0, height });
+
+  // Handle resize and initial width measurement
+  useLayoutEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: height || containerRef.current.offsetHeight,
+        });
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, [height]);
 
   useEffect(() => {
+    if (dimensions.width === 0) return;
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    if (!data?.[0]?.data?.length || !keysArray.length) {
+    if (!data?.data?.length || !keysArray.length) {
       svg
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", dimensions.width)
+        .attr("height", dimensions.height)
         .append("text")
-        .attr("x", width / 2)
-        .attr("y", height / 2)
+        .attr("x", dimensions.width / 2)
+        .attr("y", dimensions.height / 2)
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
         .style("fill", "#666")
@@ -27,7 +46,7 @@ const DistributionChartStacked = ({
       return;
     }
 
-    const finalData = data[0].data;
+    const finalData = data.data;
     const groupKey = "DST v Actual comparison";
 
     const cleanedData = finalData.filter(
@@ -35,8 +54,8 @@ const DistributionChartStacked = ({
     );
 
     const margin = { top: 60, right: 120, bottom: 80, left: 10 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
+    const innerWidth = dimensions.width - margin.left - margin.right;
+    const innerHeight = dimensions.height - margin.top - margin.bottom;
 
     const grouped = d3.rollups(
       cleanedData,
@@ -85,10 +104,11 @@ const DistributionChartStacked = ({
     const layers = stackGenerator(formattedData);
 
     const chart = svg
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", dimensions.width)
+      .attr("height", dimensions.height)
       .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+      .attr("transform", `translate(${margin.left},${margin.top})`)
+      .attr("clip-path", "url(#chart-clip)");
 
     chart
       .append("text")
@@ -98,12 +118,15 @@ const DistributionChartStacked = ({
       .style("font-size", "14px")
       .style("font-weight", "bold")
       .attr("fill", "#333")
-      .text(data[0].title);
+      .text(data.title);
 
     chart
       .append("g")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(x).tickFormat(""));
+
+    // ... rest of your chart code remains the same ...
+    // (all the chart building code that uses x, y, chart, etc.)
 
     formattedData.forEach((d) => {
       const xPos = x(d[groupKey]) + x.bandwidth() / 2;
@@ -203,7 +226,7 @@ const DistributionChartStacked = ({
       .append("g")
       .attr(
         "transform",
-        `translate(${width - margin.right + 20}, ${margin.top - 30})`
+        `translate(${dimensions.width - margin.right + 20}, ${margin.top - 30})`
       );
 
     legend.append("text").attr("x", 0).attr("y", -8).text("Auto Hold");
@@ -227,9 +250,23 @@ const DistributionChartStacked = ({
         .style("font-size", "12px")
         .attr("fill", "#333");
     });
-  }, [data, keysArray, width, height]);
+  }, [data, keysArray, dimensions]);
 
-  return <svg ref={svgRef}></svg>;
+  return (
+    <div
+      ref={containerRef}
+      style={{ width: "100%", height: "100%", overflow: "visible" }}
+    >
+      <svg
+        ref={svgRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          overflow: "visible",
+        }}
+      ></svg>
+    </div>
+  );
 };
 
 export default DistributionChartStacked;

@@ -13,7 +13,7 @@ export function categorizeAge(record, incarcerationType) {
   const dob = record["Date_of_Birth"];
   const age = Math.floor(getAge(dob, intake));
 
-  if (dob === undefined || intake === undefined) {
+  if (dob === undefined || intake === undefined || isNaN(age)) {
     group = "Unknown";
   } else if (age < 11) {
     group = "10 and younger";

@@ -67,7 +67,7 @@ export default function Overview() {
       },
       { post: 0, pre: 0 }
     );
-    console.log(statusData);
+
     setDataArray2([
       [columnAgg.pre + columnAgg.post, statusData.previousPeriodCount],
       Object.entries(columnAgg).map(([key, value]) => ({
@@ -173,7 +173,7 @@ export default function Overview() {
       selectedYear,
       detentionType
     );
-
+    console.log(dataArray3);
     const columnAggPopulations = statusDataPopulation.results.reduce(
       (acc, curr) => {
         acc.post += curr.post;

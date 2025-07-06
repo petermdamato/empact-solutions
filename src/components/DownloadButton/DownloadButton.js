@@ -7,13 +7,34 @@ export default function DownloadButton({
   elementRef,
   filename = "export.pdf",
   orientation = "landscape",
+  scale = 1,
+  onBeforeDownload,
+  onAfterDownload,
 }) {
-  const scale = 1;
-  const handleClick = () => {
-    if (elementRef?.current) {
-      exportElementToPdf(elementRef.current, filename, scale, orientation);
-    } else {
+  const handleClick = async () => {
+    if (!elementRef?.current) {
       console.error("Missing elementRef for PDF export");
+      return;
+    }
+
+    if (onBeforeDownload) onBeforeDownload();
+
+    try {
+      await exportElementToPdf(
+        elementRef.current,
+        filename,
+        scale,
+        orientation
+      );
+    } catch (error) {
+      console.error("PDF export failed:", error);
+    } finally {
+      if (onAfterDownload) {
+        // Wait 10 seconds before calling onAfterDownload
+        setTimeout(() => {
+          onAfterDownload();
+        }, 10000);
+      }
     }
   };
 

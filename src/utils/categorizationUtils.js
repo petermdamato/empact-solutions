@@ -7,6 +7,14 @@ export const getAgeBracket = (age) => {
   return "18+";
 };
 
+export const getAgeBracketV2 = (age) => {
+  if (!age) return "Unknown";
+  if (age < 11) return "10 and younger";
+  if (age < 14 && age >= 11) return "11-13";
+  if (age < 18 && age >= 14) return "14-17";
+  return "18+";
+};
+
 // Simplified Offense Category
 export const getSimplifiedOffenseCategory = (offenseCategory) => {
   if (!offenseCategory) return "Other";

@@ -66,19 +66,32 @@ const aggregateCalculationByStatus = (
 
   const releasedCalculatedPrevYear = prevTotal / prevCount;
 
-  // Function to categorize offenses
-  const categorizeOffense = (offense, postStatus) => {
-    if (postStatus && postStatus.toLowerCase().includes("other")) {
-      return "Other";
-    } else if (postStatus && postStatus.toLowerCase().includes("awaiting")) {
-      return "Awaiting Placement";
-    } else if (
-      offense &&
-      (offense.toLowerCase().includes("felony") ||
-        offense.toLowerCase().includes("misdemeanor"))
+  const categorizeOffense = (record) => {
+    const postStatus = record.Post_Adjudicated_Status;
+    const postReason = record["Post-Dispo Stay Reason"];
+    const offenseCategory = record.OffenseCategory?.toLowerCase() || "";
+
+    // First check Post_Adjudicated_Status
+    if (postReason) {
+      const lowerStatus = postReason.toLowerCase();
+      if (lowerStatus.includes("awaiting")) {
+        return "Awaiting Placement";
+      } else if (lowerStatus.includes("confinement")) {
+        return "Confinement to Secure Detention";
+      } else if (lowerStatus.includes("other")) {
+        return "Other";
+      }
+    }
+
+    // Then check OffenseCategory
+    if (
+      offenseCategory.includes("felony") ||
+      offenseCategory.includes("misdemeanor")
     ) {
       return "New Offense";
     }
+
+    // Default to Technical
     return "Technical";
   };
 
@@ -93,12 +106,7 @@ const aggregateCalculationByStatus = (
         ? (releaseDate - intakeDate) / (1000 * 60 * 60 * 24) + 1
         : null;
 
-    // Get the category based on OffenseCategory
-    const offenseCategory = record[statusColumn];
-    const postStatus = record["Post_Adjudicated_Status"]
-      ? record["Post_Adjudicated_Status"]
-      : null;
-    const category = categorizeOffense(offenseCategory, postStatus);
+    const category = categorizeOffense(record);
 
     const dispoStatus =
       record["Post-Dispo Stay Reason"] === null ||

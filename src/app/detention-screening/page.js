@@ -8,7 +8,6 @@ import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import RecordsTableDST from "@/components/RecordsTable/RecordsTableDST";
 import Heatmap from "@/components/Heatmap/Heatmap";
 import TileContainerV2 from "@/components/TileContainer/TileContainerV2";
-import Button from "@mui/material/Button";
 import Selector from "@/components/Selector/Selector";
 import { analyzeOverridesByYear } from "@/utils/analyzeOverridesByYear";
 import { analyzeOverridesByReasonByYear } from "@/utils/analyzeOverridesByReasonByYear";
@@ -62,10 +61,8 @@ export default function Overview() {
   }, [datesData, dstValue, dstScoreValue, decisionValue]);
 
   useEffect(() => {
-    setTimeSeriesDataPercentage(analyzeOverridesByYear(filteredData));
-    setTimeSeriesDataCountByReason(
-      analyzeOverridesByReasonByYear(filteredData)
-    );
+    setTimeSeriesDataPercentage(analyzeOverridesByYear(csvData));
+    setTimeSeriesDataCountByReason(analyzeOverridesByReasonByYear(csvData));
   }, [filteredData]);
 
   useEffect(() => {
@@ -114,12 +111,31 @@ export default function Overview() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ maxWidth: "200px", width: "100%" }}>
+                <div
+                  className="dateslider-container"
+                  style={{ maxWidth: "200px", width: "100%" }}
+                >
                   <DateRangeSlider
                     records={csvData}
                     accessor={(d) => d.Intake_Date}
                     setDatesRange={setDatesRange}
                   />
+                </div>
+                <div className="dateslider-text" style={{ display: "none" }}>
+                  <span>
+                    {`${new Date(datesRange[0]).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })} to ${new Date(datesRange[1]).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      }
+                    )}`}
+                  </span>
                 </div>
               </div>
               <div style={{ marginLeft: "auto" }}>
@@ -188,44 +204,6 @@ export default function Overview() {
                     },
                   ]}
                 />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    padding: "0 4px",
-                    marginTop: "16px",
-                    marginBottom: "24px",
-                  }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <h5 style={{ fontSize: "14px", margin: 0 }}>
-                      Show Recommendation Scores
-                    </h5>
-                    <Selector
-                      values={["show", "hide"]}
-                      variable="calc"
-                      selectedValue={showScores}
-                      setValue={setShowScores}
-                      labelMap={{ show: "Show", hide: "Hide" }}
-                    />
-                  </div>
-
-                  <Button
-                    variant="outlined"
-                    onClick={() => setRecordsTableObject(true)}
-                    sx={{
-                      backgroundColor: "#333a43",
-                      color: "#fff",
-                      "&:hover": {
-                        backgroundColor: "#4a5568",
-                      },
-                    }}
-                  >
-                    View Table
-                  </Button>
-                </div>
 
                 <Heatmap
                   data={datesData}
@@ -240,7 +218,22 @@ export default function Overview() {
                   setDstScoreValue={setDstScoreValue}
                   decisionValue={decisionValue}
                   setDecisionValue={setDecisionValue}
-                />
+                  setRecordsTableObject={setRecordsTableObject}
+                >
+                  <div
+                    className="scores-display-selector"
+                    style={{ display: "flex", flexDirection: "column" }}
+                  >
+                    <h5 style={{ fontSize: "14px", margin: 0 }}>Show Scores</h5>
+                    <Selector
+                      values={["show", "hide"]}
+                      variable="calc"
+                      selectedValue={showScores}
+                      setValue={setShowScores}
+                      labelMap={{ show: "Show", hide: "Hide" }}
+                    />
+                  </div>
+                </Heatmap>
               </div>
             )}
           </div>

@@ -41,10 +41,17 @@ const DateRangeSlider = ({
     [filteredData, dateAccessor]
   );
 
-  const [range, setRange] = useState(() => [
-    minDate ? minDate.getTime() : 0,
-    maxDate ? maxDate.getTime() : 0,
-  ]);
+  const [range, setRange] = useState(() => {
+    if (!minDate || !maxDate) return [0, 0];
+
+    const start = new Date(maxDate);
+    start.setFullYear(start.getFullYear() - 1);
+
+    // Ensure start is not before minDate
+    const adjustedStart = start < minDate ? minDate : start;
+
+    return [adjustedStart.getTime(), maxDate.getTime()];
+  });
 
   useEffect(() => {
     clearTimeout(debounceTimeout.current);

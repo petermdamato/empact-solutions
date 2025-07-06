@@ -6,7 +6,7 @@ const OverridePercentStat = ({ data }) => {
   const [showChart, setShowChart] = useState(false);
 
   // Set defaults to avoid conditional hook execution
-  const finalData = data?.[0]?.timeSeriesDataPercentage || {};
+  const finalData = data || {};
 
   const parsedData = Object.entries(finalData)
     .map(([year, stats]) => ({
@@ -110,7 +110,7 @@ const OverridePercentStat = ({ data }) => {
         width: "200px",
         textAlign: "center",
         background: "transparent",
-        marginTop: "40px",
+        marginTop: "-10px",
         padding: "16px",
         cursor: "pointer",
       }}

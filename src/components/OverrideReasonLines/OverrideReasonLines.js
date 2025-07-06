@@ -4,19 +4,16 @@ import * as d3 from "d3";
 const rowHeight = 70;
 const margin = { top: 20, right: 20, bottom: 30, left: 240 };
 const labelPadding = 24;
-const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 const OverrideReasonTable = ({ data }) => {
   if (!data || Object.keys(data).length === 0) {
     return <div>No override reason data available.</div>;
   }
 
-  // Get all years sorted
   const years = Object.keys(data)
     .map(Number)
     .sort((a, b) => a - b);
 
-  // Collect all unique reasons
   const allReasonsSet = new Set();
   Object.values(data).forEach((yearObj) => {
     Object.keys(yearObj).forEach((reason) => {
@@ -25,38 +22,33 @@ const OverrideReasonTable = ({ data }) => {
   });
   const allReasons = Array.from(allReasonsSet).sort();
 
-  // Map each reason to its time series data
   const series = allReasons.map((reason) => ({
     reason,
-    values: years.map((year) => ({
-      year,
-      value: data?.[year]?.[reason] ?? 0,
-    })),
+    values: years.map((year) => {
+      const val = data?.[year]?.[reason];
+      return {
+        year,
+        value: Number.isFinite(val) ? val : 0,
+      };
+    }),
   }));
 
-  const chartWidth = 400; // wider container
+  const chartWidth = 400;
   const totalHeight = allReasons.length * rowHeight + margin.bottom;
 
   const x = d3
     .scaleLinear()
     .domain(d3.extent(years))
     .range([margin.left, chartWidth - margin.right]);
-
-  const line = d3
-    .line()
-    .x((d) => x(d.year))
-    .y((d, yScale) => yScale(d.value));
-
   return (
     <div style={{ overflowX: "auto" }}>
       <svg width={chartWidth} height={totalHeight}>
-        {/* X-axis at bottom */}
         <g>
           {years.map((year) => (
             <text
               key={`x-${year}`}
               x={x(year)}
-              y={totalHeight - 10}
+              y={margin.top - 10} // position above first row's top margin
               textAnchor="middle"
               fontSize="12px"
               fill="#666"
@@ -67,26 +59,27 @@ const OverrideReasonTable = ({ data }) => {
           <line
             x1={margin.left}
             x2={chartWidth - margin.right}
-            y1={totalHeight - margin.bottom}
-            y2={totalHeight - margin.bottom}
+            y1={margin.top - 5} // small offset above first row
+            y2={margin.top - 5}
             stroke="#333"
             strokeWidth={1}
           />
         </g>
-
         {series.map((s, i) => {
-          const rowY = i * rowHeight;
+          const rowY = i * rowHeight + 14;
           const chartTop = rowY + margin.top;
           const chartBottom = rowY + rowHeight - margin.top;
 
+          const maxY = d3.max(s.values, (d) => d.value) || 1; // prevent zero domain
           const y = d3
             .scaleLinear()
-            .domain([0, d3.max(s.values, (d) => d.value)])
+            .domain([0, maxY])
             .nice()
             .range([chartBottom, chartTop]);
 
           const lineGenerator = d3
             .line()
+            .defined((d) => d.value > 0 && Number.isFinite(d.value))
             .x((d) => x(d.year))
             .y((d) => y(d.value));
 
@@ -114,7 +107,6 @@ const OverrideReasonTable = ({ data }) => {
                 {s.reason}
               </text>
 
-              {/* Y ticks */}
               {y.ticks(3).map((tick) => (
                 <g key={`${s.reason}-${tick}`}>
                   <text
@@ -125,7 +117,7 @@ const OverrideReasonTable = ({ data }) => {
                     fontSize="9px"
                     fill="#999"
                   >
-                    {tick}
+                    {Number.isFinite(tick) ? tick : ""}
                   </text>
                   <line
                     x1={margin.left}
@@ -146,29 +138,37 @@ const OverrideReasonTable = ({ data }) => {
                 strokeWidth={2}
               />
 
-              {s.values.map((d, idx) => (
-                <circle
-                  key={idx}
-                  cx={x(d.year)}
-                  cy={y(d.value)}
-                  r={3}
-                  fill="black"
-                />
-              ))}
+              {s.values.map(
+                (d, idx) =>
+                  Number.isFinite(d.value) && (
+                    <circle
+                      key={idx}
+                      cx={x(d.year)}
+                      cy={y(d.value)}
+                      r={3}
+                      opacity={d.value > 0 ? 1 : 0}
+                      fill="black"
+                    />
+                  )
+              )}
 
-              {s.values.map((d, idx) => (
-                <text
-                  key={`label-${idx}`}
-                  x={x(d.year)}
-                  y={y(d.value) - 8}
-                  textAnchor="middle"
-                  fontSize="9px"
-                  fill="#666"
-                  fontWeight="500"
-                >
-                  {d.value > 0 ? d.value : ""}
-                </text>
-              ))}
+              {s.values.map(
+                (d, idx) =>
+                  Number.isFinite(d.value) &&
+                  d.value > 0 && (
+                    <text
+                      key={`label-${idx}`}
+                      x={x(d.year)}
+                      y={y(d.value) - 8}
+                      textAnchor="middle"
+                      fontSize="9px"
+                      fill="#666"
+                      fontWeight="500"
+                    >
+                      {d.value}
+                    </text>
+                  )
+              )}
             </g>
           );
         })}

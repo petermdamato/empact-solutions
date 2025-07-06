@@ -55,7 +55,8 @@ export default function Overview() {
   useEffect(() => {
     const dataArray = csvData.filter(
       (record) =>
-        programType === "All Program Types" || record.Facility === programType
+        programType === "All Program Types" ||
+        record["ATD_Program_Name"] === programType
     );
 
     const mappedBreakdown = breakdownMapping[breakdownType] || "none";
@@ -74,7 +75,9 @@ export default function Overview() {
         .filter((entry) => entry !== null)
         .sort((a, b) => a - b)
     );
-    let programTypeArrayInt = [...new Set(csvData.map((obj) => obj.Facility))]
+    let programTypeArrayInt = [
+      ...new Set(csvData.map((obj) => obj[["ATD_Program_Name"]])),
+    ]
       .filter((entry) => entry !== null && entry !== "")
       .sort((a, b) => a - b);
 
@@ -221,6 +224,7 @@ export default function Overview() {
                   selectedLabelsChoice={selectedLabelsChoice}
                   selectedLegendOptions={selectedLegendOptions}
                   selectedLegendDetails={selectedLegendDetails}
+                  selectedValue={[null, null]}
                 />
               </div>
             </div>

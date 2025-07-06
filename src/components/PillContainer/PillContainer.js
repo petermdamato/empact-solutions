@@ -32,7 +32,7 @@ const PillContainer = ({
   }, [data]);
 
   return (
-    <div className="pill-container" style={{ width: "100%" }}>
+    <div className="pill-container" style={{ padding: 0, width: "100%" }}>
       {chartData.map((outer, i) => (
         <Pill
           key={"pill-" + i}

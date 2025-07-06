@@ -2,8 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
-import Selector from "../Selector/Selector";
-import EnhancedTooltip from "@/components/EnhancedTooltip/EnhancedTooltip";
+import LineChartEnhancedTooltip from "@/components/EnhancedTooltip/LineChartEnhancedTooltip";
 
 const defaultColorPalette = [
   "#5b6069",
@@ -13,14 +12,14 @@ const defaultColorPalette = [
   "#b6d7a8",
 ];
 
-const StackedBarChartGeneric = ({
+const StackedBarChartCentered = ({
   data,
+  tooltipPayload,
   height,
   margin = { top: 0, right: 40, bottom: 20, left: 20 },
   chartTitle,
   showChart = false,
   context = "number",
-  labelContext,
   breakdowns = ["pre", "post"],
   innerData = [],
   colorMapOverride = {},
@@ -30,27 +29,11 @@ const StackedBarChartGeneric = ({
   groupByKey,
   hasSelector = false,
   valueBreakdowns,
-  sorted = false,
 }) => {
-  if (data.every((d) => d.total === 0))
-    return (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0.6,
-        }}
-      >
-        No records match the filters
-      </div>
-    );
   const svgRef = useRef();
   const containerRef = useRef();
   const [parentWidth, setParentWidth] = useState(0);
+  const [selectedKey, setSelectedKey] = useState(null);
   const [tooltipData, setTooltipData] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
@@ -114,15 +97,9 @@ const StackedBarChartGeneric = ({
     const innerWidth = parentWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    const finalFilteredData = [...filteredData].sort((a, b) => {
-      if (sorted) {
-        const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
-        const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
-        return totalB - totalA; // descending total
-      } else {
-        return a.category.localeCompare(b.category);
-      }
-    });
+    const finalFilteredData = filteredData.sort((a, b) =>
+      a.category.localeCompare(b.category)
+    );
 
     const chart = svg
       .append("g")
@@ -142,7 +119,10 @@ const StackedBarChartGeneric = ({
     const yScale = d3
       .scaleBand()
       .domain(finalFilteredData.map((d) => d.category))
-      .range([0, innerHeight])
+      .range([
+        data.length < 5 ? innerHeight * 0.1 : 0, // top padding if less than 5
+        data.length < 5 ? innerHeight * 0.9 : innerHeight, // bottom padding if less than 5
+      ])
       .padding(0.1);
 
     const colors = d3.schemeCategory10;
@@ -179,18 +159,18 @@ const StackedBarChartGeneric = ({
     const handleMouseMove = (event, d) => {
       if (!containerRef.current) return;
 
+      setSelectedKey(d.category);
+
       // Get container position relative to viewport
       const containerRect = containerRef.current.getBoundingClientRect();
 
       // Calculate position relative to container
       const x = event.clientX - containerRect.left;
-      const y =
-        chartTitle.includes("Exit To Type") ||
-        chartTitle.includes("ATD Disruption")
-          ? event.clientY - containerRect.top
-          : event.clientY > 600
-          ? event.clientY - containerRect.top - 300
-          : event.clientY - containerRect.top;
+      const y = chartTitle.includes("Disruption")
+        ? event.clientY - containerRect.top
+        : event.clientY > 600
+        ? event.clientY - containerRect.top - 300
+        : event.clientY - containerRect.top;
 
       const totalAcrossAllCategories = d3.sum(filteredData, (row) =>
         breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
@@ -293,37 +273,29 @@ const StackedBarChartGeneric = ({
             handleDirectClick(cat);
           });
 
-        // Label logic...
         const labelText = value.toString();
-        const tempText = chart
-          .append("text")
-          .text(labelText)
-          .attr("font-size", 14)
-          .style("visibility", "hidden");
-
-        const textWidth = tempText.node().getBBox().width;
-        tempText.remove();
-
+        console.log(colorMap[key], key);
         labelsLayer
           .append("text")
-          .style("opacity", labelText > 0 ? 1 : 0)
-          .attr("x", width + 8)
+          .attr("x", xOffset + width / 2)
           .attr("y", yScale(d.category) + yScale.bandwidth() / 2)
           .attr("dy", "0.35em")
-          .attr("text-anchor", "start")
-          .attr("fill", "black")
+          .attr("text-anchor", "middle")
+          .attr("fill", colorMap[key] === "#5b6069" ? "white" : "black") // white text if inside bar
+          .attr("opacity", width < 74 ? 0 : 1)
           .style("font-size", 14)
           .style("user-select", "none")
           .attr("pointer-events", "none")
           .text(
-            labelContext && labelContext === "percent"
-              ? Math.round(
-                  (+labelText * 100) /
-                    d3.sum(filteredData, (row) =>
-                      breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
-                    )
-                ) + "%"
-              : Math.round(labelText * 10) / 10
+            Math.round(
+              (+labelText * 100) /
+                d3.sum(filteredData, (row) =>
+                  breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
+                )
+            ) +
+              "% (" +
+              Math.round(labelText * 10) / 10 +
+              ")"
           );
 
         xOffset += width;
@@ -387,15 +359,15 @@ const StackedBarChartGeneric = ({
             width: "420px",
           }}
         >
-          <EnhancedTooltip
+          <LineChartEnhancedTooltip
             active={tooltipData.active}
             chartBreakdowns={breakdowns}
             payload={tooltipData.payload}
             chartData={showChart ? innerData : []}
-            showChart={showChart}
             label={tooltipData.label}
             chartTitle={chartTitle}
-            groupByKey={groupByKey}
+            selectedKey={selectedKey}
+            tooltipPayload={tooltipPayload}
             valueFormatter={(value) => {
               let identifier;
               const title = chartTitle;
@@ -430,4 +402,4 @@ const StackedBarChartGeneric = ({
   );
 };
 
-export default StackedBarChartGeneric;
+export default StackedBarChartCentered;

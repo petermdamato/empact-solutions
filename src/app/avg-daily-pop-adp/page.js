@@ -175,7 +175,7 @@ export default function Overview() {
       ).map(([race, value]) => {
         return {
           category: race,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 
@@ -190,7 +190,7 @@ export default function Overview() {
       ).map(([race, value]) => {
         return {
           category: race,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 
@@ -215,7 +215,7 @@ export default function Overview() {
       ).map(([gender, value]) => {
         return {
           category: gender,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 
@@ -232,7 +232,7 @@ export default function Overview() {
       ).map(([age, value]) => {
         return {
           category: age,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 
@@ -249,7 +249,7 @@ export default function Overview() {
       ).map(([cat, value]) => {
         return {
           category: cat,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 
@@ -266,7 +266,7 @@ export default function Overview() {
       ).map(([cat, value]) => {
         return {
           category: cat,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 
@@ -283,7 +283,7 @@ export default function Overview() {
       ).map(([cat, value]) => {
         return {
           category: cat,
-          "Pre-dispo": value,
+          Total: value,
         };
       });
 

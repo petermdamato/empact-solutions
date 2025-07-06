@@ -139,7 +139,6 @@ export default function Overview() {
   useEffect(() => {
     if (filterVariable && Object.keys(filterVariable).length > 0) {
       const [key, value] = Object.entries(filterVariable)[0];
-      console.log(key, value);
       if (key === "Race/Ethnicity") {
         if (raceType === "RaceEthnicity") {
           setFinalData(

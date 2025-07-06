@@ -2,3 +2,13 @@ html,
 body {
   background-color: #f5f7fa;
 }
+body.pdf-export-mode .dateslider-container {
+  display: none !important;
+}
+
+body.pdf-export-mode .dateslider-text {
+  display: block !important;
+}
+body.pdf-export-mode .scores-display-selector {
+  opacity: 0 !important;
+}

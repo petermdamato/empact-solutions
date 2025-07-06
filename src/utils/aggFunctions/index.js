@@ -5,6 +5,9 @@ export {
   analyzeReasonForDetention,
   analyzeAdmissionsOnly,
 } from "./dataAnalysisV2";
+export { default as analyzeExitsByExploreType } from "./analyzeByBreakdownType";
+export { default as analyzeDisruptionPercentsByYear } from "./analyzeDisruptionPercentsByYear";
+export { default as analyzeExitsByDisruptionType } from "./analyzeExitsByDisruptionType";
 export { default as dataAnalysisLOS } from "./dataAnalysisLOSAlone";
 export { default as dataAnalysisV3 } from "./dataAnalysisV3";
 export { default as analyzeExitsByYear } from "./analyzeExitsByYear";

@@ -34,6 +34,7 @@ const aggregatePopulationByStatus = (
   const result = {
     "Awaiting Placement": { post: 0, pre: 0 },
     Other: { post: 0, pre: 0 },
+    "Confinement to Secure Detention": { post: 0, pre: 0 },
     "New Offense": { post: 0, pre: 0 },
     Technical: { post: 0, pre: 0 },
   };
@@ -41,15 +42,17 @@ const aggregatePopulationByStatus = (
   // Function to determine category
   const determineCategory = (record) => {
     const postStatus = record.Post_Adjudicated_Status;
+    const postReason = record["Post-Dispo Stay Reason"];
     const offenseCategory = record.OffenseCategory?.toLowerCase() || "";
 
     // First check Post_Adjudicated_Status
-    if (postStatus) {
-      const lowerStatus = postStatus.toLowerCase();
+    if (postReason) {
+      const lowerStatus = postReason.toLowerCase();
       if (lowerStatus.includes("awaiting")) {
         return "Awaiting Placement";
-      }
-      if (lowerStatus.includes("other")) {
+      } else if (lowerStatus.includes("confinement")) {
+        return "Confinement to Secure Detention";
+      } else if (lowerStatus.includes("other")) {
         return "Other";
       }
     }

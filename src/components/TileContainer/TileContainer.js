@@ -96,7 +96,7 @@ const TileContainer = ({ data, datesRange }) => {
                 datesRange={datesRange}
               />
             ) : (
-              <></>
+              <div key={"empty-tile-" + i}></div>
             )
           )}
         </Tile>

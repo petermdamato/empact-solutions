@@ -1,25 +1,39 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useLayoutEffect } from "react";
 import * as d3 from "d3";
 import OverrideReasonTable from "../OverrideReasonLines/OverrideReasonLines";
 
-const DistributionChartV2 = ({
-  data,
-  keysArray = ["no", "yes"],
-  height,
-  width,
-}) => {
+const DistributionChartV2 = ({ data, height, width }) => {
   const svgRef = useRef();
+  const containerRef = useRef();
+  const [dimensions, setDimensions] = useState({ width: 0, height });
   const [hoveredReason, setHoveredReason] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const [showChart, setShowChart] = useState(false);
 
+  // Handle resize and initial width measurement
+  useLayoutEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: height || containerRef.current.offsetHeight,
+        });
+      }
+    };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, [height]);
+
   useEffect(() => {
+    if (dimensions.width === 0) return;
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
     const groupKey = "Override_Reason";
-
-    const rawData = data?.[0]?.data || [];
+    const rawData = data?.data || [];
     if (!rawData.length) return;
 
     const filteredData = rawData
@@ -33,11 +47,11 @@ const DistributionChartV2 = ({
 
     if (!filteredData.length) {
       svg
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", dimensions.width)
+        .attr("height", dimensions.height)
         .append("text")
-        .attr("x", width / 2)
-        .attr("y", height / 2)
+        .attr("x", dimensions.width / 2)
+        .attr("y", dimensions.height / 2)
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
         .style("fill", "#666")
@@ -46,29 +60,18 @@ const DistributionChartV2 = ({
     }
 
     const margin = { top: 60, right: 20, bottom: 80, left: 10 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
+    const innerWidth = dimensions.width - margin.left - margin.right;
+    const innerHeight = dimensions.height - margin.top - margin.bottom;
 
     const grouped = d3.rollups(
       filteredData,
-      (records) => {
-        const breakdown = {};
-        keysArray.forEach((key) => {
-          breakdown[key] = records.filter((d) => {
-            const hold = +d.Auto_Hold;
-            return (
-              (hold === 0 && key === "no") || (hold === 1 && key === "yes")
-            );
-          }).length;
-        });
-        return breakdown;
-      },
+      (records) => records.length,
       (d) => d[groupKey]
     );
 
-    const formattedData = grouped.map(([group, values]) => ({
+    const formattedData = grouped.map(([group, total]) => ({
       [groupKey]: group,
-      ...values,
+      total,
     }));
 
     const x = d3
@@ -79,27 +82,21 @@ const DistributionChartV2 = ({
 
     const y = d3
       .scaleLinear()
-      .domain([
-        0,
-        d3.max(formattedData, (d) => d3.sum(keysArray, (key) => d[key] || 0)),
-      ])
+      .domain([0, d3.max(formattedData, (d) => d.total)])
       .nice()
       .range([innerHeight, 0]);
 
     const chart = svg
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", dimensions.width)
+      .attr("height", dimensions.height)
       .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`)
-      .on("mouseleave", () => {
-        setHoveredReason(null);
-        setShowChart(false);
-      });
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
     chart
       .append("text")
       .attr("x", margin.left)
       .attr("y", margin.top / -2 - 8)
+      .attr("pointer-events", "none")
       .attr("text-anchor", "left")
       .style("font-size", "14px")
       .style("font-weight", "bold")
@@ -109,8 +106,10 @@ const DistributionChartV2 = ({
     chart
       .append("g")
       .attr("transform", `translate(0,${innerHeight})`)
+      .attr("pointer-events", "none")
       .call(d3.axisBottom(x).tickFormat(""));
 
+    // Category labels
     formattedData.forEach((d) => {
       const xPos = x(d[groupKey]) + x.bandwidth() / 2;
       const label = d[groupKey];
@@ -121,6 +120,7 @@ const DistributionChartV2 = ({
         .append("text")
         .attr("x", xPos)
         .attr("y", innerHeight + 15)
+        .attr("pointer-events", "none")
         .attr("text-anchor", "middle")
         .style("font-size", "12px")
         .attr("fill", "#333");
@@ -135,6 +135,7 @@ const DistributionChartV2 = ({
         const tempText = chart
           .append("text")
           .attr("opacity", 0)
+          .attr("pointer-events", "none")
           .style("font-size", "12px")
           .text(testLine);
         const textWidth = tempText.node().getBBox().width;
@@ -145,6 +146,7 @@ const DistributionChartV2 = ({
           textElement
             .append("tspan")
             .attr("x", xPos)
+            .attr("pointer-events", "none")
             .attr("dy", lineNumber === 0 ? 0 : lineHeight)
             .text(line.join(" "));
           line = [word];
@@ -155,6 +157,7 @@ const DistributionChartV2 = ({
           textElement
             .append("tspan")
             .attr("x", xPos)
+            .attr("pointer-events", "none")
             .attr("dy", lineNumber === 0 ? 0 : lineHeight)
             .text(line.join(" "));
         }
@@ -163,10 +166,9 @@ const DistributionChartV2 = ({
 
     // Bars
     formattedData.forEach((d) => {
-      const total = d3.sum(keysArray, (key) => d[key] || 0);
-      const barHeight = innerHeight - y(total);
+      const barHeight = innerHeight - y(d.total);
       const xPos = x(d[groupKey]);
-      const yPos = y(total);
+      const yPos = y(d.total);
 
       chart
         .append("rect")
@@ -175,10 +177,13 @@ const DistributionChartV2 = ({
         .attr("width", x.bandwidth())
         .attr("height", barHeight)
         .attr("fill", "#5a6b7c")
-        .on("mousemove", (event) => {
+        .on("mouseenter", (event) => {
           setHoveredReason(d[groupKey]);
           setHoverPosition({ x: event.clientX, y: event.clientY });
           setShowChart(true);
+        })
+        .on("mousemove", (event) => {
+          setHoverPosition({ x: event.clientX, y: event.clientY });
         })
         .on("mouseleave", () => {
           setHoveredReason(null);
@@ -189,46 +194,52 @@ const DistributionChartV2 = ({
         .append("text")
         .attr("x", xPos + x.bandwidth() / 2)
         .attr("y", yPos - 8)
+        .attr("pointer-events", "none")
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
         .style("font-weight", "bold")
         .attr("fill", "#333")
-        .text(total);
+        .text(d.total);
     });
-  }, [data, keysArray, width, height]);
+  }, [data, dimensions]);
 
   const reasonTableData = (() => {
-    if (!hoveredReason || !data?.[0]?.timeSeriesDataCountByReason) return null;
-    const timeSeries = data[0].timeSeriesDataCountByReason;
-
-    return timeSeries;
+    if (!hoveredReason || !data?.timeSeriesDataCountByReason) return null;
+    return data.timeSeriesDataCountByReason;
   })();
 
   return (
-    <>
-      <svg ref={svgRef}></svg>
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
+      <svg
+        ref={svgRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+        }}
+      ></svg>
       {showChart && hoveredReason && reasonTableData && (
         <div
           style={{
             position: "fixed",
             top: hoverPosition.y + 10,
-            left: hoverPosition.x + 10,
+            left: hoverPosition.x - 400 + 10,
             background: "#fff",
             border: "1px solid #e2e8f0",
             borderRadius: "8px",
             padding: "12px",
             zIndex: 999,
             boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-            // pointerEvents: "none",
+            pointerEvents: "none",
           }}
         >
-          <h4 style={{ margin: "0 0 8px", fontSize: "14px" }}>
+          <h4 style={{ margin: "0 0 2px", fontSize: "14px" }}>
             {hoveredReason}
           </h4>
           <OverrideReasonTable data={reasonTableData} />
         </div>
       )}
-    </>
+    </div>
   );
 };
 

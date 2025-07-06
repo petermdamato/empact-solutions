@@ -20,6 +20,7 @@ export default function Overview() {
   const [selectedYear, setSelectedYear] = useState(2024);
   const [yearsArray, setYearsArray] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandForDownload, setExpandForDownload] = useState(false);
 
   const onSelectChange = (e) => {
     setSelectedYear(+e);
@@ -468,11 +469,25 @@ export default function Overview() {
   }, [csvData, selectedYear]);
 
   return (
-    <div className="max-w-xl mx-auto mt-10">
+    <div
+      style={{
+        maxWidth: "100%",
+        margin: "0 auto",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div
-          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          style={{
+            display: "flex",
+            flexGrow: 1,
+            flexDirection: "column",
+            height: expandForDownload ? "1800px" : "100%",
+          }}
+          className="full-height"
           ref={contentRef}
         >
           <Header
@@ -488,9 +503,18 @@ export default function Overview() {
               elementRef={contentRef}
               filename="secure-detention-table.pdf"
               orientation="portrait"
+              onBeforeDownload={() => setExpandForDownload(true)}
+              onAfterDownload={() => setExpandForDownload(false)}
             />
           </Header>
-          <div>
+          <div
+            style={{
+              flexGrow: 1,
+              overflowY: expandForDownload ? "visible" : "auto",
+              maxHeight: expandForDownload ? "none" : "100%",
+            }}
+            className="scrollable-content"
+          >
             {loading ? (
               <div className="spinner-container">
                 <div className="spinner" />

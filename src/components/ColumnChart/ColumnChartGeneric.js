@@ -189,6 +189,7 @@ const ColumnChartGeneric = ({
       .attr("y", (d) => yScale(d.value) - 5)
       .attr("text-anchor", "middle")
       .style("font-size", "14px")
+      .attr("pointer-events", "none")
       .text((d) => d.value);
 
     // chart title
