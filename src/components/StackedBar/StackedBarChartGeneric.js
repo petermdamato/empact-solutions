@@ -22,10 +22,11 @@ const StackedBarChartGeneric = ({
   context = "number",
   labelContext,
   breakdowns = ["pre", "post"],
+  innerBreakdowns,
   innerData = [],
   colorMapOverride = {},
   filterVariable,
-  setFilterVariable,
+  toggleFilter,
   calculationType,
   groupByKey,
   hasSelector = false,
@@ -156,9 +157,9 @@ const StackedBarChartGeneric = ({
         currentKey === groupByKey && currentValue === selectedValue;
 
       if (isSameSelection) {
-        setFilterVariable(null);
+        toggleFilter(null);
       } else {
-        setFilterVariable({ [groupByKey]: selectedValue });
+        toggleFilter({ key: groupByKey, value: selectedValue });
       }
     };
 
@@ -169,9 +170,9 @@ const StackedBarChartGeneric = ({
       const isSameSelection =
         currentKey === groupByKey && currentValue === selectedValue;
       if (isSameSelection) {
-        setFilterVariable(null);
+        toggleFilter(null);
       } else {
-        setFilterVariable({ [groupByKey]: selectedValue });
+        toggleFilter({ key: groupByKey, value: selectedValue });
       }
     };
 
@@ -183,7 +184,10 @@ const StackedBarChartGeneric = ({
       const containerRect = containerRef.current.getBoundingClientRect();
 
       // Calculate position relative to container
-      const x = event.clientX - containerRect.left;
+      const x =
+        event.clientX > 800
+          ? event.clientX - containerRect.left - 340
+          : event.clientX - containerRect.left;
       const y =
         chartTitle.includes("Exit To Type") ||
         chartTitle.includes("ATD Disruption")
@@ -358,7 +362,7 @@ const StackedBarChartGeneric = ({
     breakdowns,
     context,
     filterVariable,
-    setFilterVariable,
+    toggleFilter,
     groupByKey,
   ]);
 
@@ -376,11 +380,7 @@ const StackedBarChartGeneric = ({
         <div
           style={{
             position: "absolute",
-            left: `${
-              tooltipPosition.x > 400
-                ? tooltipPosition.x - 320
-                : tooltipPosition.x
-            }px`,
+            left: `${tooltipPosition.x}px`,
             top: `${tooltipPosition.y}px`,
             pointerEvents: "none",
             zIndex: 100,
@@ -389,7 +389,9 @@ const StackedBarChartGeneric = ({
         >
           <EnhancedTooltip
             active={tooltipData.active}
-            chartBreakdowns={breakdowns}
+            chartBreakdowns={
+              innerBreakdowns === undefined ? breakdowns : innerBreakdowns
+            }
             payload={tooltipData.payload}
             chartData={showChart ? innerData : []}
             showChart={showChart}

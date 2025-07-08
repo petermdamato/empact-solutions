@@ -1,36 +1,46 @@
 import * as d3 from "d3";
-const wrap = (text, width) => {
+
+const wrap = (text, width, labelHeight) => {
   text.each(function () {
-    var text = d3.select(this),
-      words = text.text().split(/\s+/).reverse(),
-      word,
-      line = [],
-      lineNumber = 0,
-      lineHeight = 1.1, // ems
-      x = text.attr("x"),
-      y = text.attr("y"),
-      dy = 0, //parseFloat(text.attr("dy")),
-      tspan = text
-        .text(null)
-        .append("tspan")
-        .attr("x", x)
-        .attr("y", y)
-        .attr("dy", dy + "em");
+    const text = d3.select(this);
+    const words = text.text().split(/\s+/).reverse();
+    let word;
+    let line = [];
+    const lines = [];
+    const lineHeight = 0.9; // ems, adjust as desired
+
+    // Build lines array by simulating word wrapping
+    let tempText = text.text(null).append("tspan");
     while ((word = words.pop())) {
       line.push(word);
-      tspan.text(line.join(" "));
-      if (tspan.node().getComputedTextLength() > width) {
+      tempText.text(line.join(" "));
+      if (tempText.node().getComputedTextLength() > width) {
         line.pop();
-        tspan.text(line.join(" "));
+        lines.push(line.join(" "));
         line = [word];
-        tspan = text
-          .append("tspan")
-          .attr("x", x)
-          .attr("y", y)
-          .attr("dy", ++lineNumber * lineHeight + dy + "em")
-          .text(word);
       }
     }
+    lines.push(line.join(" "));
+
+    // Remove temp tspan
+    tempText.remove();
+
+    // Calculate starting offset based on number of lines and labelHeight
+    const totalLineHeightEm = lines.length * lineHeight;
+    const startDyEm =
+      lines.length === 1
+        ? 0.35 // single line, standard vertical centering tweak
+        : -((totalLineHeightEm - lineHeight) / 3.5);
+
+    // Render lines
+    lines.forEach((lineText, i) => {
+      text
+        .append("tspan")
+        .attr("x", text.attr("x"))
+        .attr("y", text.attr("y"))
+        .attr("dy", (i === 0 ? startDyEm : lineHeight) + "em")
+        .text(lineText);
+    });
   });
 };
 

@@ -110,7 +110,7 @@ export default function Overview() {
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
-  const [filterVariable, setFilterVariable] = useState(null);
+  const [filterVariables, setFilterVariable] = useState([]);
   const [raceType, setRaceType] = useState("RaceEthnicity");
 
   const [dataArray11, setDataArray11] = useState([]);
@@ -127,6 +127,19 @@ export default function Overview() {
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
 
+  const toggleFilter = (newFilter) => {
+    console.log(newFilter);
+    setFilterVariable((prev) => {
+      const exists = prev.find((f) => f.key === newFilter.key);
+      if (exists) {
+        return prev.filter((f) => f.key !== newFilter.key);
+      } else {
+        return [...prev, newFilter];
+      }
+    });
+  };
+  console.log(filterVariables);
+
   const onSelectChange = (e) => {
     setSelectedYear(e);
   };
@@ -135,7 +148,7 @@ export default function Overview() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setFilterVariable(null);
+        setFilterVariable([]);
       }
     };
 
@@ -148,66 +161,55 @@ export default function Overview() {
 
   // Pull in for the filter of types
   useEffect(() => {
-    if (filterVariable && Object.keys(filterVariable).length > 0) {
-      const [key, value] = Object.entries(filterVariable)[0];
-      if (key === "Race/Ethnicity") {
-        if (raceType === "RaceEthnicity") {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+    if (filterVariables.length > 0) {
+      let filtered = [...csvData]; // clone csvData
+
+      filterVariables.forEach(({ key, value }) => {
+        if (key === "Race/Ethnicity") {
+          if (raceType === "RaceEthnicity") {
+            filtered = filtered.filter(
               (record) =>
                 categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
                 value
-            )
-          );
-        } else {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          } else {
+            filtered = filtered.filter(
               (record) =>
                 categorizeYoc(record["Race"], record["Ethnicity"]) === value
-            )
-          );
-        }
-      } else if (key === "Age") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          }
+        } else if (key === "Age") {
+          filtered = filtered.filter(
             (record) => categorizeAge(record, incarcerationType) === value
-          )
-        );
-      } else if (key === "Gender" || key === "Screened/not screened") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => record[key] === value
-          )
-        );
-      } else if (key === "Pre/post-dispo filter") {
-        if (value === "Pre-dispo") {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+          );
+        } else if (key === "Gender" || key === "Screened/not screened") {
+          filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Pre/post-dispo filter") {
+          if (value === "Pre-dispo") {
+            filtered = filtered.filter(
               (record) =>
                 record["Post-Dispo Stay Reason"] === null ||
                 record["Post-Dispo Stay Reason"] === ""
-            )
-          );
-        } else {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          } else {
+            filtered = filtered.filter(
               (record) =>
                 record["Post-Dispo Stay Reason"] &&
                 record["Post-Dispo Stay Reason"].length > 0
-            )
+            );
+          }
+        } else {
+          filtered = filtered.filter(
+            (record) => chooseCategory(record, key) === value
           );
         }
-      } else {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => chooseCategory(record, key) === value
-          )
-        );
-      }
+      });
+
+      setFinalData(filtered);
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariable, csvData, raceType]);
+  }, [filterVariables, csvData, raceType]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -247,7 +249,7 @@ export default function Overview() {
         },
       ]);
     }
-  }, [finalData, selectedYear, programType, filterVariable]);
+  }, [finalData, selectedYear, programType, filterVariables]);
 
   useEffect(() => {
     setYearsArray(
@@ -515,8 +517,8 @@ export default function Overview() {
                   groupByKey={"Screened/not screened"}
                   type={"secure-detention"}
                   chartTitle={"Admissions by screened/not screened"}
-                  setFilterVariable={setFilterVariable}
-                  filterVariable={filterVariable}
+                  toggleFilter={toggleFilter}
+                  filterVariables={filterVariables}
                 />
               </div>
             </ChartCard>
@@ -529,8 +531,8 @@ export default function Overview() {
                   groupByKey={"Pre/post-dispo filter"}
                   type={"secure-detention"}
                   chartTitle={"Admissions by Pre/Post-Dispo"}
-                  setFilterVariable={setFilterVariable}
-                  filterVariable={filterVariable}
+                  toggleFilter={toggleFilter}
+                  filterVariables={filterVariables}
                 />
               </div>
             </ChartCard>
@@ -579,6 +581,7 @@ export default function Overview() {
                       RaceEthnicity: "Race/Ethnicity",
                       RaceSimplified: "YOC/White",
                     }}
+                    secondarySetValue={setFilterVariable}
                   />
                 </div>
                 <div style={{ height: "270px", width: "100%" }}>
@@ -599,8 +602,8 @@ export default function Overview() {
                           total: colors[0],
                           "Post-dispo": colors[1],
                         }}
-                        setFilterVariable={setFilterVariable}
-                        filterVariable={filterVariable}
+                        toggleFilter={toggleFilter}
+                        filterVariables={filterVariables}
                         groupByKey={"Race/Ethnicity"}
                         showChart={false}
                       />
@@ -626,8 +629,8 @@ export default function Overview() {
                         total: colors[0],
                         "Post-dispo": colors[1],
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Gender"}
                       showChart={false}
                     />
@@ -643,6 +646,7 @@ export default function Overview() {
                     <StackedBarChartGeneric
                       data={dataArray15}
                       breakdowns={["total"]}
+                      innerBreakdowns={["Pre-dispo"]}
                       height={200}
                       margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Admissions by Age"}
@@ -651,8 +655,8 @@ export default function Overview() {
                         total: colors[0],
                         "Post-dispo": colors[1],
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
@@ -680,6 +684,7 @@ export default function Overview() {
                     <StackedBarChartGeneric
                       data={dataArray18}
                       breakdowns={["total"]}
+                      innerBreakdowns={["Pre-dispo"]}
                       height={180}
                       margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
                       chartTitle={"Admissions by Reason for Detention"}
@@ -688,8 +693,8 @@ export default function Overview() {
                         total: colors[0],
                         "Post-dispo": colors[1],
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
@@ -706,6 +711,7 @@ export default function Overview() {
                     <StackedBarChartGeneric
                       data={dataArray16}
                       breakdowns={["total"]}
+                      innerBreakdowns={["Pre-dispo"]}
                       height={260}
                       margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
                       chartTitle={"Admissions by Offense Category (pre-dispo)"}
@@ -714,8 +720,8 @@ export default function Overview() {
                         total: colors[0],
                         "Post-dispo": colors[1],
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Category"}
                       showChart={true}
                       innerData={dataArray21}
@@ -741,8 +747,8 @@ export default function Overview() {
                         total: colors[0],
                         "Post-dispo": colors[1],
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Jurisdiction"}
                       showChart={false}
                     />

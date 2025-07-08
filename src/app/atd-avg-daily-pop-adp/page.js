@@ -35,7 +35,7 @@ export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
   const [selectedYear, setSelectedYear] = useState(2024);
-  const [filterVariable, setFilterVariable] = useState(null);
+  const [filterVariables, setFilterVariable] = useState([]);
   const [finalData, setFinalData] = useState(csvData);
   const [incarcerationType] = useState("alternative-to-detention");
   const [programType, setProgramType] = useState("All Program Types");
@@ -58,11 +58,22 @@ export default function Overview() {
   const [dataArray21, setDataArray21] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
+  const toggleFilter = (newFilter) => {
+    setFilterVariable((prev) => {
+      const exists = prev.find((f) => f.key === newFilter.key);
+      if (exists) {
+        return prev.filter((f) => f.key !== newFilter.key);
+      } else {
+        return [...prev, newFilter];
+      }
+    });
+  };
+
   // Add keydown event handler
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setFilterVariable(null);
+        setFilterVariable([]);
       }
     };
 
@@ -74,71 +85,59 @@ export default function Overview() {
   }, []);
 
   useEffect(() => {
-    if (filterVariable && Object.keys(filterVariable).length > 0) {
-      const [key, value] = Object.entries(filterVariable)[0];
+    if (filterVariables.length > 0) {
+      let filtered = [...csvData]; // clone csvData
 
-      if (key === "Race/Ethnicity") {
-        if (raceType === "RaceEthnicity") {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+      filterVariables.forEach(({ key, value }) => {
+        if (key === "Race/Ethnicity") {
+          if (raceType === "RaceEthnicity") {
+            filtered = filtered.filter(
               (record) =>
                 categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
                 value
-            )
-          );
-        } else {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          } else {
+            filtered = filtered.filter(
               (record) =>
                 categorizeYoc(record["Race"], record["Ethnicity"]) === value
-            )
-          );
-        }
-      } else if (key === "Age") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          }
+        } else if (key === "Age") {
+          filtered = filtered.filter(
             (record) => categorizeAge(record, incarcerationType) === value
-          )
-        );
-      } else if (
-        key === "Gender" ||
-        key === "Screened/not screened" ||
-        key === "Facility"
-      ) {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => record[key] === value
-          )
-        );
-      } else if (key === "Pre/post-dispo filter") {
-        if (value === "Pre-dispo") {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+          );
+        } else if (
+          key === "Gender" ||
+          key === "Screened/not screened" ||
+          key === "Facility"
+        ) {
+          filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Pre/post-dispo filter") {
+          if (value === "Pre-dispo") {
+            filtered = filtered.filter(
               (record) =>
                 record["Post-Dispo Stay Reason"] === null ||
                 record["Post-Dispo Stay Reason"] === ""
-            )
-          );
-        } else {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          } else {
+            filtered = filtered.filter(
               (record) =>
                 record["Post-Dispo Stay Reason"] &&
                 record["Post-Dispo Stay Reason"].length > 0
-            )
+            );
+          }
+        } else {
+          filtered = filtered.filter(
+            (record) => chooseCategory(record, key) === value
           );
         }
-      } else {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => chooseCategory(record, key) === value
-          )
-        );
-      }
+      });
+
+      setFinalData(filtered);
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariable, csvData, raceType]);
+  }, [filterVariables, csvData, raceType]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -174,7 +173,7 @@ export default function Overview() {
         },
       ]);
     }
-  }, [finalData, selectedYear, programType, filterVariable]);
+  }, [finalData, selectedYear, programType, filterVariables]);
 
   useEffect(() => {
     setYearsArray(
@@ -464,13 +463,13 @@ export default function Overview() {
                       data={dataArray12}
                       breakdowns={["averageDailyPopulation"]}
                       height={300}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by ATD Program Type"}
                       colorMapOverride={{
                         averageDailyPopulation: "#5a6b7c",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Facility"}
                     />
                   )}
@@ -487,8 +486,8 @@ export default function Overview() {
                     groupByKey={"Pre/post-dispo filter"}
                     type={"alternative-to-detention"}
                     chartTitle={"ADP by Pre/Post-Dispo"}
-                    filterVariable={filterVariable}
-                    setFilterVariable={setFilterVariable}
+                    filterVariables={filterVariables}
+                    toggleFilter={toggleFilter}
                   />
                 </ResponsiveContainer>
               </div>
@@ -537,6 +536,7 @@ export default function Overview() {
                       RaceEthnicity: "Race/Ethnicity",
                       RaceSimplified: "YOC/White",
                     }}
+                    secondarySetValue={setFilterVariable}
                   />
                 </div>
                 <div style={{ height: "250px", width: "100%" }}>
@@ -546,14 +546,14 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["Pre-dispo"]}
                         height={220}
-                        margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                        margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                         chartTitle={""}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
                           "Post-dispo": "#d3d3d3",
                         }}
-                        setFilterVariable={setFilterVariable}
-                        filterVariable={filterVariable}
+                        toggleFilter={toggleFilter}
+                        filterVariables={filterVariables}
                         groupByKey={"Race/Ethnicity"}
                       />
                     )}
@@ -570,14 +570,14 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Gender"}
                     />
                   )}
@@ -593,14 +593,14 @@ export default function Overview() {
                       data={dataArray15}
                       breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
@@ -629,14 +629,14 @@ export default function Overview() {
                       data={dataArray18}
                       breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
@@ -655,14 +655,14 @@ export default function Overview() {
                       data={dataArray16}
                       breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Category"}
                       showChart={true}
                       innerData={dataArray21}
@@ -682,14 +682,14 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"ADP by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Jurisdiction"}
                     />
                   )}

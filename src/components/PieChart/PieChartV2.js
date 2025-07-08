@@ -8,7 +8,7 @@ const PieChart = ({
   size = 300,
   chartTitle = "Pie Chart",
   groupByKey,
-  setFilterVariable,
+  toggleFilter,
   filterVariable,
   detentionType = "secure-detention",
 }) => {
@@ -105,9 +105,9 @@ const PieChart = ({
       currentKey === groupByKey && currentValue === selectedValue;
 
     if (isSameSelection) {
-      setFilterVariable(null);
+      toggleFilter(null);
     } else {
-      setFilterVariable({ [groupByKey]: selectedValue });
+      toggleFilter({ key: groupByKey, value: selectedValue });
     }
   };
 

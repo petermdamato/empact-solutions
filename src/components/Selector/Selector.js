@@ -1,5 +1,15 @@
-const Selector = ({ values, variable, selectedValue, setValue, labelMap }) => {
+const Selector = ({
+  values,
+  variable,
+  selectedValue,
+  setValue,
+  labelMap,
+  secondarySetValue = null,
+}) => {
   const handleChange = (e) => {
+    if (secondarySetValue) {
+      secondarySetValue([]);
+    }
     const value = e.target.value;
     setValue(value);
   };

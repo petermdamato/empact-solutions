@@ -10,15 +10,17 @@ const transformToCategoryValueArray = (obj, breakdowns, valueBreakdowns) => {
   if (!breakdowns || breakdowns.length === 0 || !valueBreakdowns) {
     return Object.entries(obj).map(([key, value]) => ({
       category: key,
-      value: value,
+      value: value === null ? 0.0001 : value,
     }));
   }
 
   return Object.entries(obj).map(([key, value]) => {
     const result = { category: key };
     for (const breakdown of breakdowns) {
-      if (value[breakdown]) {
-        result[breakdown] = value[breakdown];
+      if (value && value.hasOwnProperty(breakdown)) {
+        result[breakdown] = value[breakdown] === null ? 0 : value[breakdown];
+      } else {
+        result[breakdown] = 0;
       }
     }
     return result;
@@ -58,16 +60,19 @@ const EnhancedTooltip = ({
     const normalize = (str) =>
       str ? str.toLowerCase().replace(/ies$/, "y").replace(/s$/, "") : "";
 
-    const finalData = transformedData.filter((entry) =>
-      chartTitle.includes("Age")
+    const finalData = transformedData.filter((entry) => {
+      return (!chartBreakdowns ||
+        chartBreakdowns.length === 0 ||
+        entry[chartBreakdowns[0]] > 0.001) &&
+        chartTitle.includes("Age")
         ? getAgeBracket(entry.category) === label
         : chartTitle.includes("Category")
         ? normalize(getSimplifiedOffenseCategory(entry.category)) ===
           normalize(label)
         : chartTitle.includes("Reason")
         ? normalize(offenseMap[entry.category]) === normalize(label)
-        : false
-    );
+        : false;
+    });
 
     if (
       finalData.length > 0 &&
@@ -79,7 +84,19 @@ const EnhancedTooltip = ({
       });
     }
 
-    setInnerData(finalData);
+    const sortedData = [...finalData]
+      .sort((a, b) => {
+        const aEntry = Object.entries(a).find(([k]) => k !== "category");
+        const bEntry = Object.entries(b).find(([k]) => k !== "category");
+        const aValue = aEntry ? aEntry[1] : 0;
+        const bValue = bEntry ? bEntry[1] : 0;
+        return bValue - aValue;
+      })
+      .slice(0, 5);
+
+    setInnerData(
+      groupByKey === "Reason for Detention" ? sortedData : finalData
+    );
   }, [
     showChart,
     chartData,
@@ -166,7 +183,7 @@ const EnhancedTooltip = ({
 
       {showChart && (
         <>
-          <button
+          {/* <button
             onClick={() => setExpanded(!expanded)}
             style={{
               marginTop: "8px",
@@ -178,18 +195,22 @@ const EnhancedTooltip = ({
             }}
           >
             {expanded ? "Hide chart" : "Show chart"}
-          </button>
+          </button> */}
 
           {expanded && innerData.length > 0 && (
             <div style={{ marginTop: "12px", height: "140px" }}>
               <div>
-                <h3>Breakdown</h3>
+                <h3>
+                  {groupByKey === "Reason for Detention"
+                    ? "Top 5 Reasons"
+                    : "Breakdown"}
+                </h3>
               </div>
               <StackedBarChartGeneric
                 data={innerData}
-                showChart={true}
+                sorted={groupByKey === "Reason for Detention"}
                 breakdowns={chartBreakdowns}
-                height={180}
+                height={160}
                 margin={{ top: 0, right: 40, bottom: 40, left: 20 }}
                 chartTitle={groupByKey}
                 hideLegend={true}

@@ -37,7 +37,7 @@ export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
   const [selectedYear, setSelectedYear] = useState(2024);
-  const [filterVariable, setFilterVariable] = useState(null);
+  const [filterVariables, setFilterVariable] = useState([]);
   const [finalData, setFinalData] = useState(csvData);
   const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType, setCalculationType] = useState("average");
@@ -61,11 +61,22 @@ export default function Overview() {
   const [dataArray21, setDataArray21] = useState([]);
   const [raceData, setRaceData] = useState([]);
 
+  const toggleFilter = (newFilter) => {
+    setFilterVariable((prev) => {
+      const exists = prev.find((f) => f.key === newFilter.key);
+      if (exists) {
+        return prev.filter((f) => f.key !== newFilter.key);
+      } else {
+        return [...prev, newFilter];
+      }
+    });
+  };
+
   // Add keydown event handler
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setFilterVariable(null);
+        setFilterVariable([]);
       }
     };
 
@@ -78,70 +89,59 @@ export default function Overview() {
 
   // Pull in for the filter of types
   useEffect(() => {
-    if (filterVariable && Object.keys(filterVariable).length > 0) {
-      const [key, value] = Object.entries(filterVariable)[0];
-      if (key === "Race/Ethnicity") {
-        if (raceType === "RaceEthnicity") {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+    if (filterVariables.length > 0) {
+      let filtered = [...csvData]; // clone csvData
+
+      filterVariables.forEach(({ key, value }) => {
+        if (key === "Race/Ethnicity") {
+          if (raceType === "RaceEthnicity") {
+            filtered = filtered.filter(
               (record) =>
                 categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
                 value
-            )
-          );
-        } else {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          } else {
+            filtered = filtered.filter(
               (record) =>
                 categorizeYoc(record["Race"], record["Ethnicity"]) === value
-            )
-          );
-        }
-      } else if (key === "Age") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          }
+        } else if (key === "Age") {
+          filtered = filtered.filter(
             (record) => categorizeAge(record, incarcerationType) === value
-          )
-        );
-      } else if (
-        key === "Gender" ||
-        key === "Screened/not screened" ||
-        key === "Facility"
-      ) {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => record[key] === value
-          )
-        );
-      } else if (key === "Pre/post-dispo filter") {
-        if (value === "Pre-dispo") {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+          );
+        } else if (
+          key === "Gender" ||
+          key === "Screened/not screened" ||
+          key === "Facility"
+        ) {
+          filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Pre/post-dispo filter") {
+          if (value === "Pre-dispo") {
+            filtered = filtered.filter(
               (record) =>
                 record["Post-Dispo Stay Reason"] === null ||
                 record["Post-Dispo Stay Reason"] === ""
-            )
-          );
-        } else {
-          setFinalData(
-            JSON.parse(JSON.stringify(csvData)).filter(
+            );
+          } else {
+            filtered = filtered.filter(
               (record) =>
                 record["Post-Dispo Stay Reason"] &&
                 record["Post-Dispo Stay Reason"].length > 0
-            )
+            );
+          }
+        } else {
+          filtered = filtered.filter(
+            (record) => chooseCategory(record, key) === value
           );
         }
-      } else {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => chooseCategory(record, key) === value
-          )
-        );
-      }
+      });
+
+      setFinalData(filtered);
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariable, csvData, raceType]);
+  }, [filterVariables, csvData, raceType]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -173,7 +173,7 @@ export default function Overview() {
         },
       ]);
     }
-  }, [finalData, selectedYear, programType, filterVariable]);
+  }, [finalData, selectedYear, programType, filterVariables]);
 
   useEffect(() => {
     setYearsArray(
@@ -371,25 +371,37 @@ export default function Overview() {
 
       setDataArray19(overallArr);
 
-      setDataArray20(
-        dataAnalysisLOS(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "AgeDetail",
-          "alternative-to-detention"
-        )
+      const losByAge = dataAnalysisLOS(
+        finalData,
+        `${calculationType}LengthOfStay`,
+        +selectedYear,
+        "AgeDetail",
+        "alternative-to-detention"
+      );
+      const losByAgeTransformed = Object.fromEntries(
+        Object.entries(losByAge).map(([category, { count, los }]) => [
+          category,
+          los,
+        ])
       );
 
-      setDataArray21(
-        dataAnalysisLOS(
-          finalData,
-          `${calculationType}LengthOfStay`,
-          +selectedYear,
-          "OffenseCategory",
-          "alternative-to-detention"
-        )
+      setDataArray20(losByAgeTransformed);
+
+      const losByCat = dataAnalysisLOS(
+        finalData,
+        `${calculationType}LengthOfStay`,
+        +selectedYear,
+        "OffenseCategory",
+        "alternative-to-detention"
       );
+
+      const losByCatTransformed = Object.fromEntries(
+        Object.entries(losByCat).map(([category, { count, los }]) => [
+          category,
+          los,
+        ])
+      );
+      setDataArray21(losByCatTransformed);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -511,8 +523,8 @@ export default function Overview() {
                         medianLengthOfStay: "#5a6b7c",
                       }}
                       calculationType={calculationType}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Facility"}
                       showChart={false}
                     />
@@ -532,8 +544,8 @@ export default function Overview() {
                     type={"alternative-to-detention"}
                     title={"LOS by Pre/Post-Dispo"}
                     chartTitle={"LOS by Pre/Post-Dispo"}
-                    filterVariable={filterVariable}
-                    setFilterVariable={setFilterVariable}
+                    filterVariables={filterVariables}
+                    toggleFilter={toggleFilter}
                   />
                 </ResponsiveContainer>
               </div>
@@ -582,6 +594,7 @@ export default function Overview() {
                       RaceEthnicity: "Race/Ethnicity",
                       RaceSimplified: "YOC/White",
                     }}
+                    secondarySetValue={setFilterVariable}
                   />
                 </div>
                 <div style={{ height: "260px", width: "100%" }}>
@@ -591,7 +604,7 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["Total"]}
                         height={220}
-                        margin={{ top: 0, right: 40, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "LOS by Race/Ethnicity"
@@ -603,8 +616,8 @@ export default function Overview() {
                           "Post-dispo": "#d3d3d3",
                         }}
                         calculationType={calculationType}
-                        setFilterVariable={setFilterVariable}
-                        filterVariable={filterVariable}
+                        toggleFilter={toggleFilter}
+                        filterVariables={filterVariables}
                         groupByKey={"Race/Ethnicity"}
                         showChart={false}
                       />
@@ -622,7 +635,7 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["Total"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Gender"}
                       calculationType={calculationType}
                       colorMapOverride={{
@@ -630,8 +643,8 @@ export default function Overview() {
                         Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Gender"}
                       showChart={false}
                     />
@@ -651,17 +664,18 @@ export default function Overview() {
                           entry.category !== "Unknown"
                       )}
                       breakdowns={["Total"]}
+                      innerBreakdowns={["Pre-dispo"]}
                       calculationType={calculationType}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
@@ -689,17 +703,18 @@ export default function Overview() {
                     <StackedBarChartGeneric
                       data={dataArray18}
                       breakdowns={["Total"]}
+                      innerBreakdowns={["Pre-dispo"]}
                       height={180}
                       calculationType={calculationType}
-                      margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
@@ -717,17 +732,18 @@ export default function Overview() {
                     <StackedBarChartGeneric
                       data={dataArray16}
                       breakdowns={["Total"]}
+                      innerBreakdowns={["Pre-dispo"]}
                       height={260}
                       calculationType={calculationType}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Category"}
                       showChart={true}
                       innerData={dataArray21}
@@ -747,15 +763,15 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["Total"]}
                       height={240}
-                      margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Jurisdiction"}
                       showChart={false}
                     />

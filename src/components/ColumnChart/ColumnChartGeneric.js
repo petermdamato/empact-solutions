@@ -11,7 +11,7 @@ const ColumnChartGeneric = ({
   margin = { top: 60, right: 20, bottom: 30, left: 40 },
   chartTitle = "",
   filterVariable,
-  setFilterVariable,
+  toggleFilter,
   groupByKey,
   calculationType,
   context = "number",
@@ -77,9 +77,9 @@ const ColumnChartGeneric = ({
         currentKey === groupByKey && currentValue === selectedValue;
 
       if (isSameSelection) {
-        setFilterVariable(null);
+        toggleFilter(null);
       } else {
-        setFilterVariable({ [groupByKey]: selectedValue });
+        toggleFilter({ key: groupByKey, value: selectedValue });
       }
     };
 
@@ -92,9 +92,9 @@ const ColumnChartGeneric = ({
         currentKey === groupByKey && currentValue === selectedValue;
 
       if (isSameSelection) {
-        setFilterVariable(null);
+        toggleFilter(null);
       } else {
-        setFilterVariable({ [groupByKey]: selectedValue });
+        toggleFilter({ key: groupByKey, value: selectedValue });
       }
     };
 
@@ -208,7 +208,7 @@ const ColumnChartGeneric = ({
     chartTitle,
     filterVariable,
     groupByKey,
-    setFilterVariable,
+    toggleFilter,
     context,
   ]);
 
