@@ -128,7 +128,6 @@ export default function Overview() {
   const [showMap, setShowMap] = useState(false);
 
   const toggleFilter = (newFilter) => {
-    console.log(newFilter);
     setFilterVariable((prev) => {
       const exists = prev.find((f) => f.key === newFilter.key);
       if (exists) {
@@ -138,7 +137,6 @@ export default function Overview() {
       }
     });
   };
-  console.log(filterVariables);
 
   const onSelectChange = (e) => {
     setSelectedYear(e);

@@ -14,6 +14,12 @@ const defaultColorPalette = [
 ];
 
 const StackedBarChartGeneric = (props) => {
+  const svgRef = useRef();
+  const containerRef = useRef();
+  const [parentWidth, setParentWidth] = useState(0);
+  const [tooltipData, setTooltipData] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
   const {
     data,
     height,
@@ -35,13 +41,8 @@ const StackedBarChartGeneric = (props) => {
     sorted = false,
   } = props;
 
-  const svgRef = useRef();
-  const containerRef = useRef();
-  const [parentWidth, setParentWidth] = useState(0);
-  const [tooltipData, setTooltipData] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-
-  if (data.every((d) => d.total === 0))
+  // Return null or empty state if no data AFTER hooks are declared
+  if (!data || data.every((d) => d.total === 0)) {
     return (
       <div
         style={{
@@ -57,7 +58,9 @@ const StackedBarChartGeneric = (props) => {
         No records match the filters
       </div>
     );
+  }
 
+  // Resize observer for width changes
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
@@ -66,25 +69,27 @@ const StackedBarChartGeneric = (props) => {
       }
     });
 
-    if (svgRef.current?.parentElement) {
-      resizeObserver.observe(svgRef.current.parentElement);
+    const parentElement = svgRef.current?.parentElement;
+    if (parentElement) {
+      resizeObserver.observe(parentElement);
     }
 
     return () => {
-      if (svgRef.current?.parentElement) {
-        resizeObserver.unobserve(svgRef.current.parentElement);
+      if (parentElement) {
+        resizeObserver.unobserve(parentElement);
       }
     };
   }, []);
 
+  // Main chart rendering effect
   useEffect(() => {
     if (!data || data.length === 0 || parentWidth === 0) return;
 
     const filteredData = data.filter(
       (d) => breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0) > 0
     );
-
     if (filteredData.length === 0) return;
+
     const colorMap = {};
     breakdowns.forEach((key, i) => {
       colorMap[key] =
@@ -92,6 +97,7 @@ const StackedBarChartGeneric = (props) => {
         defaultColorPalette[i % defaultColorPalette.length];
     });
 
+    // Temporary SVG for label measurement
     const tempSvg = d3
       .select(document.body)
       .append("svg")
@@ -112,6 +118,7 @@ const StackedBarChartGeneric = (props) => {
 
     const paddingForAxis = 12;
     margin.left = Math.max(margin.left, maxLabelWidth + paddingForAxis);
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
@@ -159,45 +166,17 @@ const StackedBarChartGeneric = (props) => {
       const isSameSelection =
         currentKey === groupByKey && currentValue === selectedValue;
 
-      if (isSameSelection) {
-        toggleFilter(null);
-      } else {
-        toggleFilter({ key: groupByKey, value: selectedValue });
-      }
+      toggleFilter(
+        isSameSelection ? null : { key: groupByKey, value: selectedValue }
+      );
     };
 
-    const handleDirectClick = (cat) => {
-      const selectedValue = cat.category;
-      const currentKey = Object.keys(filterVariable || {})[0];
-      const currentValue = filterVariable?.[currentKey];
-      const isSameSelection =
-        currentKey === groupByKey && currentValue === selectedValue;
-      if (isSameSelection) {
-        toggleFilter(null);
-      } else {
-        toggleFilter({ key: groupByKey, value: selectedValue });
-      }
-    };
-
-    // Update your mouse event handlers like this:
     const handleMouseMove = (event, d) => {
       if (!containerRef.current) return;
 
-      // Get container position relative to viewport
       const containerRect = containerRef.current.getBoundingClientRect();
-
-      // Calculate position relative to container
-      const x =
-        event.clientX > 800
-          ? event.clientX - containerRect.left - 340
-          : event.clientX - containerRect.left;
-      const y =
-        chartTitle.includes("Exit To Type") ||
-        chartTitle.includes("ATD Disruption")
-          ? event.clientY - containerRect.top
-          : event.clientY > 600
-          ? event.clientY - containerRect.top - 300
-          : event.clientY - containerRect.top;
+      const x = event.clientX - containerRect.left;
+      const y = event.clientY - containerRect.top;
 
       const totalAcrossAllCategories = d3.sum(filteredData, (row) =>
         breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
@@ -208,57 +187,34 @@ const StackedBarChartGeneric = (props) => {
         0
       );
 
-      setTooltipData(
-        chartTitle.includes("LOS")
-          ? {
-              active: true,
-              payload: breakdowns.map((breakdown) => ({
-                name: breakdown,
-                value: d[breakdown] ?? 0,
-                count: d["Releases"] ?? 0,
-                color:
-                  colorMap[breakdown] ||
-                  colors[breakdowns.indexOf(breakdown) % colors.length],
-              })),
-              label: d.category,
-              categoryTotal: totalForThisCategory,
-              categoryPercent: null,
-            }
-          : {
-              active: true,
-              payload: breakdowns.map((breakdown) => ({
-                name: breakdown,
-                value: d[breakdown] ?? 0,
-                color:
-                  colorMap[breakdown] ||
-                  colors[breakdowns.indexOf(breakdown) % colors.length],
-              })),
-              label: d.category,
-              categoryTotal: totalForThisCategory,
-              categoryPercent:
-                totalAcrossAllCategories > 0
-                  ? (totalForThisCategory / totalAcrossAllCategories) * 100
-                  : null,
-            }
-      );
-
-      setTooltipPosition({
-        x: x + 10, // Add small offset
-        y: y + 10,
+      setTooltipData({
+        active: true,
+        payload: breakdowns.map((breakdown) => ({
+          name: breakdown,
+          value: d[breakdown] ?? 0,
+          color:
+            colorMap[breakdown] ||
+            colors[breakdowns.indexOf(breakdown) % colors.length],
+        })),
+        label: d.category,
+        categoryTotal: totalForThisCategory,
+        categoryPercent:
+          totalAcrossAllCategories > 0
+            ? (totalForThisCategory / totalAcrossAllCategories) * 100
+            : null,
       });
+
+      setTooltipPosition({ x: x + 10, y: y + 10 });
     };
 
-    const handleMouseOut = () => {
-      setTooltipData(null);
-    };
+    const handleMouseOut = () => setTooltipData(null);
 
-    // Create layers for proper z-index ordering
+    // Create layers
     const backgroundLayer = chart.append("g").attr("class", "background-layer");
     const barsLayer = chart.append("g").attr("class", "bars-layer");
     const labelsLayer = chart.append("g").attr("class", "labels-layer");
     const axisLayer = chart.append("g").attr("class", "axis-layer");
 
-    // Background hoverable rects - Add them first to be behind everything
     backgroundLayer
       .selectAll(".row-background")
       .data(finalFilteredData)
@@ -271,7 +227,7 @@ const StackedBarChartGeneric = (props) => {
       .attr("height", yScale.bandwidth())
       .attr("fill", "transparent")
       .style("cursor", "pointer")
-      .on("mouseover", function (event) {
+      .on("mouseover", function () {
         d3.select(this).attr("fill", "#000").attr("fill-opacity", 0.05);
       })
       .on("mouseout", function () {
@@ -281,7 +237,6 @@ const StackedBarChartGeneric = (props) => {
 
     finalFilteredData.forEach((d) => {
       let xOffset = 0;
-      const cat = d;
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
         const width = xScale(value) > 0 ? Math.max(xScale(value), 2) : 0;
@@ -292,53 +247,16 @@ const StackedBarChartGeneric = (props) => {
           .attr("width", width)
           .attr("height", yScale.bandwidth())
           .attr("fill", colorMap[key] || colors[bIndex % colors.length])
-          .style("cursor", "default")
+          .style("cursor", "pointer")
           .on("mousemove", (event) => handleMouseMove(event, d))
           .on("mouseout", handleMouseOut)
-          .style("cursor", "pointer")
-          .on("click", () => {
-            handleDirectClick(cat);
-          });
-
-        // Label logic...
-        const labelText = value.toString();
-        const tempText = chart
-          .append("text")
-          .text(labelText)
-          .attr("font-size", 14)
-          .style("visibility", "hidden");
-
-        const textWidth = tempText.node().getBBox().width;
-        tempText.remove();
-
-        labelsLayer
-          .append("text")
-          .style("opacity", labelText > 0 ? 1 : 0)
-          .attr("x", width + 8)
-          .attr("y", yScale(d.category) + yScale.bandwidth() / 2)
-          .attr("dy", "0.35em")
-          .attr("text-anchor", "start")
-          .attr("fill", "black")
-          .style("font-size", 14)
-          .style("user-select", "none")
-          .attr("pointer-events", "none")
-          .text(
-            labelContext && labelContext === "percent"
-              ? Math.round(
-                  (+labelText * 100) /
-                    d3.sum(filteredData, (row) =>
-                      breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
-                    )
-                ) + "%"
-              : Math.round(labelText * 10) / 10
-          );
+          .on("click", () => handleClick(event, d));
 
         xOffset += width;
       });
     });
 
     if (!hasSelector) {
-      // Add chart title
       chart
         .append("text")
         .attr("x", -margin.left + 20)
@@ -348,7 +266,6 @@ const StackedBarChartGeneric = (props) => {
         .style("font-weight", "bold");
     }
 
-    // Add y-axis
     axisLayer
       .append("g")
       .call(d3.axisLeft(yScale))
@@ -367,16 +284,17 @@ const StackedBarChartGeneric = (props) => {
     filterVariable,
     toggleFilter,
     groupByKey,
+    chartTitle,
+    colorMapOverride,
+    hasSelector,
+    labelContext,
+    sorted,
   ]);
 
   return (
     <div
       ref={containerRef}
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-      }}
+      style={{ position: "relative", width: "100%", height: "100%" }}
     >
       <svg ref={svgRef} width={parentWidth} height={height}></svg>
       {tooltipData && (
@@ -392,9 +310,7 @@ const StackedBarChartGeneric = (props) => {
         >
           <EnhancedTooltip
             active={tooltipData.active}
-            chartBreakdowns={
-              innerBreakdowns === undefined ? breakdowns : innerBreakdowns
-            }
+            chartBreakdowns={innerBreakdowns ?? breakdowns}
             payload={tooltipData.payload}
             chartData={showChart ? innerData : []}
             showChart={showChart}
@@ -402,22 +318,18 @@ const StackedBarChartGeneric = (props) => {
             chartTitle={chartTitle}
             groupByKey={groupByKey}
             valueFormatter={(value) => {
-              let identifier;
-              const title = chartTitle;
-              identifier = title.split(" by")[0];
-
-              return `${
-                value === "N/A"
-                  ? "N/A"
-                  : Math.round(value * 10) / 10 +
-                    (context === "percentage"
+              const identifier = chartTitle.split(" by")[0];
+              return value === "N/A"
+                ? "N/A"
+                : `${Math.round(value * 10) / 10}${
+                    context === "percentage"
                       ? "%"
                       : identifier === "LOS"
                       ? " days"
                       : identifier === "Admissions"
                       ? " admissions"
-                      : " " + identifier)
-              }`;
+                      : " " + identifier
+                  }`;
             }}
             showPercentage={context === "percentage"}
             totalValue={tooltipData.payload.reduce(
