@@ -41,25 +41,6 @@ const StackedBarChartGeneric = (props) => {
     sorted = false,
   } = props;
 
-  // Return null or empty state if no data AFTER hooks are declared
-  if (!data || data.every((d) => d.total === 0)) {
-    return (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0.6,
-        }}
-      >
-        No records match the filters
-      </div>
-    );
-  }
-
   // Resize observer for width changes
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -97,7 +78,6 @@ const StackedBarChartGeneric = (props) => {
         defaultColorPalette[i % defaultColorPalette.length];
     });
 
-    // Temporary SVG for label measurement
     const tempSvg = d3
       .select(document.body)
       .append("svg")
@@ -129,7 +109,7 @@ const StackedBarChartGeneric = (props) => {
       if (sorted) {
         const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
         const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
-        return totalB - totalA; // descending total
+        return totalB - totalA;
       } else {
         return a.category.localeCompare(b.category);
       }
@@ -162,10 +142,8 @@ const StackedBarChartGeneric = (props) => {
       const selectedValue = d.category;
       const currentKey = Object.keys(filterVariable || {})[0];
       const currentValue = filterVariable?.[currentKey];
-
       const isSameSelection =
         currentKey === groupByKey && currentValue === selectedValue;
-
       toggleFilter(
         isSameSelection ? null : { key: groupByKey, value: selectedValue }
       );
@@ -209,10 +187,8 @@ const StackedBarChartGeneric = (props) => {
 
     const handleMouseOut = () => setTooltipData(null);
 
-    // Create layers
     const backgroundLayer = chart.append("g").attr("class", "background-layer");
     const barsLayer = chart.append("g").attr("class", "bars-layer");
-    const labelsLayer = chart.append("g").attr("class", "labels-layer");
     const axisLayer = chart.append("g").attr("class", "axis-layer");
 
     backgroundLayer
@@ -290,6 +266,24 @@ const StackedBarChartGeneric = (props) => {
     labelContext,
     sorted,
   ]);
+
+  if (!data || data.every((d) => d.total === 0)) {
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: 0.6,
+        }}
+      >
+        No records match the filters
+      </div>
+    );
+  }
 
   return (
     <div
