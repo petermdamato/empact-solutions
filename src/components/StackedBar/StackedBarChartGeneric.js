@@ -13,26 +13,34 @@ const defaultColorPalette = [
   "#b6d7a8",
 ];
 
-const StackedBarChartGeneric = ({
-  data,
-  height,
-  margin = { top: 0, right: 40, bottom: 20, left: 20 },
-  chartTitle,
-  showChart = false,
-  context = "number",
-  labelContext,
-  breakdowns = ["pre", "post"],
-  innerBreakdowns,
-  innerData = [],
-  colorMapOverride = {},
-  filterVariable,
-  toggleFilter,
-  calculationType,
-  groupByKey,
-  hasSelector = false,
-  valueBreakdowns,
-  sorted = false,
-}) => {
+const StackedBarChartGeneric = (props) => {
+  const {
+    data,
+    height,
+    margin = { top: 0, right: 40, bottom: 20, left: 20 },
+    chartTitle,
+    showChart = false,
+    context = "number",
+    labelContext,
+    breakdowns = ["pre", "post"],
+    innerBreakdowns,
+    innerData = [],
+    colorMapOverride = {},
+    filterVariable,
+    toggleFilter,
+    calculationType,
+    groupByKey,
+    hasSelector = false,
+    valueBreakdowns,
+    sorted = false,
+  } = props;
+
+  const svgRef = useRef();
+  const containerRef = useRef();
+  const [parentWidth, setParentWidth] = useState(0);
+  const [tooltipData, setTooltipData] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
   if (data.every((d) => d.total === 0))
     return (
       <div
@@ -49,11 +57,6 @@ const StackedBarChartGeneric = ({
         No records match the filters
       </div>
     );
-  const svgRef = useRef();
-  const containerRef = useRef();
-  const [parentWidth, setParentWidth] = useState(0);
-  const [tooltipData, setTooltipData] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
