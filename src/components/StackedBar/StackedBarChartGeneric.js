@@ -97,11 +97,13 @@ const StackedBarChartGeneric = ({
     tempSvg.remove();
 
     const paddingForAxis = 12;
-    margin.left = Math.max(margin.left, maxLabelWidth + paddingForAxis);
+
+    const leftMargin = Math.max(margin.left, maxLabelWidth + paddingForAxis);
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const innerWidth = parentWidth - margin.left - margin.right;
+    const innerWidth = parentWidth - leftMargin - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
     const finalFilteredData = [...filteredData].sort((a, b) => {
@@ -118,7 +120,7 @@ const StackedBarChartGeneric = ({
       .append("g")
       .attr(
         "transform",
-        `translate(${margin.left},${hasSelector ? -10 : margin.top})`
+        `translate(${leftMargin},${hasSelector ? -10 : margin.top})`
       );
 
     const getTotalValue = (d) =>
@@ -248,7 +250,7 @@ const StackedBarChartGeneric = ({
       .enter()
       .append("rect")
       .attr("class", "row-background")
-      .attr("x", -margin.left)
+      .attr("x", -leftMargin)
       .attr("y", (d) => yScale(d.category))
       .attr("width", parentWidth)
       .attr("height", yScale.bandwidth())
@@ -324,7 +326,7 @@ const StackedBarChartGeneric = ({
       // Add chart title
       chart
         .append("text")
-        .attr("x", -margin.left + 20)
+        .attr("x", -leftMargin + 20)
         .attr("y", -8)
         .text(chartTitle)
         .style("font-size", 14)
