@@ -32,8 +32,9 @@ const parseDateYear = (dateStr) => {
 };
 
 export default function Overview() {
-  const { csvData } = useCSV();
+  const { csvData, fileName } = useCSV();
   const contentRef = useRef();
+  const [finalChartYear, setFinalChartYear] = useState(null);
   const [breakdownType, setBreakdownType] = useState("Overall Total");
   const [legendOptions, setLegendOptions] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
@@ -46,6 +47,17 @@ export default function Overview() {
   const [programTypeArray] = useState(["All Program Types"]);
   const [labelsArray] = useState(["Hide", "Show"]);
   const [selectedLabelsChoice, setSelectedLabelsChoice] = useState("Hide");
+
+  useEffect(() => {
+    if (fileName && fileName.length > 0) {
+      const match = fileName.match(/(\d{8}).*?(\d{8})/);
+      let secondGroup;
+      if (match) {
+        secondGroup = match[2];
+      }
+      setFinalChartYear(secondGroup);
+    }
+  }, [fileName]);
 
   useEffect(() => {
     setSelectedLegendOptions([]);
@@ -205,6 +217,7 @@ export default function Overview() {
                   selectedLegendOptions={selectedLegendOptions}
                   selectedLegendDetails={selectedLegendDetails}
                   detentionType={incarcerationType}
+                  finalChartYear={finalChartYear}
                 />
               </div>
             </div>
@@ -231,6 +244,7 @@ export default function Overview() {
                 selectedLegendOptions={selectedLegendOptions}
                 selectedLegendDetails={selectedLegendDetails}
                 detentionType={incarcerationType}
+                finalChartYear={finalChartYear}
               >
                 <Selector
                   values={["Average", "Median"]}

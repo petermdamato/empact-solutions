@@ -10,7 +10,8 @@ import "./CSVUploader.css";
 import Link from "next/link";
 
 export default function CSVUploader() {
-  const { setCsvData, setValidationErrors } = useCSV();
+  const { setCsvData, setValidationErrors, setFileName } = useCSV();
+
   const [errors, setErrors] = useState([]);
   const [csvUploaded, setCsvUploaded] = useState(false);
   const [fileType, setFileType] = useState("CSV");
@@ -88,6 +89,8 @@ export default function CSVUploader() {
     (acceptedFiles) => {
       const file = acceptedFiles[0];
       if (!file) return;
+      console.log(file);
+      setFileName(file.name);
 
       const reader = new FileReader();
 

@@ -95,28 +95,44 @@ const analyzeData = (
           : row["Post-Dispo Stay Reason"]
         : offenseMap[row.OffenseCategory] || "Other";
 
-    const key =
-      groupBy === "Gender"
-        ? row.Gender
-        : groupBy === "Age"
-        ? age
-        : groupBy === "RaceEthnicity"
-        ? raceEth
-        : groupBy === "OffenseCategory"
-        ? row.OffenseCategory
-        : groupBy === "OffenseOverall"
-        ? offenseOverall
-        : "All";
-
-    if (!acc[key]) acc[key] = [];
-    acc[key].push({
+    const enrichedRow = {
       ...row,
       intakeDate,
       releaseDate,
       age,
       raceEth,
       offenseOverall,
-    });
+    };
+
+    let keys = [];
+
+    if (groupBy === "Gender") {
+      keys = [row.Gender];
+    } else if (groupBy === "Age") {
+      keys = [age];
+    } else if (groupBy === "RaceEthnicity") {
+      keys = [raceEth];
+    } else if (groupBy === "OffenseCategory") {
+      keys = [row.OffenseCategory];
+    } else if (groupBy === "OffenseOverall") {
+      keys = [offenseOverall];
+    } else if (groupBy === "PostDispoStayReason") {
+      const reason = row["Post-Dispo Stay Reason"];
+      if (reason && reason.trim().length > 0) {
+        keys = [reason.trim(), "All Post-Dispo"];
+      } else {
+        // skip rows with no Post-Dispo reason
+        return acc;
+      }
+    } else {
+      keys = ["All"];
+    }
+
+    for (const key of keys) {
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(enrichedRow);
+    }
+
     return acc;
   }, {});
 

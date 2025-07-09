@@ -274,7 +274,7 @@ const StackedBarChartCentered = ({
           });
 
         const labelText = value.toString();
-
+        console.log(colorMap[key], key);
         labelsLayer
           .append("text")
           .attr("x", xOffset + width / 2)

@@ -7,6 +7,7 @@ const formatNumber = (value) => (isNaN(value) ? "—" : Math.round(value));
 const formatPercent = (value) => (isNaN(value) ? "—" : `${Math.round(value)}%`);
 
 const TableComponent = ({ data }) => {
+  console.log(data);
   useEffect(() => {
     if (!data) return;
   }, [data]);
@@ -31,7 +32,7 @@ const TableComponent = ({ data }) => {
                 <th style={{ textAlign: "right" }}>
                   {section.category.includes("Post-dispo")
                     ? formatPercent(
-                        (section.header["Other"] /
+                        (section.body["All Post-Dispo"] /
                           (section.header["New Offenses"] +
                             section.header["Technicals"] +
                             section.header["Other"])) *
@@ -61,7 +62,7 @@ const TableComponent = ({ data }) => {
                     : section.category.includes("Technicals")
                     ? formatNumber(section.header["Technicals"])
                     : section.category.includes("Post-dispo")
-                    ? formatNumber(section.header["Other"])
+                    ? formatNumber(section.body["All Post-Dispo"])
                     : formatNumber(section.header.All)}
                 </th>
               </tr>

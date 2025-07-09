@@ -8,6 +8,7 @@ import { useResizeDetector } from "react-resize-detector";
 const LineChartContainerV2 = ({
   charts,
   data,
+  finalChartYear,
   selectedLabelsChoice,
   comparison,
   selectedValue = [null, null],
@@ -90,6 +91,7 @@ const LineChartContainerV2 = ({
               selectedLegendOptions={selectedLegendOptions}
               selectedLegendDetails={selectedLegendDetails}
               detentionType={detentionType}
+              finalChartYear={finalChartYear}
             />
           </div>
         </div>

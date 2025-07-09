@@ -9,10 +9,18 @@ const CSVContext = createContext();
 export function CSVProvider({ children }) {
   const [csvData, setCsvData] = useState([]);
   const [validationErrors, setValidationErrors] = useState([]);
+  const [fileName, setFileName] = useState("");
 
   return (
     <CSVContext.Provider
-      value={{ csvData, setCsvData, validationErrors, setValidationErrors }}
+      value={{
+        csvData,
+        setCsvData,
+        validationErrors,
+        setValidationErrors,
+        fileName,
+        setFileName,
+      }}
     >
       {children}
     </CSVContext.Provider>
