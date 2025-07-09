@@ -38,21 +38,10 @@ const StackedBarChartGeneric = ({
   const [tooltipData, setTooltipData] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
-  if (data.every((d) => d.total === 0))
-    return (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0.6,
-        }}
-      >
-        No records match the filters
-      </div>
+  const isAllZero =
+    data?.length > 0 &&
+    data.every(
+      (d) => breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0) === 0
     );
 
   useEffect(() => {
@@ -372,60 +361,78 @@ const StackedBarChartGeneric = ({
         height: "100%",
       }}
     >
-      <svg ref={svgRef} width={parentWidth} height={height}></svg>
-      {tooltipData && (
+      {isAllZero ? (
         <div
           style={{
-            position: "absolute",
-            left: `${
-              tooltipPosition.x > 400
-                ? tooltipPosition.x - 320
-                : tooltipPosition.x
-            }px`,
-            top: `${tooltipPosition.y}px`,
-            pointerEvents: "none",
-            zIndex: 100,
-            width: "420px",
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: 0.6,
           }}
         >
-          <EnhancedTooltip
-            active={tooltipData.active}
-            chartBreakdowns={breakdowns}
-            payload={tooltipData.payload}
-            chartData={showChart ? innerData : []}
-            showChart={showChart}
-            label={tooltipData.label}
-            chartTitle={chartTitle}
-            groupByKey={groupByKey}
-            valueFormatter={(value) => {
-              let identifier;
-              const title = chartTitle;
-              identifier = title.split(" by")[0];
-
-              return `${
-                value === "N/A"
-                  ? "N/A"
-                  : Math.round(value * 10) / 10 +
-                    (context === "percentage"
-                      ? "%"
-                      : identifier === "LOS"
-                      ? " days"
-                      : identifier === "Admissions"
-                      ? " admissions"
-                      : " " + identifier)
-              }`;
-            }}
-            showPercentage={context === "percentage"}
-            totalValue={tooltipData.payload.reduce(
-              (sum, item) => sum + item.value,
-              0
-            )}
-            calculationType={calculationType}
-            valueBreakdowns={valueBreakdowns}
-            categoryTotal={tooltipData.categoryTotal}
-            categoryPercent={tooltipData.categoryPercent}
-          />
+          No records match the filters
         </div>
+      ) : (
+        <>
+          <svg ref={svgRef} width={parentWidth} height={height}></svg>
+          {tooltipData && (
+            <div
+              style={{
+                position: "absolute",
+                left: `${
+                  tooltipPosition.x > 400
+                    ? tooltipPosition.x - 320
+                    : tooltipPosition.x
+                }px`,
+                top: `${tooltipPosition.y}px`,
+                pointerEvents: "none",
+                zIndex: 100,
+                width: "420px",
+              }}
+            >
+              <EnhancedTooltip
+                active={tooltipData.active}
+                chartBreakdowns={breakdowns}
+                payload={tooltipData.payload}
+                chartData={showChart ? innerData : []}
+                showChart={showChart}
+                label={tooltipData.label}
+                chartTitle={chartTitle}
+                groupByKey={groupByKey}
+                valueFormatter={(value) => {
+                  let identifier;
+                  const title = chartTitle;
+                  identifier = title.split(" by")[0];
+
+                  return `${
+                    value === "N/A"
+                      ? "N/A"
+                      : Math.round(value * 10) / 10 +
+                        (context === "percentage"
+                          ? "%"
+                          : identifier === "LOS"
+                          ? " days"
+                          : identifier === "Admissions"
+                          ? " admissions"
+                          : " " + identifier)
+                  }`;
+                }}
+                showPercentage={context === "percentage"}
+                totalValue={tooltipData.payload.reduce(
+                  (sum, item) => sum + item.value,
+                  0
+                )}
+                calculationType={calculationType}
+                valueBreakdowns={valueBreakdowns}
+                categoryTotal={tooltipData.categoryTotal}
+                categoryPercent={tooltipData.categoryPercent}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
