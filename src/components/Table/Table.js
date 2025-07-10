@@ -7,6 +7,7 @@ const formatNumber = (value) => (isNaN(value) ? "—" : Math.round(value));
 const formatPercent = (value) => (isNaN(value) ? "—" : `${Math.round(value)}%`);
 
 const TableComponent = ({ data }) => {
+  console.log(data);
   useEffect(() => {
     if (!data) return;
   }, [data]);
