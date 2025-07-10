@@ -577,16 +577,22 @@ const DistributionChart = (records) => {
                   }
                   rx={4}
                   onClick={(e) => {
+                    const inmateId = e.target.getAttribute("data-inmate-id");
+
+                    // Build base URL dynamically
+                    const baseUrl = window.location.origin; // e.g., "http://localhost:3000" or "https://empact-solutions.onrender.com"
+
+                    // Determine final URL
                     const url =
-                      !linkText.linkOut || linkText.linkOut.length === ""
-                        ? "http://localhost:3000/sample-lookup?" +
-                          e.target.getAttribute("data-inmate-id")
-                        : (linkText.linkOut.includes("http://")
+                      !linkText.linkOut || linkText.linkOut.length === 0
+                        ? `${baseUrl}/sample-lookup?${inmateId}`
+                        : (linkText.linkOut.startsWith("http")
                             ? ""
                             : "http://") +
                           linkText.linkOut +
-                          "/123"; // assumes this returns a URL string
-                    if (url) window.open(url, "_blank"); // open in new tab
+                          "/123";
+
+                    if (url) window.open(url, "_blank");
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.setAttribute("stroke", "#000");

@@ -11,6 +11,7 @@ const LineChartV2 = ({
   detentionType,
   comparison = "none",
   labels,
+  finalChartYear,
   selectedLegendOptions,
   selectedLegendDetails,
 }) => {
@@ -25,7 +26,29 @@ const LineChartV2 = ({
   const pathname = usePathname();
   const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
   const [renderKey, setRenderKey] = useState(0);
+  const [finalDate, setFinalDate] = useState(null);
+  const [isFullYear, setIsFullYear] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (finalChartYear && finalChartYear.length > 0) {
+      const finalYearInt = parseInt(finalChartYear.slice(4));
+      const finalDateIntermediate = new Date(
+        `${finalChartYear.slice(4)}-${finalChartYear.slice(
+          0,
+          2
+        )}-${finalChartYear.slice(2, 4)}`
+      );
+
+      const isFullYearCheck =
+        finalDateIntermediate.getMonth() === 11 &&
+        (finalDateIntermediate.getDate() === 31 ||
+          finalDateIntermediate.getDate() === 30);
+
+      setFinalDate(finalYearInt);
+      setIsFullYear(isFullYearCheck);
+    }
+  }, [finalChartYear]);
 
   useEffect(() => {
     setRenderKey((prev) => prev + 1);
@@ -71,13 +94,13 @@ const LineChartV2 = ({
     const margin =
       labels === "Show"
         ? { top: 20, right: 20, bottom: 40, left: 60 }
-        : { top: 10, right: 10, bottom: 40, left: 50 };
+        : { top: 10, right: 12, bottom: 40, left: 52 };
     const { width, height } = dimensions;
 
     svg
-      .attr("width", width)
+      .attr("width", width + (labels === "Show" ? 0 : 4))
       .attr("height", height)
-      .attr("viewBox", `0 0 ${width} ${height}`);
+      .attr("viewBox", `0 0 ${width + (labels === "Show" ? 0 : 4)} ${height}`);
 
     const chartGroup = svg.append("g").attr("class", "chart-content");
 
@@ -101,6 +124,8 @@ const LineChartV2 = ({
     const allYears = Array.from(
       new Set(seriesData.flatMap((s) => s.values.map((d) => d.year)))
     ).sort();
+
+    const yearIsNotEnd = finalDate !== allYears[allYears.length - 1];
 
     const xScale = d3
       .scalePoint()
@@ -136,11 +161,23 @@ const LineChartV2 = ({
       .attr("stroke", "#e0e0e0")
       .attr("stroke-width", 1);
 
-    chartGroup
+    const xAxis = d3
+      .axisBottom(xScale)
+      .tickFormat((d) => d)
+      .tickSizeOuter(0);
+
+    const xAxisGroup = chartGroup
       .append("g")
       .attr("class", "axis x-axis")
       .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+      .call(xAxis);
+
+    // Post-process tick labels
+    xAxisGroup.selectAll("text").each(function (d, i) {
+      if (allYears[i] > finalDate && yearIsNotEnd) {
+        d3.select(this).style("fill", "red").style("font-weight", "bold");
+      }
+    });
 
     chartGroup
       .append("g")

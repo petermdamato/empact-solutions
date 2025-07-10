@@ -142,7 +142,7 @@ export default function Overview() {
               "countAdmissions",
               selectedYear,
               detentionType,
-              "OffenseCategory"
+              "PostDispoStayReason"
             ),
           },
         ],
@@ -246,7 +246,7 @@ export default function Overview() {
               "countReleases",
               selectedYear,
               detentionType,
-              "OffenseCategory"
+              "PostDispoStayReason"
             ),
           },
         ],
@@ -350,7 +350,7 @@ export default function Overview() {
               "lengthOfStay",
               selectedYear,
               detentionType,
-              "OffenseCategory"
+              "PostDispoStayReason"
             ),
           },
         ],
@@ -454,7 +454,7 @@ export default function Overview() {
               "averageDailyPopulation",
               selectedYear,
               detentionType,
-              "OffenseCategory"
+              "PostDispoStayReason"
             ),
           },
         ],
