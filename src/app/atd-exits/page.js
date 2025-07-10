@@ -17,11 +17,12 @@ import {
   analyzeExitsByDisruptionType,
   analyzeDisruptionPercentsByYear,
 } from "@/utils/aggFunctions";
-import { categorizeRaceEthnicity, categorizeYoc } from "@/utils/categories";
 import {
-  getSimplifiedOffenseCategory,
-  getAgeBracket,
-} from "@/utils/categorizationUtils";
+  chooseCategory,
+  categorizeRaceEthnicity,
+  categorizeYoc,
+  categorizeAge,
+} from "@/utils/categories";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LegendStatic from "@/components/LegendStatic/LegendStatic";
 import * as Constants from "./../../constants";
@@ -42,7 +43,7 @@ export default function Overview() {
   const { csvData } = useCSV();
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
-  const [filterVariable, setFilterVariable] = useState(null);
+  const [filterVariables, setFilterVariable] = useState([]);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType, setCalculationType] = useState("Average");
@@ -57,11 +58,22 @@ export default function Overview() {
   const [dataArray5, setDataArray5] = useState([]);
   const [dataArray6, setDataArray6] = useState([]);
 
+  const toggleFilter = (newFilter) => {
+    setFilterVariable((prev) => {
+      const exists = prev.find((f) => f.key === newFilter.key);
+      if (exists) {
+        return prev.filter((f) => f.key !== newFilter.key);
+      } else {
+        return [...prev, newFilter];
+      }
+    });
+  };
+
   // Add keydown event handler
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setFilterVariable(null);
+        setFilterVariable([]);
       }
     };
 
@@ -78,69 +90,59 @@ export default function Overview() {
 
   // Pull in for the filter of types
   useEffect(() => {
-    if (filterVariable && Object.keys(filterVariable).length > 0) {
-      const [key, value] = Object.entries(filterVariable)[0];
+    if (filterVariables.length > 0) {
+      let filtered = [...csvData]; // clone csvData
 
-      if (
-        key === "Gender" ||
-        key === "Screened/not screened" ||
-        key === "Facility"
-      ) {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter(
-            (record) => record[key] === value
-          )
-        );
-      } else if (key === "Disruption_Type") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter((record) => {
-            return +record[`ATD_Exit_${value.replaceAll(" ", "_")}`] === 1;
-          })
-        );
-      }
-      // Start here
-      else if (key === "Age at Intake") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter((record) => {
-            const age = getAge(
-              new Date(record.Date_of_Birth),
-              new Date(record.ATD_Entry_Date)
+      filterVariables.forEach(({ key, value }) => {
+        if (key === "Race/Ethnicity" || key === "YOC/White") {
+          if (key === "Race/Ethnicity") {
+            filtered = filtered.filter(
+              (record) =>
+                categorizeRaceEthnicity(record["Race"], record["Ethnicity"]) ===
+                value
             );
+          } else {
+            filtered = filtered.filter(
+              (record) =>
+                categorizeYoc(record["Race"], record["Ethnicity"]) === value
+            );
+          }
+        } else if (key === "Age" || key === "Age at Intake") {
+          filtered = filtered.filter(
+            (record) => categorizeAge(record, incarcerationType) === value
+          );
+        } else if (
+          key === "Gender" ||
+          key === "Screened/not screened" ||
+          key === "Facility"
+        ) {
+          filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Pre/post-dispo filter") {
+          if (value === "Pre-dispo") {
+            filtered = filtered.filter(
+              (record) =>
+                record["Post-Dispo Stay Reason"] === null ||
+                record["Post-Dispo Stay Reason"] === ""
+            );
+          } else {
+            filtered = filtered.filter(
+              (record) =>
+                record["Post-Dispo Stay Reason"] &&
+                record["Post-Dispo Stay Reason"].length > 0
+            );
+          }
+        } else {
+          filtered = filtered.filter(
+            (record) => chooseCategory(record, key) === value
+          );
+        }
+      });
 
-            return getAgeBracket(age) === value;
-          })
-        );
-      } else if (key === "Offense Category") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter((record) => {
-            return (
-              getSimplifiedOffenseCategory(record.OffenseCategory) === value
-            );
-          })
-        );
-      } else if (key === "Race/Ethnicity") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter((record) => {
-            return (
-              categorizeRaceEthnicity(record.Race, record.Ethnicity) === value
-            );
-          })
-        );
-      } else if (key === "YOC/White") {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter((record) => {
-            return categorizeYoc(record.Race, record.Ethnicity) === value;
-          })
-        );
-      } else {
-        setFinalData(
-          JSON.parse(JSON.stringify(csvData)).filter((record) => record)
-        );
-      }
+      setFinalData(filtered);
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariable, csvData]);
+  }, [filterVariables, csvData]);
 
   useEffect(() => {
     if (programType === "All Program Types") {
@@ -300,6 +302,7 @@ export default function Overview() {
               variable={"Explore"}
               selectedValue={breakdownType}
               setValue={setBreakdownType}
+              secondarySetValue={setFilterVariable}
             />
             <Selector
               values={yearsArray}
@@ -360,8 +363,8 @@ export default function Overview() {
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"Exits by ATD Program Type"}
                       colorMapOverride={Constants.successColors}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Facility"}
                     />
                   )}
@@ -381,8 +384,8 @@ export default function Overview() {
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"Exits by ATD Disruption Type"}
                       colorMapOverride={Constants.successColors}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={"Disruption_Type"}
                     />
                   )}
@@ -420,8 +423,8 @@ export default function Overview() {
                       margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
                       chartTitle={`Exits by ${breakdownType}`}
                       colorMapOverride={Constants.successColors}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      toggleFilter={toggleFilter}
+                      filterVariables={filterVariables}
                       groupByKey={breakdownType}
                     />
                   )}
@@ -439,10 +442,10 @@ export default function Overview() {
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"Exits by Exit To Type"}
                       colorMapOverride={Constants.successColors}
-                      setFilterVariable={setFilterVariable}
-                      filterVariable={filterVariable}
+                      filterVariables={filterVariables}
                       groupByKey={"Exit To"}
                       sorted={true}
+                      filterable={false}
                       labelContext={"percent"}
                     />
                   )}

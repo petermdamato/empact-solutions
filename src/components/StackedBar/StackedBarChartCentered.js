@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
+import Selector from "../Selector/Selector";
 import LineChartEnhancedTooltip from "@/components/EnhancedTooltip/LineChartEnhancedTooltip";
 
 const defaultColorPalette = [
@@ -12,31 +13,36 @@ const defaultColorPalette = [
   "#b6d7a8",
 ];
 
-const StackedBarChartCentered = ({
-  data,
-  tooltipPayload,
-  height,
-  margin = { top: 0, right: 40, bottom: 20, left: 20 },
-  chartTitle,
-  showChart = false,
-  context = "number",
-  breakdowns = ["pre", "post"],
-  innerData = [],
-  colorMapOverride = {},
-  filterVariable,
-  toggleFilter,
-  calculationType,
-  groupByKey,
-  hasSelector = false,
-  valueBreakdowns,
-}) => {
+const StackedBarChartGeneric = (props) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [parentWidth, setParentWidth] = useState(0);
-  const [selectedKey, setSelectedKey] = useState(null);
   const [tooltipData, setTooltipData] = useState(null);
+  const [selectedKey, setSelectedKey] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
+  const {
+    data,
+    height,
+    margin = { top: 0, right: 40, bottom: 20, left: 20 },
+    chartTitle,
+    showChart = false,
+    context = "number",
+    labelContext,
+    breakdowns = ["pre", "post"],
+    tooltipPayload,
+    innerBreakdowns,
+    innerData = [],
+    colorMapOverride = {},
+    filterVariable,
+    toggleFilter,
+    calculationType,
+    groupByKey,
+    hasSelector = false,
+    valueBreakdowns,
+    sorted = false,
+  } = props;
+  // Resize observer for width changes
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
@@ -45,25 +51,27 @@ const StackedBarChartCentered = ({
       }
     });
 
-    if (svgRef.current?.parentElement) {
-      resizeObserver.observe(svgRef.current.parentElement);
+    const parentElement = svgRef.current?.parentElement;
+    if (parentElement) {
+      resizeObserver.observe(parentElement);
     }
 
     return () => {
-      if (svgRef.current?.parentElement) {
-        resizeObserver.unobserve(svgRef.current.parentElement);
+      if (parentElement) {
+        resizeObserver.unobserve(parentElement);
       }
     };
   }, []);
 
+  // Main chart rendering effect
   useEffect(() => {
     if (!data || data.length === 0 || parentWidth === 0) return;
 
     const filteredData = data.filter(
       (d) => breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0) > 0
     );
-
     if (filteredData.length === 0) return;
+
     const colorMap = {};
     breakdowns.forEach((key, i) => {
       colorMap[key] =
@@ -91,15 +99,22 @@ const StackedBarChartCentered = ({
 
     const paddingForAxis = 12;
     margin.left = Math.max(margin.left, maxLabelWidth + paddingForAxis);
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
     const innerWidth = parentWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    const finalFilteredData = filteredData.sort((a, b) =>
-      a.category.localeCompare(b.category)
-    );
+    const finalFilteredData = [...filteredData].sort((a, b) => {
+      if (sorted) {
+        const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
+        const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
+        return totalB - totalA;
+      } else {
+        return a.category.localeCompare(b.category);
+      }
+    });
 
     const chart = svg
       .append("g")
@@ -119,45 +134,26 @@ const StackedBarChartCentered = ({
     const yScale = d3
       .scaleBand()
       .domain(finalFilteredData.map((d) => d.category))
-      .range([
-        data.length < 5 ? innerHeight * 0.1 : 0, // top padding if less than 5
-        data.length < 5 ? innerHeight * 0.9 : innerHeight, // bottom padding if less than 5
-      ])
+      .range([0, innerHeight])
       .padding(0.1);
 
     const colors = d3.schemeCategory10;
 
     const handleClick = (event, d) => {
-      setTooltipData(null);
-      const selectedValue = d.category;
-      const currentKey = Object.keys(filterVariable || {})[0];
-      const currentValue = filterVariable?.[currentKey];
+      if (groupByKey !== "Overall Total") {
+        setTooltipData(null);
+        const selectedValue = d.category;
+        const currentKey = Object.keys(filterVariable || {})[0];
+        const currentValue = filterVariable?.[currentKey];
+        const isSameSelection =
+          currentKey === groupByKey && currentValue === selectedValue;
 
-      const isSameSelection =
-        currentKey === groupByKey && currentValue === selectedValue;
-
-      if (isSameSelection) {
-        toggleFilter([]);
-      } else {
-        toggleFilter({ key: groupByKey, value: selectedValue });
+        toggleFilter(
+          isSameSelection ? null : { key: groupByKey, value: selectedValue }
+        );
       }
     };
 
-    const handleDirectClick = (cat) => {
-      setTooltipData(null);
-      const selectedValue = cat.category;
-      const currentKey = Object.keys(filterVariable || {})[0];
-      const currentValue = filterVariable?.[currentKey];
-      const isSameSelection =
-        currentKey === groupByKey && currentValue === selectedValue;
-      if (isSameSelection) {
-        toggleFilter(null);
-      } else {
-        toggleFilter({ key: groupByKey, value: selectedValue });
-      }
-    };
-
-    // Update your mouse event handlers like this:
     const handleMouseMove = (event, d) => {
       if (!containerRef.current) return;
 
@@ -223,17 +219,13 @@ const StackedBarChartCentered = ({
       });
     };
 
-    const handleMouseOut = () => {
-      setTooltipData(null);
-    };
+    const handleMouseOut = () => setTooltipData(null);
 
-    // Create layers for proper z-index ordering
     const backgroundLayer = chart.append("g").attr("class", "background-layer");
     const barsLayer = chart.append("g").attr("class", "bars-layer");
-    const labelsLayer = chart.append("g").attr("class", "labels-layer");
     const axisLayer = chart.append("g").attr("class", "axis-layer");
+    const labelsLayer = chart.append("g").attr("class", "labels-layer");
 
-    // Background hoverable rects - Add them first to be behind everything
     backgroundLayer
       .selectAll(".row-background")
       .data(finalFilteredData)
@@ -246,7 +238,7 @@ const StackedBarChartCentered = ({
       .attr("height", yScale.bandwidth())
       .attr("fill", "transparent")
       .style("cursor", "pointer")
-      .on("mouseover", function (event) {
+      .on("mouseover", function () {
         d3.select(this).attr("fill", "#000").attr("fill-opacity", 0.05);
       })
       .on("mouseout", function () {
@@ -305,7 +297,6 @@ const StackedBarChartCentered = ({
     });
 
     if (!hasSelector) {
-      // Add chart title
       chart
         .append("text")
         .attr("x", -margin.left + 20)
@@ -315,7 +306,6 @@ const StackedBarChartCentered = ({
         .style("font-weight", "bold");
     }
 
-    // Add y-axis
     axisLayer
       .append("g")
       .call(d3.axisLeft(yScale))
@@ -334,7 +324,30 @@ const StackedBarChartCentered = ({
     filterVariable,
     toggleFilter,
     groupByKey,
+    chartTitle,
+    colorMapOverride,
+    hasSelector,
+    labelContext,
+    sorted,
   ]);
+
+  if (!data || data.every((d) => d.total === 0)) {
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: 0.6,
+        }}
+      >
+        No records match the filters
+      </div>
+    );
+  }
 
   return (
     <div
@@ -404,4 +417,4 @@ const StackedBarChartCentered = ({
   );
 };
 
-export default StackedBarChartCentered;
+export default StackedBarChartGeneric;
