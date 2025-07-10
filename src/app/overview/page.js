@@ -173,7 +173,7 @@ export default function Overview() {
       selectedYear,
       detentionType
     );
-    console.log(dataArray3);
+
     const columnAggPopulations = statusDataPopulation.results.reduce(
       (acc, curr) => {
         acc.post += curr.post;

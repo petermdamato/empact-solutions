@@ -89,7 +89,7 @@ export default function CSVUploader() {
     (acceptedFiles) => {
       const file = acceptedFiles[0];
       if (!file) return;
-      console.log(file);
+
       setFileName(file.name);
 
       const reader = new FileReader();

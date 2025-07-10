@@ -64,7 +64,7 @@ const TableCalculations = ({ data }) => {
                         ? section.header["New Offenses"].average
                         : ""
                       : section.header["Other"]
-                      ? section.header["Other"].average
+                      ? section.body["All Post-Dispo"].average
                       : ""}
                   </th>
                   <th
@@ -86,24 +86,40 @@ const TableCalculations = ({ data }) => {
                         ? section.header["New Offenses"].median
                         : ""
                       : section.header["Other"]
-                      ? section.header["Other"].median
+                      ? section.body["All Post-Dispo"].median
                       : ""}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {Object.keys(section.body)
-                  .filter(
-                    (entry) =>
+                  .filter((entry) => {
+                    if (
+                      section.category.includes("Post-dispo") &&
+                      entry === "All Post-Dispo"
+                    ) {
+                      return false;
+                    }
+
+                    const passesCategoryFilter =
                       section.category.includes("Gender") ||
-                      (section.category.includes("Post-disp") &&
-                        !offenseMapFunction(entry, "table")) ||
+                      section.category.includes("Post-disp") ||
                       (section.category.includes("Age") &&
                         entry !== "null" &&
                         entry !== "Unknown") ||
                       section.category.includes("Race") ||
-                      offenseMapFunction(entry, "table") === section.category
-                  )
+                      offenseMapFunction(entry, "table") === section.category;
+
+                    if (!passesCategoryFilter) return false;
+
+                    const value = section.body[entry];
+
+                    // Filter out if average and median are both zero or falsy
+                    return (
+                      (value.average && value.average !== 0) ||
+                      (value.median && value.median !== 0)
+                    );
+                  })
                   .map((category, catIndex) => {
                     const value = section.body[category];
 

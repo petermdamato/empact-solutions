@@ -32,17 +32,27 @@ const StackedBarChartGeneric = ({
   valueBreakdowns,
   sorted = false,
 }) => {
+  if (data.every((d) => d.total === 0))
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: 0.6,
+        }}
+      >
+        No records match the filters
+      </div>
+    );
   const svgRef = useRef();
   const containerRef = useRef();
   const [parentWidth, setParentWidth] = useState(0);
   const [tooltipData, setTooltipData] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-
-  const isAllZero =
-    data?.length > 0 &&
-    data.every(
-      (d) => breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0) === 0
-    );
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -97,13 +107,11 @@ const StackedBarChartGeneric = ({
     tempSvg.remove();
 
     const paddingForAxis = 12;
-
-    const leftMargin = Math.max(margin.left, maxLabelWidth + paddingForAxis);
-
+    margin.left = Math.max(margin.left, maxLabelWidth + paddingForAxis);
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const innerWidth = parentWidth - leftMargin - margin.right;
+    const innerWidth = parentWidth - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
     const finalFilteredData = [...filteredData].sort((a, b) => {
@@ -120,7 +128,7 @@ const StackedBarChartGeneric = ({
       .append("g")
       .attr(
         "transform",
-        `translate(${leftMargin},${hasSelector ? -10 : margin.top})`
+        `translate(${margin.left},${hasSelector ? -10 : margin.top})`
       );
 
     const getTotalValue = (d) =>
@@ -250,7 +258,7 @@ const StackedBarChartGeneric = ({
       .enter()
       .append("rect")
       .attr("class", "row-background")
-      .attr("x", -leftMargin)
+      .attr("x", -margin.left)
       .attr("y", (d) => yScale(d.category))
       .attr("width", parentWidth)
       .attr("height", yScale.bandwidth())
@@ -326,7 +334,7 @@ const StackedBarChartGeneric = ({
       // Add chart title
       chart
         .append("text")
-        .attr("x", -leftMargin + 20)
+        .attr("x", -margin.left + 20)
         .attr("y", -8)
         .text(chartTitle)
         .style("font-size", 14)
@@ -363,78 +371,60 @@ const StackedBarChartGeneric = ({
         height: "100%",
       }}
     >
-      {isAllZero ? (
+      <svg ref={svgRef} width={parentWidth} height={height}></svg>
+      {tooltipData && (
         <div
           style={{
-            position: "relative",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: 0.6,
+            position: "absolute",
+            left: `${
+              tooltipPosition.x > 400
+                ? tooltipPosition.x - 320
+                : tooltipPosition.x
+            }px`,
+            top: `${tooltipPosition.y}px`,
+            pointerEvents: "none",
+            zIndex: 100,
+            width: "420px",
           }}
         >
-          No records match the filters
-        </div>
-      ) : (
-        <>
-          <svg ref={svgRef} width={parentWidth} height={height}></svg>
-          {tooltipData && (
-            <div
-              style={{
-                position: "absolute",
-                left: `${
-                  tooltipPosition.x > 400
-                    ? tooltipPosition.x - 320
-                    : tooltipPosition.x
-                }px`,
-                top: `${tooltipPosition.y}px`,
-                pointerEvents: "none",
-                zIndex: 100,
-                width: "420px",
-              }}
-            >
-              <EnhancedTooltip
-                active={tooltipData.active}
-                chartBreakdowns={breakdowns}
-                payload={tooltipData.payload}
-                chartData={showChart ? innerData : []}
-                showChart={showChart}
-                label={tooltipData.label}
-                chartTitle={chartTitle}
-                groupByKey={groupByKey}
-                valueFormatter={(value) => {
-                  let identifier;
-                  const title = chartTitle;
-                  identifier = title.split(" by")[0];
+          <EnhancedTooltip
+            active={tooltipData.active}
+            chartBreakdowns={breakdowns}
+            payload={tooltipData.payload}
+            chartData={showChart ? innerData : []}
+            showChart={showChart}
+            label={tooltipData.label}
+            chartTitle={chartTitle}
+            groupByKey={groupByKey}
+            valueFormatter={(value) => {
+              let identifier;
+              const title = chartTitle;
+              identifier = title.split(" by")[0];
 
-                  return `${
-                    value === "N/A"
-                      ? "N/A"
-                      : Math.round(value * 10) / 10 +
-                        (context === "percentage"
-                          ? "%"
-                          : identifier === "LOS"
-                          ? " days"
-                          : identifier === "Admissions"
-                          ? " admissions"
-                          : " " + identifier)
-                  }`;
-                }}
-                showPercentage={context === "percentage"}
-                totalValue={tooltipData.payload.reduce(
-                  (sum, item) => sum + item.value,
-                  0
-                )}
-                calculationType={calculationType}
-                valueBreakdowns={valueBreakdowns}
-                categoryTotal={tooltipData.categoryTotal}
-                categoryPercent={tooltipData.categoryPercent}
-              />
-            </div>
-          )}
-        </>
+              return `${
+                value === "N/A"
+                  ? "N/A"
+                  : Math.round(value * 10) / 10 +
+                    (context === "percentage"
+                      ? "%"
+                      : identifier === "LOS"
+                      ? " days"
+                      : identifier === "Admissions"
+                      ? " admissions"
+                      : " " + identifier)
+              }`;
+            }}
+            showPercentage={context === "percentage"}
+            totalValue={tooltipData.payload.reduce(
+              (sum, item) => sum + item.value,
+              0
+            )}
+            calculationType={calculationType}
+            valueBreakdowns={valueBreakdowns}
+            categoryTotal={tooltipData.categoryTotal}
+            categoryPercent={tooltipData.categoryPercent}
+          />
+        </div>
       )}
     </div>
   );

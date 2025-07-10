@@ -24,7 +24,7 @@ const StackedBarChartCentered = ({
   innerData = [],
   colorMapOverride = {},
   filterVariable,
-  setFilterVariable,
+  toggleFilter,
   calculationType,
   groupByKey,
   hasSelector = false,
@@ -128,6 +128,7 @@ const StackedBarChartCentered = ({
     const colors = d3.schemeCategory10;
 
     const handleClick = (event, d) => {
+      setTooltipData(null);
       const selectedValue = d.category;
       const currentKey = Object.keys(filterVariable || {})[0];
       const currentValue = filterVariable?.[currentKey];
@@ -136,22 +137,23 @@ const StackedBarChartCentered = ({
         currentKey === groupByKey && currentValue === selectedValue;
 
       if (isSameSelection) {
-        setFilterVariable(null);
+        toggleFilter([]);
       } else {
-        setFilterVariable({ [groupByKey]: selectedValue });
+        toggleFilter({ key: groupByKey, value: selectedValue });
       }
     };
 
     const handleDirectClick = (cat) => {
+      setTooltipData(null);
       const selectedValue = cat.category;
       const currentKey = Object.keys(filterVariable || {})[0];
       const currentValue = filterVariable?.[currentKey];
       const isSameSelection =
         currentKey === groupByKey && currentValue === selectedValue;
       if (isSameSelection) {
-        setFilterVariable(null);
+        toggleFilter(null);
       } else {
-        setFilterVariable({ [groupByKey]: selectedValue });
+        toggleFilter({ key: groupByKey, value: selectedValue });
       }
     };
 
@@ -274,7 +276,7 @@ const StackedBarChartCentered = ({
           });
 
         const labelText = value.toString();
-        console.log(colorMap[key], key);
+
         labelsLayer
           .append("text")
           .attr("x", xOffset + width / 2)
@@ -330,7 +332,7 @@ const StackedBarChartCentered = ({
     breakdowns,
     context,
     filterVariable,
-    setFilterVariable,
+    toggleFilter,
     groupByKey,
   ]);
 
