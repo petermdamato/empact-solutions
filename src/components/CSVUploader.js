@@ -92,6 +92,8 @@ export default function CSVUploader() {
 
       setFileName(file.name);
 
+      setFileName(file.name);
+
       const reader = new FileReader();
 
       reader.onload = async ({ target }) => {
