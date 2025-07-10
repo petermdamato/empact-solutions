@@ -139,6 +139,7 @@ const StackedBarChartGeneric = (props) => {
     const colors = d3.schemeCategory10;
 
     const handleClick = (event, d) => {
+      setTooltipData(null);
       const selectedValue = d.category;
       const currentKey = Object.keys(filterVariable || {})[0];
       const currentValue = filterVariable?.[currentKey];

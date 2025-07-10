@@ -97,6 +97,7 @@ const PieChart = ({
   if (!records || records.length === 0) return null;
 
   const handleClick = (data) => {
+    setTooltipData(null);
     const selectedValue = data.data.category;
     const currentKey = Object.keys(filterVariable || {})[0];
     const currentValue = filterVariable?.[currentKey];
