@@ -62,10 +62,10 @@ const groupReasons = (data) => {
 
 const groupOffenseCategories = (data) => {
   const result = {
-    Felony: {},
-    Misdemeanor: {},
+    Felonies: {},
+    Misdemeanors: {},
     "Status Offense": {},
-    Technical: {},
+    Technicals: {},
   };
 
   for (const [label, counts] of Object.entries(data)) {
@@ -73,13 +73,13 @@ const groupOffenseCategories = (data) => {
     const lower = label.toLowerCase();
 
     if (lower.includes("felony")) {
-      group = "Felony";
+      group = "Felonies";
     } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
+      group = "Misdemeanors";
     } else if (label === "Status Offense") {
       group = "Status Offense";
     } else {
-      group = "Technical";
+      group = "Technicals";
     }
 
     if (!result[group]) result[group] = {};
@@ -175,6 +175,16 @@ export default function Overview() {
           key === "Facility"
         ) {
           filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Reason for Detention") {
+          filtered = filtered.filter(
+            (record) =>
+              chooseCategory(record, key).toLowerCase() === value.toLowerCase()
+          );
+        } else if (key === "Category") {
+          filtered = filtered.filter(
+            (record) =>
+              chooseCategory(record, key).toLowerCase() === value.toLowerCase()
+          );
         } else if (key === "Pre/post-dispo filter") {
           if (value === "Pre-dispo") {
             filtered = filtered.filter(

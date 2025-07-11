@@ -11,6 +11,8 @@ import {
   offenseMap,
 } from "@/utils/categorizationUtils";
 
+import { getReasonForDetention } from "../categories";
+
 const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
@@ -75,12 +77,14 @@ function analyzeAdmissionsOnly(
     "Race",
     "Ethnicity",
     "OffenseCategory",
+    "OffenseCategoryAligned",
     "RaceEthnicity", // Detailed race/ethnicity breakdown
     "RaceSimplified", // Simplified White vs Youth of Color breakdown
     "Facility",
     "Referral_Source",
     "AgeBracket",
     "AgeDetail",
+    "ReasonForDetention",
   ];
 
   const dispoTypes = ["Pre-dispo", "Post-dispo"];
@@ -145,6 +149,10 @@ function analyzeAdmissionsOnly(
         } else {
           val = row.OffenseCategory || "Unknown";
         }
+      } else if (group === "OffenseCategoryAligned") {
+        val = row.OffenseCategory || "Unknown";
+      } else if (group === "ReasonForDetention") {
+        val = getReasonForDetention(row);
       } else {
         val = row[group] || "Unknown";
       }

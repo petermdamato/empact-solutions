@@ -42,6 +42,7 @@ const StackedBarChartGeneric = (props) => {
     valueBreakdowns,
     sorted = false,
   } = props;
+
   // Resize observer for width changes
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -154,6 +155,22 @@ const StackedBarChartGeneric = (props) => {
       }
     };
 
+    const handleDirectClick = (cat) => {
+      if (groupByKey !== "Overall Total") {
+        setTooltipData(null);
+        const selectedValue = cat.category;
+        const currentKey = Object.keys(filterVariable || {})[0];
+        const currentValue = filterVariable?.[currentKey];
+        const isSameSelection =
+          currentKey === groupByKey && currentValue === selectedValue;
+        if (isSameSelection) {
+          toggleFilter(null);
+        } else {
+          toggleFilter({ key: groupByKey, value: selectedValue });
+        }
+      }
+    };
+
     const handleMouseMove = (event, d) => {
       if (!containerRef.current) return;
 
@@ -178,7 +195,7 @@ const StackedBarChartGeneric = (props) => {
         (sum, key) => sum + (d[key] ?? 0),
         0
       );
-
+      console.log(d.category, tooltipPayload);
       setTooltipData(
         chartTitle.includes("LOS")
           ? {

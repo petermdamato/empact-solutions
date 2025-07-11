@@ -19,6 +19,7 @@ import {
 } from "@/utils/aggFunctions";
 import {
   chooseCategoryV2 as chooseCategory,
+  chooseCategory as chooseCategoryAligned,
   categorizeRaceEthnicity,
   categorizeYoc,
   categorizeAge,
@@ -110,6 +111,18 @@ export default function Overview() {
           );
         } else if (key === "Gender" || key === "Screened/not screened") {
           filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Category") {
+          filtered = filtered.filter(
+            (record) =>
+              chooseCategoryAligned(record, key).toLowerCase() ===
+              value.toLowerCase()
+          );
+        } else if (key === "Reason for Detention") {
+          filtered = filtered.filter(
+            (record) =>
+              chooseCategoryAligned(record, key).toLowerCase() ===
+              value.toLowerCase()
+          );
         } else if (key === "Pre/post-dispo filter") {
           if (value === "Pre-dispo") {
             filtered = filtered.filter(

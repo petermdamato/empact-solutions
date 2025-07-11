@@ -18,7 +18,12 @@ const StackedBarChartGeneric = (props) => {
   const containerRef = useRef();
   const [parentWidth, setParentWidth] = useState(0);
   const [tooltipData, setTooltipData] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState({
+    x: 0,
+    y: 0,
+    screenY: 0,
+    screenX: 0,
+  });
 
   const {
     data,
@@ -78,7 +83,7 @@ const StackedBarChartGeneric = (props) => {
         colorMapOverride[key] ||
         defaultColorPalette[i % defaultColorPalette.length];
     });
-
+    showChart;
     const tempSvg = d3
       .select(document.body)
       .append("svg")
@@ -186,7 +191,12 @@ const StackedBarChartGeneric = (props) => {
             : null,
       });
 
-      setTooltipPosition({ x: x + 10, y: y + 10 });
+      setTooltipPosition({
+        x: x + 10,
+        y: y + 10,
+        screenY: event.y,
+        screenX: event.x,
+      });
     };
 
     const handleMouseOut = () => setTooltipData(null);
@@ -335,8 +345,17 @@ const StackedBarChartGeneric = (props) => {
         <div
           style={{
             position: "absolute",
-            left: `${tooltipPosition.x}px`,
-            top: `${tooltipPosition.y}px`,
+            left:
+              tooltipPosition.screenX < 800
+                ? `${tooltipPosition.x}px`
+                : `${tooltipPosition.x - 340}px`,
+            top: `${
+              tooltipPosition.screenY > 700 && showChart
+                ? tooltipPosition.y - 220
+                : tooltipPosition.screenY > 760
+                ? tooltipPosition.y - 60
+                : tooltipPosition.y
+            }px`,
             pointerEvents: "none",
             zIndex: 100,
             width: "420px",

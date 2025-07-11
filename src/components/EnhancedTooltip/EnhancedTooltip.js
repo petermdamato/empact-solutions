@@ -5,7 +5,7 @@ import {
   getSimplifiedOffenseCategory,
   offenseMap,
 } from "@/utils/categorizationUtils";
-
+import { chooseCategory } from "@/utils/categories";
 const transformToCategoryValueArray = (obj, breakdowns, valueBreakdowns) => {
   if (!breakdowns || breakdowns.length === 0 || !valueBreakdowns) {
     return Object.entries(obj).map(([key, value]) => ({

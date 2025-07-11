@@ -22,6 +22,7 @@ import {
   categorizeRaceEthnicity,
   categorizeYoc,
   categorizeAge,
+  categorizeDisruptionType,
 } from "@/utils/categories";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LegendStatic from "@/components/LegendStatic/LegendStatic";
@@ -111,6 +112,12 @@ export default function Overview() {
           filtered = filtered.filter(
             (record) => categorizeAge(record, incarcerationType) === value
           );
+        } else if (key === "Disruption_Type") {
+          filtered = filtered.filter((record) => {
+            return categorizeDisruptionType(record, incarcerationType).includes(
+              value
+            );
+          });
         } else if (
           key === "Gender" ||
           key === "Screened/not screened" ||

@@ -18,8 +18,8 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       const key = selectedKey === "All Program Types" ? "Overall" : selectedKey;
       return {
         year: +year,
-        percentDisrupted: values[key].disrupted / values[key].total,
-        percentUndisrupted: values[key].undisrupted / values[key].total,
+        percentDisrupted: values[key]?.disrupted / values[key]?.total,
+        percentUndisrupted: values[key]?.undisrupted / values[key]?.total,
       };
     });
 
@@ -86,6 +86,7 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .append("circle")
       .attr("cx", (d) => xScale(d.year))
       .attr("cy", (d) => yScale(d.percentDisrupted))
+      .attr("opacity", (d) => (yScale(d.percentDisrupted) ? 1 : 0))
       .attr("r", 3)
       .attr("fill", "#5b6069");
 
@@ -113,6 +114,7 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .append("circle")
       .attr("cx", (d) => xScale(d.year))
       .attr("cy", (d) => yScale(d.percentUndisrupted))
+      .attr("opacity", (d) => (yScale(d.percentUndisrupted) ? 1 : 0))
       .attr("r", 3)
       .attr("fill", "#a8a8a8");
 
@@ -138,9 +140,11 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .attr("y", () => {
         const firstYearData = parsedData[0];
         // If label would overflow top, put below
-        return firstYearData.percentUndisrupted > firstYearData.percentDisrupted
-          ? yScale(firstYearData.percentDisrupted) - 24
-          : yScale(firstYearData.percentDisrupted) + 24;
+        return firstYearData.percentDisrupted
+          ? firstYearData.percentUndisrupted > firstYearData.percentDisrupted
+            ? yScale(firstYearData.percentDisrupted) - 24
+            : yScale(firstYearData.percentDisrupted) + 24
+          : 220;
       })
       .text("Disrupted")
       .style("font-size", 14)
@@ -154,9 +158,11 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .attr("y", () => {
         const firstYearData = parsedData[0];
         // If label would overflow top, put below
-        return firstYearData.percentUndisrupted > firstYearData.percentDisrupted
-          ? yScale(firstYearData.percentUndisrupted) + 24
-          : yScale(firstYearData.percentUndisrupted) - 24;
+        return firstYearData.percentUndisrupted
+          ? firstYearData.percentUndisrupted > firstYearData.percentDisrupted
+            ? yScale(firstYearData.percentUndisrupted) + 24
+            : yScale(firstYearData.percentUndisrupted) - 24
+          : 80;
       })
       .text("Undisrupted")
       .style("font-size", 14)

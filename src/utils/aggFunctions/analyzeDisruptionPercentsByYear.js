@@ -20,7 +20,7 @@ const getRaceEthnicity = (race, ethnicity) =>
 
 const getAge = (dob, intake) => {
   if (!dob || !intake) return null;
-  return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
+  return Math.floor((intake - dob) / (365.25 * 24 * 60 * 60 * 1000));
 };
 
 /**

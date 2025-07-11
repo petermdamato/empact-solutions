@@ -178,31 +178,6 @@ export default function Overview() {
               "OffenseCategory"
             ),
           },
-          {
-            category: "Post-disposition",
-            header: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "countAdmissions",
-              +selectedYear,
-              detentionType,
-              "OffenseOverall"
-            ),
-            body: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "countAdmissions",
-              +selectedYear,
-              detentionType,
-              "OffenseCategory"
-            ),
-          },
         ],
       ];
       const updatedDataArray2 = [
@@ -306,31 +281,6 @@ export default function Overview() {
           },
           {
             category: "Technicals (pre-dispo)",
-            header: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "countReleases",
-              +selectedYear,
-              detentionType,
-              "OffenseOverall"
-            ),
-            body: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "countReleases",
-              +selectedYear,
-              detentionType,
-              "OffenseCategory"
-            ),
-          },
-          {
-            category: "Post-disposition",
             header: dataAnalysis(
               csvData.filter(
                 (entry) =>
@@ -480,31 +430,6 @@ export default function Overview() {
               "OffenseCategory"
             ),
           },
-          {
-            category: "Post-disposition",
-            header: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "lengthOfStay",
-              +selectedYear,
-              detentionType,
-              "OffenseOverall"
-            ),
-            body: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "lengthOfStay",
-              +selectedYear,
-              detentionType,
-              "OffenseCategory"
-            ),
-          },
         ],
       ];
       const updatedDataArray4 = [
@@ -608,31 +533,6 @@ export default function Overview() {
           },
           {
             category: "Technicals (pre-dispo)",
-            header: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "averageDailyPopulation",
-              +selectedYear,
-              detentionType,
-              "OffenseOverall"
-            ),
-            body: dataAnalysis(
-              csvData.filter(
-                (entry) =>
-                  programType === "All Program Types" ||
-                  entry.Facility === programType
-              ),
-              "averageDailyPopulation",
-              +selectedYear,
-              detentionType,
-              "OffenseCategory"
-            ),
-          },
-          {
-            category: "Post-disposition",
             header: dataAnalysis(
               csvData.filter(
                 (entry) =>

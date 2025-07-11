@@ -140,125 +140,136 @@ const PieChart = ({
       <div className="text-center mb-2">
         <strong>{chartTitle}</strong>
       </div>
-      <div
-        ref={containerRef}
-        className="centered-chart"
-        style={{ width: "100%", height: "100%" }}
-      >
-        <svg
-          ref={svgRef}
-          width={width + margin.left + margin.right}
-          height={height + margin.top + margin.bottom}
-        >
-          <g
-            transform={`translate(${
-              (width + margin.left + margin.right) / 2
-            }, ${(height + margin.top + margin.bottom) / 2})`}
+      {records &&
+      (records.length > 1 || (records.length === 1 && records[0].value > 0)) ? (
+        <>
+          <div
+            ref={containerRef}
+            className="centered-chart"
+            style={{ width: "100%", height: "100%" }}
           >
-            {(() => {
-              const usedLabelAngles = [];
+            <svg
+              ref={svgRef}
+              width={width + margin.left + margin.right}
+              height={height + margin.top + margin.bottom}
+            >
+              <g
+                transform={`translate(${
+                  (width + margin.left + margin.right) / 2
+                }, ${(height + margin.top + margin.bottom) / 2})`}
+              >
+                {(() => {
+                  const usedLabelAngles = [];
 
-              return pieData.map((d, i) => {
-                const angle = (d.startAngle + d.endAngle) / 2;
-                const angleDegrees = (angle * 180) / Math.PI;
+                  return pieData.map((d, i) => {
+                    const angle = (d.startAngle + d.endAngle) / 2;
+                    const angleDegrees = (angle * 180) / Math.PI;
 
-                const isTooClose = usedLabelAngles.some(
-                  (prev) => Math.abs(prev - angleDegrees) < 45
-                );
+                    const isTooClose = usedLabelAngles.some(
+                      (prev) => Math.abs(prev - angleDegrees) < 45
+                    );
 
-                const renderLabel = !isTooClose;
-                if (renderLabel) usedLabelAngles.push(angleDegrees);
+                    const renderLabel = !isTooClose;
+                    if (renderLabel) usedLabelAngles.push(angleDegrees);
 
-                return (
-                  <g key={i}>
-                    <path
-                      ref={(el) => (pathRefs.current[i] = el)}
-                      d={arcGen(d)}
-                      fill={color[i]}
-                      stroke="white"
-                      strokeWidth={1.5}
-                      onClick={() => handleClick(d)}
-                      onMouseMove={(e) => handleMouseOver(e, d)}
-                      onMouseOut={handleMouseOut}
-                    />
-                    {renderLabel && (
-                      <>
-                        <text
-                          data-label-index={i}
-                          transform={`translate(${outerArc.centroid(d)[0]},${
-                            outerArc.centroid(d)[1]
-                          })`}
-                          textAnchor={
-                            outerArc.centroid(d)[0] > 0 ? "start" : "end"
-                          }
-                          alignmentBaseline="middle"
-                          fontSize={12}
-                          dy={-6}
-                          fontWeight={700}
-                          fill="#333"
-                        >
-                          {`${d.data.category}`}
-                        </text>
-                        <text
-                          data-label-index={i}
-                          transform={`translate(${outerArc.centroid(d)[0]},${
-                            outerArc.centroid(d)[1]
-                          })`}
-                          textAnchor={
-                            outerArc.centroid(d)[0] > 0 ? "start" : "end"
-                          }
-                          alignmentBaseline="middle"
-                          dy={8}
-                          fontSize={12}
-                          fill="#333"
-                        >
-                          {`${d.data.value} (${
-                            Math.round(d.data.percentage * 1000) / 10
-                          }%)`}
-                        </text>
-                      </>
-                    )}
-                  </g>
-                );
-              });
-            })()}
-          </g>
-        </svg>
-      </div>
+                    return (
+                      <g key={i}>
+                        <path
+                          ref={(el) => (pathRefs.current[i] = el)}
+                          d={arcGen(d)}
+                          fill={color[i]}
+                          stroke="white"
+                          strokeWidth={1.5}
+                          onClick={() => handleClick(d)}
+                          onMouseMove={(e) => handleMouseOver(e, d)}
+                          onMouseOut={handleMouseOut}
+                        />
+                        {renderLabel && (
+                          <>
+                            <text
+                              data-label-index={i}
+                              transform={`translate(${
+                                outerArc.centroid(d)[0]
+                              },${outerArc.centroid(d)[1]})`}
+                              textAnchor={
+                                outerArc.centroid(d)[0] > 0 ? "start" : "end"
+                              }
+                              alignmentBaseline="middle"
+                              fontSize={12}
+                              dy={-6}
+                              fontWeight={700}
+                              fill="#333"
+                            >
+                              {`${d.data.category}`}
+                            </text>
+                            <text
+                              data-label-index={i}
+                              transform={`translate(${
+                                outerArc.centroid(d)[0]
+                              },${outerArc.centroid(d)[1]})`}
+                              textAnchor={
+                                outerArc.centroid(d)[0] > 0 ? "start" : "end"
+                              }
+                              alignmentBaseline="middle"
+                              dy={8}
+                              fontSize={12}
+                              fill="#333"
+                            >
+                              {`${d.data.value} (${
+                                Math.round(d.data.percentage * 1000) / 10
+                              }%)`}
+                            </text>
+                          </>
+                        )}
+                      </g>
+                    );
+                  });
+                })()}
+              </g>
+            </svg>
+          </div>
 
-      {tooltipData && (
-        <div
-          style={{
-            position: "absolute",
-            left: `${tooltipPosition.x + 10}px`,
-            top: `${tooltipPosition.y + 10}px`,
-            pointerEvents: "none",
-            zIndex: 100,
-          }}
-        >
-          <EnhancedTooltip
-            active={tooltipData.active}
-            payload={tooltipData.payload}
-            label={tooltipData.label}
-            valueFormatter={(value) => {
-              let identifier;
-              const title = chartTitle;
-              identifier = title.split(" by")[0];
+          {tooltipData && (
+            <div
+              style={{
+                position: "absolute",
+                left: `${tooltipPosition.x + 10}px`,
+                top: `${tooltipPosition.y + 10}px`,
+                pointerEvents: "none",
+                zIndex: 100,
+              }}
+            >
+              <EnhancedTooltip
+                active={tooltipData.active}
+                payload={tooltipData.payload}
+                label={tooltipData.label}
+                valueFormatter={(value) => {
+                  let identifier;
+                  const title = chartTitle;
+                  identifier = title.split(" by")[0];
 
-              return `${
-                value === "N/A"
-                  ? "N/A"
-                  : Math.round(value * 10) / 10 +
-                    (identifier === "LOS"
-                      ? " days"
-                      : identifier === "Admissions"
-                      ? " admissions"
-                      : identifier)
-              }`;
-            }}
-            showPercentage={true}
-            totalValue={records.reduce((sum, item) => sum + item.value, 0)}
-          />
+                  return `${
+                    value === "N/A"
+                      ? "N/A"
+                      : Math.round(value * 10) / 10 +
+                        (identifier === "LOS"
+                          ? " days"
+                          : identifier === "Admissions"
+                          ? " admissions"
+                          : identifier)
+                  }`;
+                }}
+                showPercentage={true}
+                totalValue={records.reduce((sum, item) => sum + item.value, 0)}
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ display: "flex" }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            No records match the chosen filters
+          </div>
         </div>
       )}
     </div>

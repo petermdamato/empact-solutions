@@ -21,7 +21,10 @@ import {
   categorizeYoc,
   categorizeAge,
 } from "@/utils/categories";
-import { offenseMap } from "@/utils/categorizationUtils";
+import {
+  offenseMap,
+  getSimplifiedOffenseCategory,
+} from "@/utils/categorizationUtils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 import dynamic from "next/dynamic";
@@ -67,10 +70,10 @@ const groupReasons = (data) => {
 
 const groupOffenseCategories = (data) => {
   const result = {
-    Felony: {},
-    Misdemeanor: {},
+    Felonies: {},
+    Misdemeanors: {},
     "Status Offense": {},
-    Technical: {},
+    Technicals: {},
   };
 
   for (const [label, counts] of Object.entries(data)) {
@@ -78,13 +81,13 @@ const groupOffenseCategories = (data) => {
     const lower = label.toLowerCase();
 
     if (lower.includes("felony")) {
-      group = "Felony";
+      group = "Felonies";
     } else if (lower.includes("misdemeanor")) {
-      group = "Misdemeanor";
-    } else if (label === "Status Offense") {
+      group = "Misdemeanors";
+    } else if (label.toLowerCase() === "status offense") {
       group = "Status Offense";
     } else {
-      group = "Technical";
+      group = "Technicals";
     }
 
     if (!result[group]) result[group] = {};
@@ -182,6 +185,16 @@ export default function Overview() {
           );
         } else if (key === "Gender" || key === "Screened/not screened") {
           filtered = filtered.filter((record) => record[key] === value);
+        } else if (key === "Reason for Detention") {
+          filtered = filtered.filter(
+            (record) =>
+              chooseCategory(record, key).toLowerCase() === value.toLowerCase()
+          );
+        } else if (key === "Category") {
+          filtered = filtered.filter(
+            (record) =>
+              chooseCategory(record, key).toLowerCase() === value.toLowerCase()
+          );
         } else if (key === "Pre/post-dispo filter") {
           if (value === "Pre-dispo") {
             filtered = filtered.filter(
@@ -326,7 +339,8 @@ export default function Overview() {
         ([offense, values]) => ({
           category: offense,
           ...values,
-          total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
+          total: values["Pre-dispo"] || 0,
+          // + (values["Post-dispo"] || 0)
         })
       );
 
@@ -404,7 +418,7 @@ export default function Overview() {
 
       setDataArray20(detData.byGroup.AgeDetail);
 
-      setDataArray21(detData.byGroup.OffenseCategory);
+      setDataArray21(detData.byGroup.ReasonForDetention);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -731,14 +745,14 @@ export default function Overview() {
 
             {/* Admissions by Jurisdiction */}
             <ChartCard width="100%">
-              <div style={{ height: "260px", width: "100%" }}>
+              <div style={{ height: "230px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
                       breakdowns={["total"]}
-                      height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      height={240}
+                      margin={{ top: 20, right: 40, bottom: 10, left: 20 }}
                       chartTitle={"Admissions by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": colors[0],
