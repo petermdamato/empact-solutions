@@ -195,7 +195,7 @@ const StackedBarChartGeneric = (props) => {
         (sum, key) => sum + (d[key] ?? 0),
         0
       );
-      console.log(d.category, tooltipPayload);
+
       setTooltipData(
         chartTitle.includes("LOS")
           ? {

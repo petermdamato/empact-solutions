@@ -590,7 +590,8 @@ const DistributionChart = (records) => {
                             ? ""
                             : "http://") +
                           linkText.linkOut +
-                          "/123";
+                          "/" +
+                          inmateId;
 
                     if (url) window.open(url, "_blank");
                   }}

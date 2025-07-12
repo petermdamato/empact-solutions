@@ -9,7 +9,7 @@ const TableCalculations = ({ data }) => {
   useEffect(() => {
     if (!data) return;
   }, [data]);
-  console.log(data);
+
   return (
     <div>
       {data.map((section, index) => {

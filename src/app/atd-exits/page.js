@@ -6,6 +6,7 @@ import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
 import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
 import ChartCard from "@/components/ChartCard/ChartCard";
+import ZipMap from "@/components/ZipMap/ZipMap";
 import { ResponsiveContainer } from "recharts";
 import { useEffect, useState, useRef } from "react";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
@@ -58,6 +59,8 @@ export default function Overview() {
   const [dataArray4, setDataArray4] = useState([]);
   const [dataArray5, setDataArray5] = useState([]);
   const [dataArray6, setDataArray6] = useState([]);
+  const [showMap, setShowMap] = useState(false);
+  const [persistMap, setPersistMap] = useState(false);
 
   const toggleFilter = (newFilter) => {
     setFilterVariable((prev) => {
@@ -345,7 +348,14 @@ export default function Overview() {
           >
             {/* Change Statistics */}
             <ChartCard width="100%">
-              <div style={{ maxHeight: "60px", width: "100%" }}>
+              <div
+                style={{ maxHeight: "60px", width: "100%" }}
+                onMouseEnter={() => setShowMap(true)}
+                onMouseLeave={() => setShowMap(!persistMap ? false : true)}
+                onClick={() => {
+                  setPersistMap(!persistMap);
+                }}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
                     caption={"ATD exits"}
@@ -355,6 +365,31 @@ export default function Overview() {
                     ]}
                   />
                 </ResponsiveContainer>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "185px",
+                    left: "270px",
+                    zIndex: 10,
+                    width: "320px",
+                    height: "320px",
+                    background: "#fff",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                    borderRadius: "8px",
+                    display: `${showMap || persistMap ? "block" : "none"}`,
+                    overflow: "hidden",
+                  }}
+                >
+                  <ZipMap
+                    persistMap={persistMap}
+                    setPersistMap={setPersistMap}
+                    setShowMap={setShowMap}
+                    csvData={finalData}
+                    selectedYear={selectedYear}
+                    detentionType={incarcerationType}
+                    metric={"exits"}
+                  />
+                </div>
               </div>
             </ChartCard>
 

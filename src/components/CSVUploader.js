@@ -19,6 +19,7 @@ export default function CSVUploader() {
   const validateCSV = (data) => {
     const errorCounts = {}; // { 'column|error': count }
     const missingColumns = new Set();
+    let invalidCountyFormatCount = 0;
 
     data.forEach((row, rowIndex) => {
       Object.keys(dataTypes).forEach((column) => {
@@ -26,7 +27,6 @@ export default function CSVUploader() {
         const value = row[column];
 
         if (!(column in row) && rowIndex === 0) {
-          // Mark missing columns to report later
           missingColumns.add(column);
           return;
         }
@@ -54,7 +54,6 @@ export default function CSVUploader() {
 
           const expectedTypes = Array.isArray(expected) ? expected : [expected];
           if (!expectedTypes.includes(actualType)) {
-            // For format errors, append "# errors" to error message
             const errorMsg = `Expected ${expectedTypes.join(
               " or "
             )}, got ${actualType}`;
@@ -63,21 +62,36 @@ export default function CSVUploader() {
           }
         }
       });
+
+      // Custom validation: CountyName must contain a comma
+      const county = row["CountyName"];
+      if (county && !county.includes(",")) {
+        invalidCountyFormatCount++;
+      }
     });
 
-    // Build issues array
     const issues = [];
 
-    // Add missing column errors, count as "Column missing"
+    // Missing column errors
     missingColumns.forEach((column) => {
       issues.push({ column, error: "Missing column", count: "Column missing" });
     });
 
-    // Add format errors with counts
+    // Format errors with counts
     Object.entries(errorCounts).forEach(([key, count]) => {
       const [column, error] = key.split("|");
       issues.push({ column, error, count });
     });
+
+    // Add CountyName formatting issue if found
+    if (invalidCountyFormatCount > 0) {
+      issues.push({
+        column: "CountyName",
+        error:
+          "County must be formatted as 'County, ST' (e.g., 'Fulton, GA') for the map to work.",
+        count: invalidCountyFormatCount,
+      });
+    }
 
     setErrors(issues);
     setValidationErrors(issues);

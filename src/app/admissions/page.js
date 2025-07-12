@@ -129,6 +129,7 @@ export default function Overview() {
   const [dataArray21, setDataArray21] = useState([]);
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
+  const [persistMap, setPersistMap] = useState(false);
 
   const toggleFilter = (newFilter) => {
     setFilterVariable((prev) => {
@@ -485,7 +486,10 @@ export default function Overview() {
               <div
                 style={{ maxHeight: "60px", width: "100%" }}
                 onMouseEnter={() => setShowMap(true)}
-                onMouseLeave={() => setShowMap(false)}
+                onMouseLeave={() => setShowMap(!persistMap ? false : true)}
+                onClick={() => {
+                  setPersistMap(!persistMap);
+                }}
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
@@ -502,20 +506,27 @@ export default function Overview() {
                 <div
                   style={{
                     position: "absolute",
-                    top: "135px",
-                    left: "60px",
+                    top: "185px",
+                    left: "270px",
                     zIndex: 10,
                     width: "320px",
                     height: "320px",
                     background: "#fff",
                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
                     borderRadius: "8px",
-                    opacity: `${showMap ? 1 : 0}`,
+                    display: `${showMap || persistMap ? "block" : "none"}`,
                     overflow: "hidden",
-                    pointerEvents: "none",
                   }}
                 >
-                  <ZipMap csvData={finalData} selectedYear={selectedYear} />
+                  <ZipMap
+                    persistMap={persistMap}
+                    setPersistMap={setPersistMap}
+                    setShowMap={setShowMap}
+                    csvData={finalData}
+                    selectedYear={selectedYear}
+                    detentionType={incarcerationType}
+                    metric={"admissions"}
+                  />
                 </div>
               </div>
             </ChartCard>

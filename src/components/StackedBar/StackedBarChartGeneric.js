@@ -182,6 +182,7 @@ const StackedBarChartGeneric = (props) => {
           color:
             colorMap[breakdown] ||
             colors[breakdowns.indexOf(breakdown) % colors.length],
+          ...(chartTitle.includes("LOS") && { count: d["Releases"] ?? 0 }),
         })),
         label: d.category,
         categoryTotal: totalForThisCategory,
@@ -298,6 +299,7 @@ const StackedBarChartGeneric = (props) => {
       .attr("class", "y-axis")
       .selectAll(".tick text")
       .text((d) => (d === "" ? "N/A" : d))
+      .attr("pointer-events", "none")
       .attr("font-size", 14)
       .call(wrap, 106);
   }, [

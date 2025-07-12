@@ -10,6 +10,7 @@ const menuItems = [
   { label: "User Guide", access: "Active" },
   { label: "Glossary", access: "Active" },
   { label: "Upload", access: "Active" },
+  { label: "Settings", access: "Active" },
   {
     label: "Secure Detention",
     subItems: [
@@ -180,7 +181,7 @@ const Sidebar = () => {
       <footer>
         <img
           className="sidebar-logo"
-          src="/logo.jpg"
+          src="/logo.png"
           alt="Empact Solutions Logo"
         />
         <p>
