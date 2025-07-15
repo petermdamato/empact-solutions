@@ -1,65 +1,45 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { signInWithEmailAndPassword } from "@/lib/firebaseClient";
+import { firebaseAuth } from "@/lib/firebaseClient";
 
-// Dummy user for demonstration
-const users = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    password: "password123", // NEVER store passwords like this in production
-  },
-  {
-    id: "2",
-    name: "Peter D'Amato",
-    email: "petermdamato@gmail.com",
-    password: "password123", // NEVER store passwords like this in production
-  },
-  {
-    id: "3",
-    name: "Test",
-    email: "test@test.com",
-    password: "password123", // NEVER store passwords like this in production
-  },
-  {
-    id: "4",
-    name: "Jason",
-    email: "jason@empact.solutions",
-    password: "MUg1%99JN", // NEVER store passwords like this in production
-  },
-];
-
-// Define the NextAuth configuration
 const authOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "Firebase Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        const user = users.find(
-          (u) =>
-            u.email === credentials.email && u.password === credentials.password
-        );
+      async authorize({ email, password }) {
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            firebaseAuth,
+            email,
+            password
+          );
+          const user = userCredential.user;
 
-        if (user) {
-          return { id: user.id, name: user.name, email: user.email };
+          return {
+            id: user.uid,
+            email: user.email,
+            name: user.displayName || "Firebase User",
+          };
+        } catch (err) {
+          console.error("Firebase auth error:", err);
+          return null;
         }
-        return null;
       },
     }),
   ],
   session: {
-    strategy: "jwt", // Use JWT for session management
+    strategy: "jwt",
   },
   pages: {
-    signIn: "/auth/signin", // Your custom sign-in page
-    signOut: "/auth/signout", // Your custom sign-in page
+    signIn: "/auth/signin",
+    signOut: "/auth/signout",
   },
-  secret: process.env.NEXTAUTH_SECRET, // Ensure your secret is set
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Export the NextAuth API route handler
 export default (req, res) => NextAuth(req, res, authOptions);

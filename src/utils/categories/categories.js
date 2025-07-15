@@ -43,6 +43,7 @@ export function getReasonForDetention(row) {
 
 export function chooseCategory(result, category) {
   const status = result["Post_Adjudicated_Status"];
+  const reason = result["Post-Dispo Stay Reason"];
   const label =
     category === "Jurisdiction"
       ? result["Referral_Source"]
@@ -85,6 +86,7 @@ export function chooseCategory(result, category) {
 
 export function chooseCategoryAligned(result, category) {
   const status = result["Post_Adjudicated_Status"];
+  const reason = result["Post-Dispo Stay Reason"];
   const label =
     category === "Jurisdiction"
       ? result["Referral_Source"]
@@ -96,8 +98,8 @@ export function chooseCategoryAligned(result, category) {
   if (category === "Jurisdiction") {
     group = getSimplifiedReferralSource(label);
   } else if (category === "Reason for Detention") {
-    if (status && status.length > 0) {
-      if (status.toLowerCase().includes("other")) {
+    if (reason && reason.length > 0) {
+      if (reason.toLowerCase().includes("other")) {
         group = "Other";
       } else {
         group = status;

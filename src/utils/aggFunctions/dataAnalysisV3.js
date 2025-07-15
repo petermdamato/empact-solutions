@@ -1,7 +1,6 @@
 import {
-  parse,
   differenceInCalendarDays,
-  isWithinInterval,
+  isLeapYear,
   eachDayOfInterval,
 } from "date-fns";
 
@@ -15,22 +14,11 @@ const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
 
-  if (
-    s.includes("police") ||
-    s.includes("sheriff") ||
-    s.includes("law enforcement") ||
-    s.includes("officer") ||
-    s.includes("deputy")
-  ) {
+  if (s === "law enforcement") {
     return "Law Enforcement";
   }
 
-  if (
-    s.includes("court") ||
-    s.includes("judge") ||
-    s.includes("probation") ||
-    s.includes("magistrate")
-  ) {
+  if (s === "court") {
     return "Court";
   }
 
@@ -320,9 +308,10 @@ const analyzeData = (
           ? "Other"
           : row["Post-Dispo Stay Reason"]
         : offenseMap[row.OffenseCategory] || "Other";
-    const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
-      row.OffenseCategory
-    );
+    const simplifiedOffenseCategory =
+      row["Post-Dispo Stay Reason"] && row["Post-Dispo Stay Reason"].length > 0
+        ? null
+        : getSimplifiedOffenseCategory(row.OffenseCategory);
 
     // Get facility and referral source with defaults for missing data
     const facility = row.Facility || "Unknown";
@@ -437,29 +426,32 @@ const analyzeData = (
         results[key] = null; // No valid stays
       }
     } else if (calculationType === "averageDailyPopulation") {
-      // Create an array of dates within the interval
-      const allDays = eachDayOfInterval({
-        start: startDate,
-        end: endDate,
-      });
+      const daysInYear = isLeapYear(endDate) ? 366 : 365;
 
-      // For each day, count how many people were present
-      const dayCounts = allDays.map((day) => {
-        return group.filter((person) => {
-          return (
-            person.intakeDate &&
-            person.intakeDate <= day &&
-            (!person.releaseDate || person.releaseDate >= day)
-          );
-        }).length;
-      });
+      const totalOverlapDays = group.reduce((sum, d) => {
+        if (!d.intakeDate) return sum;
 
-      if (dayCounts.length > 0) {
+        const rangeStart = d.intakeDate < startDate ? startDate : d.intakeDate;
+        const rangeEnd =
+          d.releaseDate && !isNaN(d.releaseDate)
+            ? d.releaseDate > endDate
+              ? endDate
+              : d.releaseDate
+            : endDate;
+
+        if (rangeStart > endDate || rangeEnd < startDate) return sum;
+
+        const overlapDays =
+          Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+
+        return sum + overlapDays;
+      }, 0);
+
+      if (totalOverlapDays > 0) {
         hasValidData = true;
-        const totalCount = dayCounts.reduce((sum, count) => sum + count, 0);
-        results[key] = totalCount / dayCounts.length;
+        results[key] = totalOverlapDays / daysInYear;
       } else {
-        results[key] = 0; // No population on any day
+        results[key] = 0;
       }
     }
 
@@ -571,8 +563,58 @@ const analyzeReasonForDetention = (
   return completeResults;
 };
 
+const analyzePostDispoGroup = (csvData, year, options = {}) => {
+  // Define mapping function to assign to parent categories
+  const getParentCategory = (reason) => {
+    if (!reason) return null;
+
+    if (reason.toLowerCase().includes("other")) return "Other";
+    if (reason === "Confinement to secure detention")
+      return "Confinement to secure detention";
+    if (reason === "Awaiting Placement") return "Awaiting Placement";
+
+    return null;
+  };
+
+  // Initialize output object
+  const output = {};
+
+  // For each parent category, filter and analyze
+  const parentCategories = [
+    "Other",
+    "Confinement to secure detention",
+    "Awaiting Placement",
+  ];
+
+  parentCategories.forEach((parent) => {
+    // Filter records for this parent category
+    const filtered = csvData.filter((row) => {
+      const reason = row["Post-Dispo Stay Reason"];
+      return getParentCategory(reason) === parent;
+    });
+
+    // Skip if no data
+    if (!filtered.length) return;
+
+    // Calculate averageDailyPopulation grouped by OffenseCategory
+    const results = analyzeData(
+      filtered,
+      "averageDailyPopulation",
+      year,
+      "OffenseCategory",
+      "secure-detention",
+      options
+    );
+
+    output[parent] = results;
+  });
+
+  return output;
+};
+
 export {
   analyzeData as default,
+  analyzePostDispoGroup,
   analyzeOffenseCategories,
   analyzeReasonForDetention,
   analyzeAdmissionsOnly,

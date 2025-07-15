@@ -9,12 +9,10 @@ import "./styles.css";
 import {
   aggregateByGender,
   aggregateByRace,
-  aggregateByStatus,
   aggregateByOffense,
   aggregateCalculationByOffense,
   aggregateMedianByOffense,
   aggregatePopulationByOffense,
-  aggregatePrePost,
 } from "@/utils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import { isLeapYear } from "date-fns";
@@ -203,8 +201,7 @@ export default function Overview() {
     setDataArray4([
       [
         Math.round(
-          ((columnAggPopulations.pre + columnAggPopulations.post) * 10) /
-            (isLeapYear(selectedYear) ? 366 : 365)
+          (columnAggPopulations.pre + columnAggPopulations.post) * 10
         ) / 10,
         statusDataPopulation.previousPeriodCount,
       ],
@@ -226,12 +223,17 @@ export default function Overview() {
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div
-          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          style={{
+            display: "flex",
+            flexGrow: 1,
+            flexDirection: "column",
+            overflowY: "auto",
+          }}
           ref={contentRef}
         >
           <Header
             title="ATD Utilization"
-            subtitle="Snapshot"
+            subtitle="Overview"
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
@@ -277,7 +279,7 @@ export default function Overview() {
                       data: dataArray3,
                       charts: ["change", "column", "stacked-bar"],
                       chartTitles: ["Days", "", ""],
-                      contexts: ["releases", "releases", "releases"],
+                      contexts: ["exits", "exits", "exits"],
                       useDropdown: true,
                       dropdownOptions: ["Average LOS", "Median LOS"],
                       dropdownValue: calculation,

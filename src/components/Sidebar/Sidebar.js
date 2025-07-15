@@ -5,11 +5,14 @@ import "./Sidebar.css";
 import Link from "next/link";
 import { useCSV } from "@/context/CSVContext";
 import { useSidebar } from "@/context/SidebarContext";
+import { firebaseAuth } from "@/lib/firebaseClient";
+import { signOut } from "firebase/auth";
 
 const menuItems = [
   { label: "User Guide", access: "Active" },
   { label: "Glossary", access: "Active" },
   { label: "Upload", access: "Active" },
+  { label: "Settings", access: "Active" },
   {
     label: "Secure Detention",
     subItems: [
@@ -72,10 +75,27 @@ const Sidebar = () => {
       }`}
     >
       <div className="header">
-        <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
+          <div>
+            <button
+              onClick={() => {
+                signOut(firebaseAuth)
+                  .then(() => {
+                    window.location.href = "/api/auth/signin";
+                  })
+                  .catch(console.error);
+              }}
+              className="signout-button"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
         <h1>
           {selectedMenu === "User Guide" ||
           selectedMenu === "Upload" ||
+          selectedMenu === "Settings" ||
           selectedMenu === "Glossary"
             ? "Empact Detention Analytics"
             : selectedMenu}
@@ -180,7 +200,7 @@ const Sidebar = () => {
       <footer>
         <img
           className="sidebar-logo"
-          src="/logo.jpg"
+          src="/logo.png"
           alt="Empact Solutions Logo"
         />
         <p>

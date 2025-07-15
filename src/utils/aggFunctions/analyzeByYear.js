@@ -1,5 +1,6 @@
 import getSimplifiedOffenseCategory from "../helper";
 import * as d3 from "d3";
+import { isLeapYear } from "date-fns";
 
 function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
   const entryYears = data
@@ -104,16 +105,6 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
     }
   };
 
-  const yearRange = (start, end) => {
-    const range = [];
-    let date = new Date(start);
-    while (date <= end) {
-      range.push(new Date(date));
-      date.setDate(date.getDate() + 1);
-    }
-    return range;
-  };
-
   const results = {};
   const validYears = new Set();
 
@@ -122,46 +113,56 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
     if (!entry) return;
 
     const exitYear = exit ? exit.getFullYear() : null;
-
     const key = groupKey(record, entry);
 
-    // Loop through all years to find the matching bucket by "between" logic
     for (const yr of uniqueYears) {
       const startOfYear = new Date(`${yr}-01-01`);
       const endOfYear = new Date(`${yr}-12-31`);
+      const daysInYear = isLeapYear(endOfYear) ? 366 : 365;
 
-      if (entry >= startOfYear && entry <= endOfYear) {
-        validYears.add(yr);
+      const rangeStart = entry < startOfYear ? startOfYear : entry;
+      const rangeEnd =
+        exit && !isNaN(exit)
+          ? exit > endOfYear
+            ? endOfYear
+            : exit
+          : endOfYear;
 
-        if (!results[yr]) results[yr] = {};
-        if (!results[yr][key]) {
-          results[yr][key] = {
-            entries: 0,
-            exits: 0,
-            totalLOS: 0,
-            countLOS: 0,
-            lengthOfStays: [],
-            dailyCounts: {},
-          };
-        }
+      if (rangeStart > endOfYear || rangeEnd < startOfYear) continue;
 
-        results[yr][key].entries += 1;
+      validYears.add(yr);
 
-        // Daily counts for ADP within the year
-        const range = yearRange(startOfYear, endOfYear);
-        for (const date of range) {
-          const dateStr = date.toISOString().slice(0, 10);
-          if (entry <= date && (!exit || exit >= date)) {
-            results[yr][key].dailyCounts[dateStr] =
-              (results[yr][key].dailyCounts[dateStr] || 0) + 1;
-          }
-        }
-
-        break; // once placed in the correct year, stop checking
+      if (!results[yr]) results[yr] = {};
+      if (!results[yr][key]) {
+        results[yr][key] = {
+          entries: 0,
+          exits: 0,
+          totalLOS: 0,
+          countLOS: 0,
+          lengthOfStays: [],
+          totalOverlapDays: 0,
+          daysInYear: daysInYear,
+        };
       }
+
+      // Increment entries if entry is within this year
+      if (entry >= startOfYear && entry <= endOfYear) {
+        results[yr][key].entries += 1;
+      }
+
+      // Calculate overlapping days for ADP
+      const overlapDays =
+        Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+      results[yr][key].totalOverlapDays += overlapDays;
     }
+
     // If released, increment exits and LOS in exit year
     if (exitYear) {
+      const los = Math.max(
+        0,
+        Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)) + 1
+      );
+
       validYears.add(exitYear);
       if (!results[exitYear]) results[exitYear] = {};
       if (!results[exitYear][key]) {
@@ -171,14 +172,10 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
           totalLOS: 0,
           countLOS: 0,
           lengthOfStays: [],
-          dailyCounts: {},
+          totalOverlapDays: 0,
+          daysInYear: isLeapYear(exit) ? 366 : 365,
         };
       }
-
-      const los = Math.max(
-        0,
-        Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)) + 1
-      );
 
       results[exitYear][key].exits += 1;
       results[exitYear][key].totalLOS += los;
@@ -194,13 +191,10 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
     final[year] = {};
     for (const key in results[year]) {
       const obj = results[year][key];
-      const adp =
-        Object.values(obj.dailyCounts).reduce((sum, val) => sum + val, 0) /
-        Object.keys(obj.dailyCounts).length;
+      const adp = obj.totalOverlapDays / obj.daysInYear;
 
       // Calculate median LOS only for released cases
       let medianLOS = null;
-      let medianLOSCount = 0;
       if (obj.lengthOfStays.length > 0) {
         obj.lengthOfStays.sort((a, b) => a - b);
         const mid = Math.floor(obj.lengthOfStays.length / 2);
@@ -208,7 +202,6 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
           obj.lengthOfStays.length % 2 === 0
             ? (obj.lengthOfStays[mid - 1] + obj.lengthOfStays[mid]) / 2
             : obj.lengthOfStays[mid];
-        medianLOSCount = obj.lengthOfStays.length;
       }
 
       const baseMetrics = {

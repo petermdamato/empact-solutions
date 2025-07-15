@@ -8,10 +8,12 @@ const aggregatePopulationByStatus = (
 ) => {
   const yearStart = new Date(`${selectedYear}-01-01`);
   const yearEnd = new Date(`${selectedYear}-12-31`);
+  const daysInYear = isLeapYear(yearEnd) ? 366 : 365;
 
   // Previous year range
   const prevStartDate = new Date(`${selectedYear - 1}-01-01`);
   const prevEndDate = new Date(`${selectedYear - 1}-12-31`);
+  const prevDaysInYear = isLeapYear(prevEndDate) ? 366 : 365;
 
   const getIntakeDate = (record) =>
     detentionType === "secure-detention"
@@ -39,13 +41,10 @@ const aggregatePopulationByStatus = (
     Technical: { post: 0, pre: 0 },
   };
 
-  // Function to determine category
   const determineCategory = (record) => {
-    const postStatus = record.Post_Adjudicated_Status;
     const postReason = record["Post-Dispo Stay Reason"];
     const offenseCategory = record.OffenseCategory?.toLowerCase() || "";
 
-    // First check Post_Adjudicated_Status
     if (postReason) {
       const lowerStatus = postReason.toLowerCase();
       if (lowerStatus.includes("awaiting")) {
@@ -57,7 +56,6 @@ const aggregatePopulationByStatus = (
       }
     }
 
-    // Then check OffenseCategory
     if (
       offenseCategory.includes("felony") ||
       offenseCategory.includes("misdemeanor")
@@ -65,59 +63,71 @@ const aggregatePopulationByStatus = (
       return "New Offense";
     }
 
-    // Default to Technical
     return "Technical";
   };
 
-  // Loop over each day of the year
-  const currentDate = new Date(yearStart);
-  while (currentDate <= yearEnd) {
-    data.forEach((record) => {
-      const intake = getIntakeDate(record);
-      const release = getReleaseDate(record);
-      const category = determineCategory(record);
+  // Process current year
+  data.forEach((record) => {
+    const intake = getIntakeDate(record);
+    const release = getReleaseDate(record);
+    const category = determineCategory(record);
 
-      const dispoStatus =
-        record["Post-Dispo Stay Reason"] === null ||
-        record["Post-Dispo Stay Reason"] === ""
-          ? "Pre-dispo"
-          : "Post-dispo";
+    const dispoStatus =
+      record["Post-Dispo Stay Reason"] === null ||
+      record["Post-Dispo Stay Reason"] === ""
+        ? "Pre-dispo"
+        : "Post-dispo";
 
-      if (!intake || !dispoStatus) return;
+    if (!intake || !dispoStatus) return;
 
-      if (intake <= currentDate && (!release || release >= currentDate)) {
-        if (dispoStatus.toLowerCase().includes("pre")) {
-          result[category].pre += 1;
-        } else if (dispoStatus.toLowerCase().includes("post")) {
-          result[category].post += 1;
-        }
-      }
-    });
+    const rangeStart = intake < yearStart ? yearStart : intake;
+    const rangeEnd =
+      release && !isNaN(release)
+        ? release > yearEnd
+          ? yearEnd
+          : release
+        : yearEnd;
 
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
+    if (rangeStart > yearEnd || rangeEnd < yearStart) return;
 
-  // Calculate previous year count
-  let prevYearCount = 0;
-  const prevYearDate = new Date(prevStartDate);
-  while (prevYearDate <= prevEndDate) {
-    data.forEach((record) => {
-      const intake = getIntakeDate(record);
-      const release = getReleaseDate(record);
+    const overlapDays =
+      Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
 
-      if (!intake) return;
+    const avgPopulation = overlapDays / daysInYear;
 
-      if (intake <= prevYearDate && (!release || release >= prevYearDate)) {
-        prevYearCount += 1;
-      }
-    });
+    if (dispoStatus.toLowerCase().includes("pre")) {
+      result[category].pre += avgPopulation;
+    } else if (dispoStatus.toLowerCase().includes("post")) {
+      result[category].post += avgPopulation;
+    }
+  });
 
-    prevYearDate.setDate(prevYearDate.getDate() + 1);
-  }
+  // Process previous year
+  let prevYearTotalDays = 0;
+  data.forEach((record) => {
+    const intake = getIntakeDate(record);
+    const release = getReleaseDate(record);
+
+    if (!intake) return;
+
+    const rangeStart = intake < prevStartDate ? prevStartDate : intake;
+    const rangeEnd =
+      release && !isNaN(release)
+        ? release > prevEndDate
+          ? prevEndDate
+          : release
+        : prevEndDate;
+
+    if (rangeStart > prevEndDate || rangeEnd < prevStartDate) return;
+
+    const overlapDays =
+      Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+
+    prevYearTotalDays += overlapDays;
+  });
 
   return {
-    previousPeriodCount:
-      prevYearCount / (isLeapYear(selectedYear - 1) ? 366 : 365),
+    previousPeriodCount: prevYearTotalDays / prevDaysInYear,
     results: Object.entries(result).map(([category, counts]) => ({
       category,
       ...counts,

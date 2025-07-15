@@ -40,19 +40,19 @@ const ColumnChart = ({
     const innerHeight = height - margin.top - margin.bottom;
 
     const getValue =
-      context === "releases"
+      context === "releases" || context === "exits"
         ? calculation.toLowerCase().includes("average")
           ? (d) => Math.round((d.days * 10) / d.value) / 10
           : (d) => d.days
         : context === "population"
-        ? (d) => Math.round((d.value * 10) / d.days) / 10
+        ? (d) => Math.round(d.value * 10) / 10
         : (d) => d.value;
 
     const total = data.reduce((sum, d) => sum + d.value, 0);
 
     const xScale = d3
       .scaleBand()
-      .domain(data.map((d) => d.label))
+      .domain(["Pre-dispo", "Post-dispo"])
       .range([margin.left, innerWidth - margin.right])
       .padding(0.5);
 
@@ -94,7 +94,11 @@ const ColumnChart = ({
       .attr("class", "value-label")
       .attr("x", (d) => xScale(d.label) + xScale.bandwidth() / 2)
       .attr("y", (d) => yScale(getValue(d)) - 16)
-      .text(getValue)
+      .text((d) =>
+        context === "exits" || context === "releases"
+          ? `${getValue(d)} days`
+          : getValue(d)
+      )
       .attr("fill", "black")
       .style("font-size", 16)
       .style("font-weight", "bold")

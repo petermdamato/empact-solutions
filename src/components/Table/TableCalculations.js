@@ -3,13 +3,14 @@ import "./Table.css";
 import offenseMapFunction from "@/utils/offenseMapFunction";
 
 // Format numbers with fallback for NaN
-const formatNumber = (value) => (isNaN(value) ? "—" : Math.round(value));
+const formatNumber = (value) =>
+  isNaN(value) ? "—" : Math.round(value * 10) / 10;
 
 const TableCalculations = ({ data }) => {
   useEffect(() => {
     if (!data) return;
   }, [data]);
-  console.log(data);
+
   return (
     <div>
       {data.map((section, index) => {

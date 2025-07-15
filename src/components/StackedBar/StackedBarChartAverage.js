@@ -46,14 +46,16 @@ const StackedBarChartAverage = ({
 
     const totalCount = 0;
 
-    data = data.sort((a, b) => {
-      return b.averagePre + b.averagePost - (a.averagePre + a.averagePost);
-    });
+    // data = data.sort((a, b) => {
+    //   return b.averagePre + b.averagePost - (a.averagePre + a.averagePost);
+    // });
+
+    data = data.sort((a, b) => a.category.localeCompare(b.category));
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous content
 
-    const innerWidth = parentWidth - margin.left - margin.right; // Use parent width
+    const innerWidth = parentWidth - margin.left - margin.right - 40; // Use parent width
     const innerHeight = height - margin.top - margin.bottom;
 
     // Create scales
@@ -150,7 +152,13 @@ const StackedBarChartAverage = ({
       .append("text")
       .attr("class", "label-percent")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 5)
-      .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
+      .attr(
+        "x",
+        (d, i) =>
+          xScale(getValue(d)) +
+          textWidths[i] / 2 +
+          (context === "exits" ? 18 : context === "releases" ? 12 : 4)
+      )
       .attr("dy", "0.35em")
       .text((d) =>
         context === "percentages"
@@ -169,12 +177,18 @@ const StackedBarChartAverage = ({
       .append("text")
       .attr("class", "label-nominal")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 - 7)
-      .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
+      .attr(
+        "x",
+        (d, i) =>
+          xScale(getValue(d)) +
+          textWidths[i] / 2 +
+          (context === "exits" ? 18 : context === "releases" ? 12 : 4)
+      )
       .attr("dy", "0.35em")
       .text((d) =>
         context === "percentages"
           ? d.pre + d.post
-          : Math.round(d.averageTotal * 10) / 10
+          : Math.round(d.averageTotal * 10) / 10 + " days"
       )
       .attr("fill", "black")
       .style("font-size", 16)

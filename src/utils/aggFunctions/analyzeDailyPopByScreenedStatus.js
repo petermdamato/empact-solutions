@@ -1,5 +1,4 @@
-import { parse, eachDayOfInterval, isBefore, isAfter, isEqual } from "date-fns";
-import { mean } from "d3-array";
+import { parse, isLeapYear } from "date-fns";
 
 function analyzeDailyPopByScreenedStatus(
   data,
@@ -8,12 +7,10 @@ function analyzeDailyPopByScreenedStatus(
 ) {
   const format = "yyyy-MM-dd";
 
-  // Get all days in the year
-  const allDays = eachDayOfInterval({
-    start: new Date(selectedYear, 0, 1),
-    end: new Date(selectedYear, 11, 31),
-  });
+  const startDate = new Date(`${selectedYear}-01-01`);
+  const endDate = new Date(`${selectedYear}-12-31`);
 
+  const daysInYear = isLeapYear(endDate) ? 366 : 365;
   // Group data by screened status
   const scrGroups = {};
   data.forEach((row) => {
@@ -43,18 +40,24 @@ function analyzeDailyPopByScreenedStatus(
 
   const results = {};
 
-  // Calculate daily counts and ADP per screened status
+  // Calculate total overlapping days and ADP per screened status
   for (const [scrStatus, records] of Object.entries(scrGroups)) {
-    const dailyCounts = allDays.map((day) => {
-      return records.reduce((count, { entry, exit }) => {
-        if (!entry) return count;
-        const started = isBefore(entry, day) || isEqual(entry, day);
-        const notExited = !exit || isAfter(exit, day) || isEqual(exit, day);
-        return started && notExited ? count + 1 : count;
-      }, 0);
-    });
+    const totalOverlapDays = records.reduce((sum, { entry, exit }) => {
+      if (!entry) return sum;
 
-    results[scrStatus] = mean(dailyCounts);
+      const rangeStart = entry < startDate ? startDate : entry;
+      const rangeEnd =
+        exit && !isNaN(exit) ? (exit > endDate ? endDate : exit) : endDate;
+
+      if (rangeStart > endDate || rangeEnd < startDate) return sum;
+
+      const overlapDays =
+        Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+
+      return sum + overlapDays;
+    }, 0);
+
+    results[scrStatus] = totalOverlapDays / daysInYear;
   }
 
   return results;

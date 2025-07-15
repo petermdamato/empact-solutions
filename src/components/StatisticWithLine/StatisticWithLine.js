@@ -130,7 +130,7 @@ const OverridePercentStat = ({ data }) => {
           style={{
             position: "absolute",
             top: "calc(100% + 12px)",
-            left: "50%",
+            left: "24%",
             transform: "translateX(-50%)",
             background: "#fff",
             border: "1px solid #e2e8f0",

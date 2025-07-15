@@ -127,8 +127,10 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
+  const [persistMap, setPersistMap] = useState(false);
 
   const toggleFilter = (newFilter) => {
     setFilterVariable((prev) => {
@@ -355,7 +357,6 @@ export default function Overview() {
           total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         })
       );
-
       setDataArray18(groupedByReasons);
 
       const byJurisdiction = Object.entries(
@@ -419,6 +420,7 @@ export default function Overview() {
       setDataArray20(detData.byGroup.AgeDetail);
 
       setDataArray21(detData.byGroup.ReasonForDetention);
+      setDataArray22(detData.PostDispoGroups);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -483,9 +485,12 @@ export default function Overview() {
             {/* Change Statistics */}
             <ChartCard width="100%" style={{ position: "relative" }}>
               <div
-                style={{ maxHeight: "60px", width: "100%" }}
+                style={{ maxHeight: "78px", width: "100%" }}
                 onMouseEnter={() => setShowMap(true)}
-                onMouseLeave={() => setShowMap(false)}
+                onMouseLeave={() => setShowMap(!persistMap ? false : true)}
+                onClick={() => {
+                  setPersistMap(!persistMap);
+                }}
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
@@ -502,27 +507,34 @@ export default function Overview() {
                 <div
                   style={{
                     position: "absolute",
-                    top: "135px",
-                    left: "60px",
+                    top: "185px",
+                    left: "270px",
                     zIndex: 10,
                     width: "320px",
                     height: "320px",
                     background: "#fff",
                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
                     borderRadius: "8px",
-                    opacity: `${showMap ? 1 : 0}`,
+                    display: `${showMap || persistMap ? "block" : "none"}`,
                     overflow: "hidden",
-                    pointerEvents: "none",
                   }}
                 >
-                  <ZipMap csvData={finalData} selectedYear={selectedYear} />
+                  <ZipMap
+                    persistMap={persistMap}
+                    setPersistMap={setPersistMap}
+                    setShowMap={setShowMap}
+                    csvData={finalData}
+                    selectedYear={selectedYear}
+                    detentionType={incarcerationType}
+                    metric={"admissions"}
+                  />
                 </div>
               </div>
             </ChartCard>
 
             {/* Admissions by Type */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "290px", width: "100%" }}>
                 <PieChart
                   records={dataArray12}
                   year={selectedYear}
@@ -536,7 +548,7 @@ export default function Overview() {
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "290px", width: "100%" }}>
                 <PieChart
                   records={dataArray19}
                   year={selectedYear}
@@ -710,6 +722,7 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
+                      postDispoData={dataArray22}
                     />
                   )}
                 </ResponsiveContainer>

@@ -8,12 +8,14 @@ import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGener
 import ColumnChartGeneric from "@/components/ColumnChart/ColumnChartGeneric";
 import ChartCard from "@/components/ChartCard/ChartCard";
 import Selector from "@/components/Selector/Selector";
+import ZipMap from "@/components/ZipMap/ZipMap";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeLengthByScreenedStatus,
   analyzeLOSByYear,
   dataAnalysisLOS,
+  analyzeLOSBySubgroup,
   analyzeLengthByProgramType,
   analyzeLengthByDispoStatus,
 } from "@/utils/aggFunctions";
@@ -58,7 +60,10 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
+  const [showMap, setShowMap] = useState(false);
+  const [persistMap, setPersistMap] = useState(false);
 
   const toggleFilter = (newFilter) => {
     setFilterVariable((prev) => {
@@ -290,13 +295,17 @@ export default function Overview() {
           "SimplifiedOffense",
           "secure-detention"
         )
-      ).map(([cat, values]) => {
-        return {
-          category: cat,
-          total: values.los,
-          Releases: values.count,
-        };
-      });
+      )
+        .filter(([cat, values]) => {
+          return cat !== "null";
+        })
+        .map(([cat, values]) => {
+          return {
+            category: cat,
+            total: values.los,
+            Releases: values.count,
+          };
+        });
 
       setDataArray16(categories);
 
@@ -428,8 +437,41 @@ export default function Overview() {
         },
         {}
       );
+      const losByPostDispoGroup = analyzeLOSBySubgroup(
+        finalData,
+        `${calculationType}LengthOfStay`,
+        +selectedYear,
+        "PostDispoGroup",
+        "secure-detention"
+      );
+
+      let losByPostDispoGroupTransformed = {};
+
+      for (const [topLevelKey, offenses] of Object.entries(
+        losByPostDispoGroup
+      )) {
+        if (topLevelKey === "Unknown") continue; // skip Unknown section
+
+        losByPostDispoGroupTransformed[topLevelKey] = {};
+
+        for (const [offense, data] of Object.entries(offenses)) {
+          let losValue = null;
+          if (calculationType === "average") {
+            losValue = data.averageLengthOfStay;
+          } else if (calculationType === "median") {
+            losValue = data.medianLengthOfStay;
+          }
+
+          if (losValue > 0) {
+            losByPostDispoGroupTransformed[topLevelKey][offense] = {
+              "Post-dispo": losValue,
+            };
+          }
+        }
+      }
 
       setDataArray21(losByCatTransformed);
+      setDataArray22(losByPostDispoGroupTransformed);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -508,7 +550,14 @@ export default function Overview() {
           >
             {/* Change Statistics */}
             <ChartCard width="100%">
-              <div style={{ maxHeight: "60px", width: "100%" }}>
+              <div
+                style={{ maxHeight: "78px", width: "100%" }}
+                onMouseEnter={() => setShowMap(true)}
+                onMouseLeave={() => setShowMap(!persistMap ? false : true)}
+                onClick={() => {
+                  setPersistMap(!persistMap);
+                }}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
                     caption={"days in detention"}
@@ -530,19 +579,44 @@ export default function Overview() {
                     ]}
                   />
                 </ResponsiveContainer>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "185px",
+                    left: "270px",
+                    zIndex: 10,
+                    width: "320px",
+                    height: "320px",
+                    background: "#fff",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                    borderRadius: "8px",
+                    display: `${showMap || persistMap ? "block" : "none"}`,
+                    overflow: "hidden",
+                  }}
+                >
+                  <ZipMap
+                    persistMap={persistMap}
+                    setPersistMap={setPersistMap}
+                    setShowMap={setShowMap}
+                    csvData={finalData}
+                    selectedYear={selectedYear}
+                    detentionType={incarcerationType}
+                    metric={`${calculationType}LengthOfStay`}
+                  />
+                </div>
               </div>
             </ChartCard>
 
             {/* LOS by Screened/Not Screened */}
             <ChartCard width="100%">
-              <div style={{ height: "310px", width: "100%" }}>
+              <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray12.length > 0 && (
                     <ColumnChartGeneric
                       data={dataArray12}
                       breakdowns={["total"]}
                       calculationType={calculationType}
-                      height={300}
+                      height={290}
                       margin={{ top: 40, right: 20, bottom: 68, left: 20 }}
                       chartTitle={"LOS by Screened/not screened"}
                       colorMapOverride={{
@@ -561,14 +635,14 @@ export default function Overview() {
             </ChartCard>
             {/* LOS by Pre/Post-Dispo */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "290px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray19.length > 0 && (
                     <ColumnChartGeneric
                       data={dataArray19}
                       calculationType={calculationType}
                       breakdowns={["total"]}
-                      height={300}
+                      height={290}
                       margin={{ top: 40, right: 20, bottom: 68, left: 20 }}
                       chartTitle={"LOS by Pre/Post-Dispo"}
                       colorMapOverride={{
@@ -753,6 +827,7 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
+                      postDispoData={dataArray22}
                     />
                   )}
                 </ResponsiveContainer>
@@ -764,7 +839,11 @@ export default function Overview() {
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
-                      data={dataArray16}
+                      data={dataArray16.filter(
+                        (entry) =>
+                          entry.category !== "null" &&
+                          entry.category !== "Unknown"
+                      )}
                       breakdowns={["total"]}
                       innerBreakdowns={["Pre-dispo"]}
                       height={260}
@@ -798,7 +877,7 @@ export default function Overview() {
                       height={260}
                       calculationType={calculationType}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
-                      chartTitle={"LOS by Jurisdiction (Pre-dispo)"}
+                      chartTitle={"LOS by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         total: "#5a6b7c",

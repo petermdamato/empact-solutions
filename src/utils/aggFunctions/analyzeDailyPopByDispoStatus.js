@@ -1,5 +1,4 @@
-import { parse, eachDayOfInterval, isBefore, isAfter, isEqual } from "date-fns";
-import { mean } from "d3-array";
+import { parse, isLeapYear } from "date-fns";
 
 function analyzeDailyPopByDispoStatus(
   data,
@@ -8,16 +7,13 @@ function analyzeDailyPopByDispoStatus(
 ) {
   const format = "yyyy-MM-dd";
 
-  // Get all days in the year
-  const allDays = eachDayOfInterval({
-    start: new Date(selectedYear, 0, 1),
-    end: new Date(selectedYear, 11, 31),
-  });
+  const startDate = new Date(`${selectedYear}-01-01`);
+  const endDate = new Date(`${selectedYear}-12-31`);
+  const daysInYear = isLeapYear(endDate) ? 366 : 365;
 
   // Group data by dispo status
   const dispoGroups = {};
   data.forEach((row) => {
-    // const dispStatus = row["Pre/post-dispo filter"] || "Unknown";
     const dispStatus =
       row["Post-Dispo Stay Reason"] === null ||
       row["Post-Dispo Stay Reason"] === ""
@@ -49,18 +45,24 @@ function analyzeDailyPopByDispoStatus(
 
   const results = {};
 
-  // Calculate daily counts and ADP per dispo status
+  // Calculate total overlapping days and ADP per dispo status
   for (const [dispStatus, records] of Object.entries(dispoGroups)) {
-    const dailyCounts = allDays.map((day) => {
-      return records.reduce((count, { entry, exit }) => {
-        if (!entry) return count;
-        const started = isBefore(entry, day) || isEqual(entry, day);
-        const notExited = !exit || isAfter(exit, day) || isEqual(exit, day);
-        return started && notExited ? count + 1 : count;
-      }, 0);
-    });
+    const totalOverlapDays = records.reduce((sum, { entry, exit }) => {
+      if (!entry) return sum;
 
-    results[dispStatus] = mean(dailyCounts);
+      const rangeStart = entry < startDate ? startDate : entry;
+      const rangeEnd =
+        exit && !isNaN(exit) ? (exit > endDate ? endDate : exit) : endDate;
+
+      if (rangeStart > endDate || rangeEnd < startDate) return sum;
+
+      const overlapDays =
+        Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+
+      return sum + overlapDays;
+    }, 0);
+
+    results[dispStatus] = totalOverlapDays / daysInYear;
   }
 
   return results;

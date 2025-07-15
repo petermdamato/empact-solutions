@@ -1,9 +1,4 @@
-const aggregateByStatus = (
-  data,
-  selectedYear,
-  detentionType,
-  statusColumn = "Post_Adjudicated_Status"
-) => {
+const aggregateByStatus = (data, selectedYear, detentionType) => {
   const intakeStart = `${selectedYear}-01-01`;
   const intakeEnd = `${selectedYear}-12-31`;
   const intakeStartDate = new Date(intakeStart);
@@ -55,7 +50,8 @@ const aggregateByStatus = (
     // Then check OffenseCategory
     if (
       offenseCategory.includes("felony") ||
-      offenseCategory.includes("misdemeanor")
+      offenseCategory.includes("misdemeanor") ||
+      offenseCategory === "status offense"
     ) {
       return "New Offense";
     }

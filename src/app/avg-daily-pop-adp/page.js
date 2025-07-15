@@ -8,10 +8,12 @@ import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGener
 import ChartCard from "@/components/ChartCard/ChartCard";
 import PieChart from "@/components/PieChart/PieChartV2";
 import Selector from "@/components/Selector/Selector";
+import ZipMap from "@/components/ZipMap/ZipMap";
 import { useCSV } from "@/context/CSVContext";
 import { ResponsiveContainer } from "recharts";
 import {
   dataAnalysisV3,
+  analyzePostDispoGroup,
   analyzeDailyPopByScreenedStatus,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
@@ -38,7 +40,7 @@ export default function Overview() {
   const [selectedYear, setSelectedYear] = useState(2024);
   const [filterVariables, setFilterVariable] = useState([]);
   const [finalData, setFinalData] = useState(csvData);
-  const [incarcerationType] = useState("Secure Detention");
+  const [incarcerationType] = useState("secure-detention");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [raceType, setRaceType] = useState("RaceEthnicity");
 
@@ -53,7 +55,10 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
+  const [showMap, setShowMap] = useState(false);
+  const [persistMap, setPersistMap] = useState(false);
 
   const toggleFilter = (newFilter) => {
     setFilterVariable((prev) => {
@@ -259,12 +264,16 @@ export default function Overview() {
           "SimplifiedOffense",
           "secure-detention"
         )
-      ).map(([cat, value]) => {
-        return {
-          category: cat,
-          total: value,
-        };
-      });
+      )
+        .filter(([cat]) => {
+          return cat !== "null";
+        })
+        .map(([cat, value]) => {
+          return {
+            category: cat,
+            total: value,
+          };
+        });
 
       setDataArray16(categories);
 
@@ -386,7 +395,36 @@ export default function Overview() {
         {}
       );
 
+      const adpBySubcat = analyzePostDispoGroup(finalData, +selectedYear, {
+        round: false,
+      });
+
+      const transformGroupedADPData = (data) => {
+        const result = {};
+
+        for (const group in data) {
+          const offenses = data[group];
+          const groupObj = {};
+
+          for (const [category, value] of Object.entries(offenses)) {
+            if (value !== null) {
+              groupObj[category] = {
+                "Post-dispo": value,
+              };
+            }
+          }
+
+          result[group] = groupObj;
+        }
+
+        return result;
+      };
+
+      const adpBySubcatTransformer = transformGroupedADPData(adpBySubcat);
+
       setDataArray21(adpByCatTransformed);
+
+      setDataArray22(adpBySubcatTransformer);
     }
   }, [dataArray11, raceType]);
 
@@ -424,7 +462,7 @@ export default function Overview() {
           }}
         >
           <Header
-            title={`${incarcerationType} Utilization`}
+            title={"Secure Detention Utilization"}
             subtitle={`Average Daily Population`}
             dekWithYear={`Showing ADP in secure detention for ${selectedYear}`}
             showFilterInstructions
@@ -455,7 +493,14 @@ export default function Overview() {
           >
             {/* Change Statistics */}
             <ChartCard width="100%">
-              <div style={{ maxHeight: "60px", width: "100%" }}>
+              <div
+                style={{ maxHeight: "78px", width: "100%" }}
+                onMouseEnter={() => setShowMap(true)}
+                onMouseLeave={() => setShowMap(!persistMap ? false : true)}
+                onClick={() => {
+                  setPersistMap(!persistMap);
+                }}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <ChangeStatistics
                     caption="avg. daily pop."
@@ -465,12 +510,37 @@ export default function Overview() {
                     ]}
                   />
                 </ResponsiveContainer>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "185px",
+                    left: "270px",
+                    zIndex: 10,
+                    width: "320px",
+                    height: "320px",
+                    background: "#fff",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                    borderRadius: "8px",
+                    display: `${showMap || persistMap ? "block" : "none"}`,
+                    overflow: "hidden",
+                  }}
+                >
+                  <ZipMap
+                    persistMap={persistMap}
+                    setPersistMap={setPersistMap}
+                    setShowMap={setShowMap}
+                    csvData={finalData}
+                    selectedYear={selectedYear}
+                    detentionType={incarcerationType}
+                    metric={"averageDailyPopulation"}
+                  />
+                </div>
               </div>
             </ChartCard>
 
             {/* ADP by Screened Type */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "294px", width: "100%" }}>
                 <PieChart
                   records={dataArray12}
                   year={selectedYear}
@@ -484,7 +554,7 @@ export default function Overview() {
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "294px", width: "100%" }}>
                 <PieChart
                   records={dataArray19}
                   year={selectedYear}
@@ -655,6 +725,7 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
+                      postDispoData={dataArray22}
                     />
                   )}
                 </ResponsiveContainer>

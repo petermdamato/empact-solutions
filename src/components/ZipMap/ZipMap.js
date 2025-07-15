@@ -1,14 +1,17 @@
-import React, {
-  useEffect,
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-} from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import Map, { Source, Layer } from "react-map-gl";
 import { stateAbbreviations } from "@/utils/stateAbbreviations";
+import { computeZipCounts } from "@/utils/mapAggregate";
 
-const ZipMap = ({ csvData, selectedYear = 2024 }) => {
+const ZipMap = ({
+  csvData,
+  selectedYear = 2024,
+  persistMap,
+  setPersistMap,
+  setShowMap,
+  metric,
+  detentionType = "secure-detention",
+}) => {
   const [zctaGeoJSON, setZctaGeoJSON] = useState(null);
   const [county, setCounty] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -43,19 +46,20 @@ const ZipMap = ({ csvData, selectedYear = 2024 }) => {
       fetchStateZips();
     }
   }, [county]);
+  const handleClick = () => {
+    setPersistMap(false);
+    setShowMap(false);
+  };
 
-  // Count ZIPs
-  const zipCounts = useMemo(() => {
-    const counts = {};
-    csvData.forEach((entry) => {
-      const zip = entry["Home_Zip_Code"];
-      const year = new Date(entry["Admission_Date"]).getFullYear();
-      if (zip && year === selectedYear) {
-        counts[zip] = (counts[zip] || 0) + 1;
-      }
+  const { zipCounts, outOfStateCount } = useMemo(() => {
+    return computeZipCounts({
+      csvData,
+      zctaGeoJSON,
+      selectedYear,
+      detentionType,
+      metric,
     });
-    return counts;
-  }, [csvData, selectedYear]);
+  }, [csvData, selectedYear, detentionType, metric, zctaGeoJSON]);
 
   // Filter GeoJSON + attach counts
   const filteredGeoJSON = useMemo(() => {
@@ -69,7 +73,13 @@ const ZipMap = ({ csvData, selectedYear = 2024 }) => {
         ...f,
         properties: {
           ...f.properties,
-          count: zipCounts[f.properties.ZCTA5CE10] || 0,
+          ...(typeof zipCounts[f.properties.ZCTA5CE10] === "object"
+            ? {
+                count: zipCounts[f.properties.ZCTA5CE10].count || 0,
+                averageLOS: zipCounts[f.properties.ZCTA5CE10].averageLOS,
+                medianLOS: zipCounts[f.properties.ZCTA5CE10].medianLOS,
+              }
+            : { count: zipCounts[f.properties.ZCTA5CE10] || 0 }),
         },
       }));
     return { type: "FeatureCollection", features };
@@ -133,6 +143,36 @@ const ZipMap = ({ csvData, selectedYear = 2024 }) => {
     },
   };
 
+  const labelLayer = {
+    id: "zcta-labels",
+    type: "symbol",
+    layout: {
+      "text-field": [
+        "concat",
+        ["get", "ZCTA5CE10"],
+        "\n",
+        [
+          "case",
+          ["has", "averageLOS"],
+          ["concat", ["to-string", ["get", "averageLOS"]], " days"],
+          ["has", "medianLOS"],
+          ["concat", ["to-string", ["get", "medianLOS"]], " days"],
+          "",
+        ],
+        ["concat", ["to-string", ["get", "count"]], ""],
+      ],
+      "text-size": 14,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      "text-justify": "center",
+      "text-anchor": "center",
+    },
+    paint: {
+      "text-color": "#000",
+      "text-halo-color": "#fff",
+      "text-halo-width": 1,
+    },
+  };
+
   if (!filteredGeoJSON) return <div>Loading map data...</div>;
 
   return (
@@ -148,9 +188,77 @@ const ZipMap = ({ csvData, selectedYear = 2024 }) => {
       style={{ width: "100%", height: "100%" }}
       mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
     >
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          background: "rgba(255, 255, 255, 0.9)",
+          color: "#666",
+          fontSize: "14px",
+          padding: "6px 10px",
+          borderRadius: "4px",
+          opacity: persistMap ? 0 : 1,
+          zIndex: 1000,
+        }}
+      >
+        Click the statistics bar to interact with the map
+      </div>
       <Source id="zcta" type="geojson" data={filteredGeoJSON}>
         <Layer {...layerStyle} />
+        <Layer {...labelLayer} />
       </Source>
+
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "white",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+          padding: "4px 8px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "16px",
+          zIndex: 1000,
+          opacity: persistMap ? 1 : 0,
+          pointerEvents: persistMap ? "auto" : "none",
+        }}
+        onClick={() => handleClick()}
+      >
+        ×
+      </div>
+      {/* Out of state admissions count */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 10,
+          left: 10,
+          background: "rgba(255, 255, 255, 0.95)",
+          color: "#333",
+          fontSize: "14px",
+          fontWeight: "bold",
+          padding: "6px 10px",
+          borderRadius: "4px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          zIndex: 1000,
+        }}
+      >
+        {!metric.includes("Length") ? (
+          <>Out of state: {outOfStateCount}</>
+        ) : (
+          <>
+            Out of state:{" "}
+            {outOfStateCount.averageLOS !== undefined
+              ? outOfStateCount.averageLOS
+              : outOfStateCount.medianLOS}
+            -day {metric.replace("LengthOfStay", "").toLowerCase()} LOS |{" "}
+            {outOfStateCount.count}{" "}
+            {detentionType === "secure-detention" ? "releases" : "exits"}
+          </>
+        )}
+      </div>
     </Map>
   );
 };

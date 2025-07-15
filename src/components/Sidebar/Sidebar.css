@@ -8,7 +8,9 @@
   flex-direction: column;
 }
 .sidebar-logo {
-  width: 140px;
+  margin-bottom: -10px;
+  margin-left: -18px;
+  width: 100px;
   height: auto;
 }
 .deactivated {
@@ -121,4 +123,30 @@ img {
 }
 .sidebar-secure-detention {
   background-color: #333a43;
+}
+.signout-button {
+  right: 12px;
+  padding: 6px 12px;
+  border: 1px solid white; /* Fallback if text color isn't inherited */
+  background-color: transparent;
+  color: white; /* Match your sidebar text color */
+  font-size: 14px;
+  font-weight: 300;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar.sidebar-secure-detention .signout-button {
+  color: white;
+  border-color: white;
+}
+
+.sidebar.sidebar-alternative-to-detention .signout-button {
+  color: #33691e;
+  border-color: #33691e;
+}
+
+.signout-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }

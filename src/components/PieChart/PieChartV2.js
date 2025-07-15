@@ -5,7 +5,7 @@ import "./PieChart.css";
 
 const PieChart = ({
   records = [],
-  size = 300,
+  size = 280,
   chartTitle = "Pie Chart",
   groupByKey,
   toggleFilter,
@@ -36,8 +36,8 @@ const PieChart = ({
       if (containerRef.current) observer.unobserve(containerRef.current);
     };
   }, []);
-  const margin = { top: 24, right: 24, bottom: 24, left: 24 };
-  const width = containerSize.width - margin.left - margin.right;
+  const margin = { top: 24, right: 4, bottom: 24, left: 4 };
+  const width = containerSize.width - margin.left - margin.right + 40;
   const height = containerSize.height - margin.top - margin.bottom;
   const radius = Math.min(width, height) / 2 - 40;
   const color =

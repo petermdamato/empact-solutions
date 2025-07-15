@@ -17,22 +17,11 @@ const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
 
-  if (
-    s.includes("police") ||
-    s.includes("sheriff") ||
-    s.includes("law enforcement") ||
-    s.includes("officer") ||
-    s.includes("deputy")
-  ) {
+  if (s.includes("law enforcement")) {
     return "Law Enforcement";
   }
 
-  if (
-    s.includes("court") ||
-    s.includes("judge") ||
-    s.includes("probation") ||
-    s.includes("magistrate")
-  ) {
+  if (s === "court") {
     return "Court";
   }
 
@@ -65,7 +54,6 @@ function analyzeAdmissionsOnly(
   const startDate = new Date(`${targetYear}-01-01`);
   const endDate = new Date(`${targetYear}-12-31`);
   const isTargetYear = (date) => date && date >= startDate && date <= endDate;
-  const today = new Date();
 
   const getAge = (dob, intake) => {
     if (!dob || !intake) return null;
@@ -78,8 +66,8 @@ function analyzeAdmissionsOnly(
     "Ethnicity",
     "OffenseCategory",
     "OffenseCategoryAligned",
-    "RaceEthnicity", // Detailed race/ethnicity breakdown
-    "RaceSimplified", // Simplified White vs Youth of Color breakdown
+    "RaceEthnicity",
+    "RaceSimplified",
     "Facility",
     "Referral_Source",
     "AgeBracket",
@@ -93,6 +81,11 @@ function analyzeAdmissionsOnly(
     overall: { "Pre-dispo": [], "Post-dispo": [] },
     screened: { Screened: [], "Not Screened": [], "Auto Hold": [] },
     byGroup: {},
+    PostDispoGroups: {
+      Other: {},
+      "Awaiting Placement": {},
+      "Confinement to secure detention": {},
+    },
   };
 
   for (const group of groups) {
@@ -106,8 +99,9 @@ function analyzeAdmissionsOnly(
         : row.ATD_Entry_Date
     );
     const dob = parseDate(row.Date_of_Birth);
-
     const age = Math.floor(getAge(dob, intake));
+
+    if (!isTargetYear(intake)) continue;
 
     const dispo =
       row["Post-Dispo Stay Reason"] === null ||
@@ -118,8 +112,6 @@ function analyzeAdmissionsOnly(
     const screened = screenedType.includes(row["Screened/not screened"])
       ? row["Screened/not screened"]
       : "Unknown";
-
-    if (!isTargetYear(intake)) continue;
 
     if (!result.overall[dispo]) result.overall[dispo] = [];
     result.overall[dispo].push(age);
@@ -167,6 +159,40 @@ function analyzeAdmissionsOnly(
 
       result.byGroup[group][val][dispo].push(age);
     }
+
+    // NEW: Add to PostDispoGroups
+    const postDispoStatus = row["Post-Dispo Stay Reason"].toLowerCase() || "";
+
+    let groupKey = null;
+    if (postDispoStatus.includes("other")) {
+      groupKey = "Other";
+    } else if (postDispoStatus === "awaiting placement") {
+      groupKey = "Awaiting Placement";
+    } else if (postDispoStatus === "confinement to secure detention") {
+      groupKey = "Confinement to secure detention";
+    }
+
+    if (groupKey) {
+      const offenseCategory = row.OffenseCategory || "Unknown";
+
+      // Initialize the group if it doesn't exist
+      if (!result.PostDispoGroups[groupKey]) {
+        result.PostDispoGroups[groupKey] = {};
+      }
+
+      // Initialize the offense category within the group if it doesn't exist
+      if (!result.PostDispoGroups[groupKey][offenseCategory]) {
+        result.PostDispoGroups[groupKey][offenseCategory] = {};
+      }
+
+      // Initialize the "Post-dispo" count if it doesn't exist
+      if (!result.PostDispoGroups[groupKey][offenseCategory]["Post-dispo"]) {
+        result.PostDispoGroups[groupKey][offenseCategory]["Post-dispo"] = 0;
+      }
+
+      // Increment
+      result.PostDispoGroups[groupKey][offenseCategory]["Post-dispo"] += 1;
+    }
   }
 
   const computeStats = (arr) => {
@@ -186,6 +212,7 @@ function analyzeAdmissionsOnly(
     overall: {},
     byGroup: {},
     screened: {},
+    PostDispoGroups: result.PostDispoGroups, // ➡️ include PostDispoGroups in output
   };
 
   for (const dispo of Object.keys(result.overall)) {

@@ -13,7 +13,6 @@ import {
   aggregateCalculationByOffense,
   aggregateMedianByOffense,
   aggregatePopulationByOffense,
-  aggregatePrePost,
 } from "@/utils";
 import { isLeapYear } from "date-fns";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
@@ -186,8 +185,7 @@ export default function Overview() {
     setDataArray4([
       [
         Math.round(
-          ((columnAggPopulations.pre + columnAggPopulations.post) * 10) /
-            (isLeapYear(selectedYear) ? 366 : 365)
+          (columnAggPopulations.pre + columnAggPopulations.post) * 10
         ) / 10,
         statusDataPopulation.previousPeriodCount,
       ],
@@ -205,15 +203,17 @@ export default function Overview() {
   }, [csvData, selectedYear, calculation]);
 
   return (
-    <div className="max-w-xl mx-auto mt-10">
-      <div style={{ display: "flex" }}>
-        <Sidebar />
+    <div className="max-w-xl mx-auto mt-10" style={{ height: "100vh" }}>
+      <div style={{ display: "flex", height: "100%" }}>
+        <Sidebar /> {/* Sidebar will take full height of parent */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
             minWidth: 0,
+            overflowY: "auto", // enables scrolling
+            maxHeight: "100vh", // ensures it doesn't exceed viewport
           }}
           ref={contentRef}
         >
@@ -232,6 +232,7 @@ export default function Overview() {
               filename={`secure-detention-${selectedYear}-overview.pdf`}
             />
           </Header>
+
           <div>
             {dataArray1 &&
               dataArray1.length > 0 &&
