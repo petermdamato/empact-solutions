@@ -15,22 +15,11 @@ const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
 
-  if (
-    s.includes("police") ||
-    s.includes("sheriff") ||
-    s.includes("law enforcement") ||
-    s.includes("officer") ||
-    s.includes("deputy")
-  ) {
+  if (s === "law enforcement") {
     return "Law Enforcement";
   }
 
-  if (
-    s.includes("court") ||
-    s.includes("judge") ||
-    s.includes("probation") ||
-    s.includes("magistrate")
-  ) {
+  if (s === "court") {
     return "Court";
   }
 
@@ -336,9 +325,12 @@ const analyzeData = (
           ? "Other"
           : row["Post-Dispo Stay Reason"]
         : offenseMap[row.OffenseCategory] || "Other";
-    const simplifiedOffenseCategory = getSimplifiedOffenseCategory(
-      row.OffenseCategory
-    );
+
+    const simplifiedOffenseCategory =
+      row["Post-Dispo Stay Reason"] && row["Post-Dispo Stay Reason"].length > 0
+        ? null
+        : getSimplifiedOffenseCategory(row.OffenseCategory);
+
     const facility = row.Facility || "Unknown";
     const referralSource = row.Referral_Source || "Unknown";
 

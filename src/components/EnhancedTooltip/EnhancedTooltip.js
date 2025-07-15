@@ -5,7 +5,7 @@ import {
   getSimplifiedOffenseCategory,
   offenseMap,
 } from "@/utils/categorizationUtils";
-import { chooseCategory } from "@/utils/categories";
+
 const transformToCategoryValueArray = (obj, breakdowns, valueBreakdowns) => {
   if (!breakdowns || breakdowns.length === 0 || !valueBreakdowns) {
     return Object.entries(obj).map(([key, value]) => ({
@@ -37,6 +37,7 @@ const EnhancedTooltip = ({
   totalValue,
   showChart = false,
   chartData,
+  postDispoData,
   chartBreakdowns,
   calculationType,
   chartTitle,
@@ -56,23 +57,36 @@ const EnhancedTooltip = ({
       chartBreakdowns,
       valueBreakdowns
     );
-
+    const postDispoGroups = [
+      "Other",
+      "Awaiting Placement",
+      "Confinement to secure detention",
+    ].includes(label)
+      ? Object.entries(postDispoData[label]).map(([key, value]) => ({
+          category: key,
+          "Pre-dispo": value["Post-dispo"] || 0,
+        }))
+      : [];
+    console.log(postDispoData, transformedData);
     const normalize = (str) =>
       str ? str.toLowerCase().replace(/ies$/, "y").replace(/s$/, "") : "";
 
-    const finalData = transformedData.filter((entry) => {
-      return (!chartBreakdowns ||
-        chartBreakdowns.length === 0 ||
-        entry[chartBreakdowns[0]] > 0.001) &&
-        chartTitle.includes("Age")
-        ? getAgeBracket(entry.category) === label
-        : chartTitle.includes("Category")
-        ? normalize(getSimplifiedOffenseCategory(entry.category)) ===
-          normalize(label)
-        : chartTitle.includes("Reason")
-        ? normalize(offenseMap[entry.category]) === normalize(label)
-        : false;
-    });
+    const finalData =
+      chartTitle.includes("Reason") && postDispoGroups.length > 0
+        ? postDispoGroups
+        : transformedData.filter((entry) => {
+            return (!chartBreakdowns ||
+              chartBreakdowns.length === 0 ||
+              entry[chartBreakdowns[0]] > 0.001) &&
+              chartTitle.includes("Age")
+              ? getAgeBracket(entry.category) === label
+              : chartTitle.includes("Category")
+              ? normalize(getSimplifiedOffenseCategory(entry.category)) ===
+                normalize(label)
+              : chartTitle.includes("Reason")
+              ? normalize(offenseMap[entry.category]) === normalize(label)
+              : false;
+          });
 
     if (
       finalData.length > 0 &&
@@ -100,6 +114,7 @@ const EnhancedTooltip = ({
   }, [
     showChart,
     chartData,
+    postDispoData,
     chartBreakdowns,
     chartTitle,
     valueBreakdowns,
@@ -202,7 +217,9 @@ const EnhancedTooltip = ({
               <div>
                 <h3>
                   {groupByKey === "Reason for Detention"
-                    ? "Top 5 Reasons"
+                    ? `Top ${innerData.length} Reason${
+                        innerData.length > 1 ? "s" : ""
+                      }`
                     : "Breakdown"}
                 </h3>
               </div>

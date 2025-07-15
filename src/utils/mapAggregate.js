@@ -1,3 +1,5 @@
+import { isLeapYear } from "date-fns";
+
 /**
  * Returns zip-level aggregated values and the count or summary of zip codes not found in the GeoJSON.
  *
@@ -24,9 +26,6 @@ const average = (arr) => {
     : 0;
 };
 
-const isLeapYear = (year) =>
-  (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-
 export function computeZipCounts({
   csvData,
   zctaGeoJSON,
@@ -36,15 +35,79 @@ export function computeZipCounts({
 }) {
   const startOfYear = new Date(`${selectedYear}-01-01`);
   const endOfYear = new Date(`${selectedYear}-12-31`);
-  const daysInYear = isLeapYear(selectedYear) ? 366 : 365;
+  const daysInYear = isLeapYear(endOfYear) ? 366 : 365;
 
-  const zipValues = {};
-  const fallbackOutOfState =
+  const zipCounts = {};
+  const geoZips = zctaGeoJSON
+    ? new Set(zctaGeoJSON.features.map((f) => f.properties.ZCTA5CE10))
+    : new Set();
+
+  let outOfState =
     metric.includes("median") ||
     metric.includes("average") ||
     metric === "averageDailyPopulation"
       ? []
       : 0;
+
+  if (metric === "averageDailyPopulation") {
+    const zipDays = {};
+    for (const entry of csvData) {
+      const zip = entry["Home_Zip_Code"];
+
+      const entryDate =
+        detentionType === "secure-detention"
+          ? new Date(entry["Admission_Date"])
+          : new Date(entry["ATD_Entry_Date"]);
+
+      const exitDateRaw =
+        detentionType === "secure-detention"
+          ? entry["Release_Date"]
+          : entry["ATD_Exit_Date"];
+
+      const exitDate = exitDateRaw ? new Date(exitDateRaw) : null;
+
+      if (!zip || isNaN(entryDate)) continue;
+
+      const rangeStart = entryDate < startOfYear ? startOfYear : entryDate;
+      const rangeEnd =
+        exitDate && !isNaN(exitDate)
+          ? exitDate > endOfYear
+            ? endOfYear
+            : exitDate
+          : endOfYear;
+
+      if (rangeStart > endOfYear || rangeEnd < startOfYear) continue;
+
+      const overlapDays =
+        Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+
+      if (!zipDays[zip]) zipDays[zip] = 0;
+      zipDays[zip] += overlapDays;
+    }
+
+    // Calculate ADP for each zip
+    for (const [zip, totalOverlapDays] of Object.entries(zipDays)) {
+      const adp = Number((totalOverlapDays / daysInYear).toFixed(1));
+      if (geoZips.has(zip)) {
+        zipCounts[zip] = adp;
+      } else {
+        outOfState.push(totalOverlapDays);
+      }
+    }
+
+    // Calculate outOfStateCount ADP
+    const outOfStateTotal = outOfState.reduce((a, b) => a + b, 0);
+    return {
+      zipCounts,
+      outOfStateCount:
+        outOfState.length > 0
+          ? Number((outOfStateTotal / daysInYear).toFixed(1))
+          : 0,
+    };
+  }
+
+  // For other metrics: admissions, median/average LOS, releases
+  const zipValues = {};
 
   for (const entry of csvData) {
     const zip = entry["Home_Zip_Code"];
@@ -65,22 +128,7 @@ export function computeZipCounts({
 
     let value = 1;
 
-    if (metric === "averageDailyPopulation") {
-      const rangeStart = entryDate < startOfYear ? startOfYear : entryDate;
-      const rangeEnd =
-        exitDate && !isNaN(exitDate)
-          ? exitDate > endOfYear
-            ? endOfYear
-            : exitDate
-          : endOfYear;
-
-      if (rangeStart > endOfYear || rangeEnd < startOfYear) continue;
-
-      const overlapDays =
-        Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
-
-      value = Math.max(overlapDays, 0);
-    } else if (metric.includes("LengthOfStay")) {
+    if (metric.includes("LengthOfStay")) {
       if (!exitDate || isNaN(exitDate)) {
         value = 0;
       } else {
@@ -107,52 +155,60 @@ export function computeZipCounts({
     zipValues[zip].push(value);
   }
 
-  const zipCounts = {};
-  let outOfState =
-    metric.includes("median") ||
-    metric.includes("average") ||
-    metric === "averageDailyPopulation"
-      ? []
-      : 0;
-
-  const geoZips = zctaGeoJSON
-    ? new Set(zctaGeoJSON.features.map((f) => f.properties.ZCTA5CE10))
-    : new Set();
+  // Initialize outOfStateValues for LOS metrics
+  let outOfStateValues = [];
 
   for (const [zip, values] of Object.entries(zipValues)) {
     const inGeo = geoZips.has(zip);
 
     if (metric === "averageLengthOfStay") {
       const avg = average(values);
-      if (inGeo) zipCounts[zip] = avg;
-      else outOfState.push(...values);
+      if (inGeo) {
+        zipCounts[zip] = {
+          count: values.length,
+          averageLOS: avg,
+        };
+      } else {
+        outOfStateValues.push(...values);
+      }
     } else if (metric === "medianLengthOfStay") {
       const med = median(values);
-      if (inGeo) zipCounts[zip] = med;
-      else outOfState.push(...values);
-    } else if (metric === "averageDailyPopulation") {
-      const sum = values.reduce((a, b) => a + b, 0);
-      const avg = Number((sum / daysInYear).toFixed(1));
-      if (inGeo) zipCounts[zip] = avg;
-      else outOfState.push(sum);
+      if (inGeo) {
+        zipCounts[zip] = {
+          count: values.length,
+          medianLOS: med,
+        };
+      } else {
+        outOfStateValues.push(...values);
+      }
     } else {
       const total = values.reduce((a, b) => a + b, 0);
-      if (inGeo) zipCounts[zip] = total;
-      else outOfState += total;
+      if (inGeo) {
+        zipCounts[zip] = total;
+      } else {
+        outOfState += total;
+      }
     }
+  }
+
+  // Calculate outOfStateCount for LOS metrics
+  let finalOutOfStateCount;
+  if (metric === "medianLengthOfStay") {
+    finalOutOfStateCount = {
+      count: outOfStateValues.length,
+      medianLOS: median(outOfStateValues),
+    };
+  } else if (metric === "averageLengthOfStay") {
+    finalOutOfStateCount = {
+      count: outOfStateValues.length,
+      averageLOS: average(outOfStateValues),
+    };
+  } else {
+    finalOutOfStateCount = outOfState;
   }
 
   return {
     zipCounts,
-    outOfStateCount:
-      metric === "medianLengthOfStay"
-        ? median(outOfState)
-        : metric === "averageLengthOfStay"
-        ? average(outOfState)
-        : metric === "averageDailyPopulation"
-        ? Number(
-            (outOfState.reduce((a, b) => a + b, 0) / daysInYear).toFixed(1)
-          )
-        : outOfState,
+    outOfStateCount: finalOutOfStateCount,
   };
 }

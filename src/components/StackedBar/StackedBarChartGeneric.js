@@ -36,6 +36,7 @@ const StackedBarChartGeneric = (props) => {
     breakdowns = ["pre", "post"],
     innerBreakdowns,
     innerData = [],
+    postDispoData = [],
     colorMapOverride = {},
     filterVariable,
     toggleFilter,
@@ -368,6 +369,7 @@ const StackedBarChartGeneric = (props) => {
             chartBreakdowns={innerBreakdowns ?? breakdowns}
             payload={tooltipData.payload}
             chartData={showChart ? innerData : []}
+            postDispoData={showChart ? postDispoData : []}
             showChart={showChart}
             label={tooltipData.label}
             chartTitle={chartTitle}

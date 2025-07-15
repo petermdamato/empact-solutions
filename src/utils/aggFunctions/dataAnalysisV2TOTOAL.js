@@ -15,22 +15,11 @@ const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
 
-  if (
-    s.includes("police") ||
-    s.includes("sheriff") ||
-    s.includes("law enforcement") ||
-    s.includes("officer") ||
-    s.includes("deputy")
-  ) {
+  if (s === "law enforcement") {
     return "Law Enforcement";
   }
 
-  if (
-    s.includes("court") ||
-    s.includes("judge") ||
-    s.includes("probation") ||
-    s.includes("magistrate")
-  ) {
+  if (s === "court") {
     return "Court";
   }
   if (s.includes("school")) {

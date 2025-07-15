@@ -78,7 +78,8 @@ const aggregateMedianByStatus = (
     // Then check OffenseCategory
     if (
       offenseCategory.includes("felony") ||
-      offenseCategory.includes("misdemeanor")
+      offenseCategory.includes("misdemeanor") ||
+      offenseCategory === "status offense"
     ) {
       return "New Offense";
     }

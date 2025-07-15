@@ -73,7 +73,13 @@ const ZipMap = ({
         ...f,
         properties: {
           ...f.properties,
-          count: zipCounts[f.properties.ZCTA5CE10] || 0,
+          ...(typeof zipCounts[f.properties.ZCTA5CE10] === "object"
+            ? {
+                count: zipCounts[f.properties.ZCTA5CE10].count || 0,
+                averageLOS: zipCounts[f.properties.ZCTA5CE10].averageLOS,
+                medianLOS: zipCounts[f.properties.ZCTA5CE10].medianLOS,
+              }
+            : { count: zipCounts[f.properties.ZCTA5CE10] || 0 }),
         },
       }));
     return { type: "FeatureCollection", features };
@@ -141,8 +147,21 @@ const ZipMap = ({
     id: "zcta-labels",
     type: "symbol",
     layout: {
-      "text-field": ["concat", ["get", "ZCTA5CE10"], "\n", ["get", "count"]],
-      "text-size": 16,
+      "text-field": [
+        "concat",
+        ["get", "ZCTA5CE10"],
+        "\n",
+        [
+          "case",
+          ["has", "averageLOS"],
+          ["concat", ["to-string", ["get", "averageLOS"]], " days"],
+          ["has", "medianLOS"],
+          ["concat", ["to-string", ["get", "medianLOS"]], " days"],
+          "",
+        ],
+        ["concat", ["to-string", ["get", "count"]], ""],
+      ],
+      "text-size": 14,
       "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
       "text-justify": "center",
       "text-anchor": "center",
@@ -226,7 +245,19 @@ const ZipMap = ({
           zIndex: 1000,
         }}
       >
-        Out of state: {outOfStateCount}
+        {!metric.includes("Length") ? (
+          <>Out of state: {outOfStateCount}</>
+        ) : (
+          <>
+            Out of state:{" "}
+            {outOfStateCount.averageLOS !== undefined
+              ? outOfStateCount.averageLOS
+              : outOfStateCount.medianLOS}
+            -day {metric.replace("LengthOfStay", "").toLowerCase()} LOS |{" "}
+            {outOfStateCount.count}{" "}
+            {detentionType === "secure-detention" ? "releases" : "exits"}
+          </>
+        )}
       </div>
     </Map>
   );

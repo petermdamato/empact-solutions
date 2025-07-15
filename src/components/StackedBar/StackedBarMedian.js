@@ -46,14 +46,15 @@ const StackedBarChartMedian = ({
 
     const totalCount = 0;
 
-    data = data.sort((a, b) => {
-      return b.medianPre + b.medianPost - (a.medianPre + a.medianPost);
-    });
+    // data = data.sort((a, b) => {
+    //   return b.medianPre + b.medianPost - (a.medianPre + a.medianPost);
+    // });
+    data = data.sort((a, b) => a.category.localeCompare(b.category));
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous content
 
-    const innerWidth = parentWidth - margin.left - margin.right; // Use parent width
+    const innerWidth = parentWidth - margin.left - margin.right - 40; // Use parent width
     const innerHeight = height - margin.top - margin.bottom;
 
     // Create scales
@@ -144,7 +145,13 @@ const StackedBarChartMedian = ({
       .append("text")
       .attr("class", "label-percent")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 5)
-      .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
+      .attr(
+        "x",
+        (d, i) =>
+          xScale(getValue(d)) +
+          textWidths[i] / 2 +
+          (context === "exits" ? 18 : context === "releases" ? 12 : 4)
+      )
       .attr("dy", "0.35em")
       .text((d) =>
         context === "percentages"
@@ -163,9 +170,17 @@ const StackedBarChartMedian = ({
       .append("text")
       .attr("class", "label-nominal")
       .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 - 7)
-      .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
+      .attr(
+        "x",
+        (d, i) =>
+          xScale(getValue(d)) +
+          textWidths[i] / 2 +
+          (context === "exits" ? 18 : context === "releases" ? 12 : 4)
+      )
       .attr("dy", "0.35em")
-      .text((d) => (context === "percentages" ? d.pre + d.post : d.medianTotal))
+      .text((d) =>
+        context === "percentages" ? d.pre + d.post : d.medianTotal + " days"
+      )
       .attr("fill", "black")
       .style("font-size", 16)
       .style("font-weight", "bold")

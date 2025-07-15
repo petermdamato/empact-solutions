@@ -127,6 +127,7 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
   const [persistMap, setPersistMap] = useState(false);
@@ -356,7 +357,6 @@ export default function Overview() {
           total: (values["Pre-dispo"] || 0) + (values["Post-dispo"] || 0),
         })
       );
-
       setDataArray18(groupedByReasons);
 
       const byJurisdiction = Object.entries(
@@ -420,6 +420,7 @@ export default function Overview() {
       setDataArray20(detData.byGroup.AgeDetail);
 
       setDataArray21(detData.byGroup.ReasonForDetention);
+      setDataArray22(detData.PostDispoGroups);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -484,7 +485,7 @@ export default function Overview() {
             {/* Change Statistics */}
             <ChartCard width="100%" style={{ position: "relative" }}>
               <div
-                style={{ maxHeight: "60px", width: "100%" }}
+                style={{ maxHeight: "78px", width: "100%" }}
                 onMouseEnter={() => setShowMap(true)}
                 onMouseLeave={() => setShowMap(!persistMap ? false : true)}
                 onClick={() => {
@@ -533,7 +534,7 @@ export default function Overview() {
 
             {/* Admissions by Type */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "290px", width: "100%" }}>
                 <PieChart
                   records={dataArray12}
                   year={selectedYear}
@@ -547,7 +548,7 @@ export default function Overview() {
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "290px", width: "100%" }}>
                 <PieChart
                   records={dataArray19}
                   year={selectedYear}
@@ -721,6 +722,7 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
+                      postDispoData={dataArray22}
                     />
                   )}
                 </ResponsiveContainer>

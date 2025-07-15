@@ -1,9 +1,4 @@
-import {
-  parse,
-  differenceInCalendarDays,
-  isWithinInterval,
-  eachDayOfInterval,
-} from "date-fns";
+import { parse, differenceInCalendarDays } from "date-fns";
 
 // Utility to parse dates safely
 const parseDate = (dateStr) => {
@@ -18,6 +13,7 @@ const offenseMap = {
   "Felony Weapons": "New Offenses",
   "Felony Drugs": "New Offenses",
   "Other Felony": "New Offenses",
+  "Misdemeanor Drugs": "New Offenses",
   "Misdemeanor Person": "New Offenses",
   "Misdemeanor Property": "New Offenses",
   "Misdemeanor Weapons": "New Offenses",
@@ -33,7 +29,7 @@ const offenseMap = {
 // Helper for race/ethnicity
 const getRaceEthnicity = (race, ethnicity) => {
   if (ethnicity?.toLowerCase() === "hispanic") return "Hispanic";
-  if (/black|african/i.test(race)) return "Black";
+  if (/black|african/i.test(race)) return "African American or Black";
   if (/asian/i.test(race)) return "Asian";
   if (/white/i.test(race)) return "White";
   return "Other";
@@ -69,17 +65,18 @@ const analyzeData = (
   const results = {};
   const startDate = new Date(`${year}-01-01`);
   const endDate = new Date(`${year}-12-31`);
+  const daysInYear = new Date(year, 1, 29).getDate() === 29 ? 366 : 365;
 
   const grouped = csvData.reduce((acc, row) => {
     const intakeDate =
       detentionType === "secure-detention"
         ? parseDate(row.Admission_Date)
         : parseDate(row.ATD_Entry_Date);
+
     const releaseDate =
       detentionType === "secure-detention"
         ? parseDate(row.Release_Date)
         : parseDate(row.ATD_Exit_Date);
-    const dob = parseDate(row.Date_of_Birth);
 
     const age = getAgeAtAdmission(
       row.Date_of_Birth,
@@ -106,22 +103,16 @@ const analyzeData = (
 
     let keys = [];
 
-    if (groupBy === "Gender") {
-      keys = [row.Gender];
-    } else if (groupBy === "Age") {
-      keys = [age];
-    } else if (groupBy === "RaceEthnicity") {
-      keys = [raceEth];
-    } else if (groupBy === "OffenseCategory") {
-      keys = [row.OffenseCategory];
-    } else if (groupBy === "OffenseOverall") {
-      keys = [offenseOverall];
-    } else if (groupBy === "PostDispoStayReason") {
+    if (groupBy === "Gender") keys = [row.Gender];
+    else if (groupBy === "Age") keys = [age];
+    else if (groupBy === "RaceEthnicity") keys = [raceEth];
+    else if (groupBy === "OffenseCategory") keys = [row.OffenseCategory];
+    else if (groupBy === "OffenseOverall") keys = [offenseOverall];
+    else if (groupBy === "PostDispoStayReason") {
       const reason = row["Post-Dispo Stay Reason"];
       if (reason && reason.trim().length > 0) {
         keys = [reason.trim(), "All Post-Dispo"];
       } else {
-        // skip rows with no Post-Dispo reason
         return acc;
       }
     } else {
@@ -137,14 +128,39 @@ const analyzeData = (
   }, {});
 
   for (const [key, group] of Object.entries(grouped)) {
+    // 🔑 Determine if this is New Offenses or Technicals category (or subcategories)
+    const isNewOffense =
+      key === "New Offenses" ||
+      key.toLowerCase().includes("felony") ||
+      key.toLowerCase().includes("misdemeanor") ||
+      key.toLowerCase() === "status offense";
+    const isTechnical =
+      key === "Technicals" ||
+      [
+        "ATD Program Failure",
+        "Court Order",
+        "Probation Violation",
+        "Warrant",
+        "Other Technical Violation",
+      ].includes(key);
+
+    // Apply filter only for these
+    const filteredGroup =
+      isNewOffense || isTechnical
+        ? group.filter(
+            (d) =>
+              !d["Post-Dispo Stay Reason"] ||
+              d["Post-Dispo Stay Reason"].trim() === ""
+          )
+        : group;
+
     if (calculationType === "countAdmissions") {
-      results[key] = group.filter((d) => {
-        return (
+      results[key] = filteredGroup.filter(
+        (d) =>
           d.intakeDate && d.intakeDate <= endDate && d.intakeDate >= startDate
-        );
-      }).length;
+      ).length;
     } else if (calculationType === "countReleases") {
-      results[key] = group.filter(
+      results[key] = filteredGroup.filter(
         (d) => d.releaseDate && d.releaseDate.getFullYear() === year
       ).length;
     } else if (
@@ -152,8 +168,7 @@ const analyzeData = (
         calculationType
       )
     ) {
-      //Count only stays within that year
-      const stays = group
+      const stays = filteredGroup
         .filter(
           (d) =>
             d.intakeDate &&
@@ -170,22 +185,29 @@ const analyzeData = (
         ? Math.round((stays.reduce((a, b) => a + b, 0) / stays.length) * 10) /
           10
         : null;
-      results[key] = { median: median, average: avg };
+      results[key] = { median, average: avg };
     } else if (calculationType === "averageDailyPopulation") {
-      const dayCounts = eachDayOfInterval({
-        start: startDate,
-        end: endDate,
-      }).map(
-        (day) =>
-          group.filter(
-            (d) =>
-              d.intakeDate &&
-              d.intakeDate <= day &&
-              (!d.releaseDate || d.releaseDate >= day)
-          ).length
-      );
-      const average = dayCounts.reduce((a, b) => a + b, 0) / dayCounts.length;
-      results[key] = average;
+      const totalOverlapDays = filteredGroup.reduce((sum, d) => {
+        if (!d.intakeDate) return sum;
+
+        const rangeStart = d.intakeDate < startDate ? startDate : d.intakeDate;
+        const rangeEnd =
+          d.releaseDate && !isNaN(d.releaseDate)
+            ? d.releaseDate > endDate
+              ? endDate
+              : d.releaseDate
+            : endDate;
+
+        if (rangeStart > endDate || rangeEnd < startDate) return sum;
+
+        const overlapDays =
+          Math.round((rangeEnd - rangeStart) / (1000 * 60 * 60 * 24)) + 1;
+
+        return sum + overlapDays;
+      }, 0);
+
+      results[key] =
+        Math.round((totalOverlapDays / daysInYear) * 10000) / 10000;
     }
   }
 

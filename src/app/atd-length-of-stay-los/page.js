@@ -499,7 +499,7 @@ export default function Overview() {
             {/* Change Statistics */}
             <ChartCard width="100%">
               <div
-                style={{ maxHeight: "60px", width: "100%" }}
+                style={{ maxHeight: "78px", width: "100%" }}
                 onMouseEnter={() => setShowMap(true)}
                 onMouseLeave={() => setShowMap(!persistMap ? false : true)}
                 onClick={() => {
@@ -557,13 +557,13 @@ export default function Overview() {
 
             {/* LOS by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "320px", width: "100%" }}>
+              <div style={{ height: "300px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray12.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray12}
                       breakdowns={[`${calculationType}LengthOfStay`]}
-                      height={340}
+                      height={300}
                       margin={{ top: 20, right: 50, bottom: 10, left: 20 }}
                       chartTitle={"LOS by ATD Program Type"}
                       colorMapOverride={{
@@ -582,7 +582,7 @@ export default function Overview() {
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div style={{ height: "290px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart
                     records={dataArray19}

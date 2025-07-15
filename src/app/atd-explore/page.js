@@ -162,7 +162,13 @@ export default function Overview() {
         <Sidebar />
         <div
           ref={contentRef}
-          style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}
+          style={{
+            display: "flex",
+            flexGrow: 1,
+            flexDirection: "column",
+            overflowY: "auto",
+            maxHeight: "100vh",
+          }}
         >
           <Header
             title={`${incarcerationType}`}

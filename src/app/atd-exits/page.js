@@ -349,7 +349,7 @@ export default function Overview() {
             {/* Change Statistics */}
             <ChartCard width="100%">
               <div
-                style={{ maxHeight: "60px", width: "100%" }}
+                style={{ maxHeight: "78px", width: "100%" }}
                 onMouseEnter={() => setShowMap(true)}
                 onMouseLeave={() => setShowMap(!persistMap ? false : true)}
                 onClick={() => {
@@ -395,13 +395,13 @@ export default function Overview() {
 
             {/* Exits by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "360px", width: "100%" }}>
+              <div style={{ height: "340px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray2.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray2}
                       breakdowns={["total"]}
-                      height={360}
+                      height={340}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"Exits by ATD Program Type"}
                       colorMapOverride={Constants.successColors}

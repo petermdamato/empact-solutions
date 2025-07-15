@@ -15,7 +15,9 @@ const StackedBarChart = ({
   const [parentWidth, setParentWidth] = useState(0); // State to store parent width
   const tooltips =
     chartTitle === "Population by gender" ||
-    chartTitle === "Population by race/ethnicity";
+    chartTitle === "Population by race/ethnicity" ||
+    chartTitle === "Entries by gender" ||
+    chartTitle === "Entries by race/ethnicity";
 
   // Observe the parent width using ResizeObserver
   useEffect(() => {
@@ -45,7 +47,7 @@ const StackedBarChart = ({
       context === "releases"
         ? (d) => d.daysPre / d.pre + d.daysPost / d.post
         : context === "population"
-        ? (d) => d.pre / d.daysPre + d.post / d.daysPost
+        ? (d) => d.pre + d.post
         : (d) => d.pre + d.post;
 
     const totalCount = data.reduce(
@@ -54,9 +56,11 @@ const StackedBarChart = ({
       0
     );
 
-    data = data.sort((a, b) => {
-      return b.pre + b.post - (a.pre + a.post);
-    });
+    // data = data.sort((a, b) => {
+    //   return b.pre + b.post - (a.pre + a.post);
+    // });
+
+    data = data.sort((a, b) => a.category.localeCompare(b.category));
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous content
@@ -96,7 +100,7 @@ const StackedBarChart = ({
           context === "percentages"
             ? d.pre
             : context === "population"
-            ? d.pre / d.daysPre
+            ? d.pre
             : d.daysPre / d.pre
         ) > 0
           ? Math.max(
@@ -104,7 +108,7 @@ const StackedBarChart = ({
                 context === "percentages"
                   ? d.pre
                   : context === "population"
-                  ? d.pre / d.daysPre
+                  ? d.pre
                   : d.daysPre / d.pre
               ),
               2
@@ -151,7 +155,7 @@ const StackedBarChart = ({
           context === "percentages"
             ? d.pre
             : context === "population"
-            ? d.pre / d.daysPre
+            ? d.pre
             : d.daysPre / d.pre
         ) > 0
           ? Math.max(
@@ -159,7 +163,7 @@ const StackedBarChart = ({
                 context === "percentages"
                   ? d.pre
                   : context === "population"
-                  ? d.pre / d.daysPre
+                  ? d.pre
                   : d.daysPre / d.pre
               ),
               2
@@ -172,7 +176,7 @@ const StackedBarChart = ({
           context === "percentages"
             ? d.post
             : context === "population"
-            ? d.post / d.daysPost
+            ? d.post
             : d.daysPost / d.post
         ) > 0
           ? Math.max(
@@ -180,7 +184,7 @@ const StackedBarChart = ({
                 context === "percentages"
                   ? d.post
                   : context === "population"
-                  ? d.post / d.daysPost
+                  ? d.post
                   : d.daysPost / d.post
               ),
               2
@@ -284,7 +288,7 @@ const StackedBarChart = ({
         context === "percentages"
           ? d.pre + d.post
           : context === "population"
-          ? Math.round(((d.pre + d.post) * 10) / d.daysPre) / 10
+          ? Math.round((d.pre + d.post) * 10) / 10
           : Math.round(((d.daysPre + d.daysPost) * 10) / d.pre + d.post) / 10
       )
       .attr("fill", "black")
