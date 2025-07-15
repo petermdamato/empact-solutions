@@ -472,6 +472,7 @@ export default function Overview() {
 
                       dataArray11[0]?.previous,
                     ]}
+                    map={true}
                   />
                 </ResponsiveContainer>
                 <div

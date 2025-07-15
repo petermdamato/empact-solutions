@@ -508,6 +508,7 @@ export default function Overview() {
                       Math.round(dataArray11[0]?.current * 10) / 10,
                       dataArray11[0]?.previous,
                     ]}
+                    map={true}
                   />
                 </ResponsiveContainer>
                 <div

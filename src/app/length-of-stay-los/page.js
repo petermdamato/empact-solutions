@@ -577,6 +577,7 @@ export default function Overview() {
                         ] * 10
                       ) / 10,
                     ]}
+                    map={true}
                   />
                 </ResponsiveContainer>
                 <div

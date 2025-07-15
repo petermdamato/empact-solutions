@@ -471,6 +471,7 @@ export default function Overview() {
                       dataArray11[0]?.body?.totalEntries,
                       dataArray11[0]?.body?.previousTotalEntries,
                     ]}
+                    map={true}
                   />
                 </ResponsiveContainer>
                 <div

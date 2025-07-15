@@ -363,6 +363,7 @@ export default function Overview() {
                       dataArray1[0]?.body?.totalExits,
                       dataArray1[0]?.body?.previousTotalExits,
                     ]}
+                    map={true}
                   />
                 </ResponsiveContainer>
                 <div
