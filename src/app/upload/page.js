@@ -30,7 +30,6 @@ export default function Overview() {
       <div style={{ display: "flex" }}>
         <Sidebar />
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
-          <LogoutButton />
           <Header
             title="Upload"
             subtitle=""

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
@@ -18,6 +19,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const router = useRouter();
   const contentRef = useRef();
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
@@ -30,6 +32,14 @@ export default function Overview() {
   ]);
   const [legendOptions, setLegendOptions] = useState([]);
   const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
+
+  useEffect(() => {
+    if (!router) return; // router not yet mounted
+
+    if (!csvData || csvData.length === 0) {
+      router.push("/upload");
+    }
+  }, [csvData, router]);
 
   useEffect(() => {
     setDataArray1([

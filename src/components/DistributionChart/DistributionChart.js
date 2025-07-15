@@ -258,6 +258,9 @@ const DistributionChart = (records) => {
     records.filterDimension
   );
 
+  // Process data and group by length of stay
+  const dataCopy = [...records.data];
+
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
@@ -298,9 +301,6 @@ const DistributionChart = (records) => {
   const innerHeight = height - margin.top - margin.bottom;
 
   if (!records.data || records.data.length === 0) return null;
-
-  // Process data and group by length of stay
-  const dataCopy = [...records.data];
 
   const filteredData = dataCopy.filter((record) => {
     return (

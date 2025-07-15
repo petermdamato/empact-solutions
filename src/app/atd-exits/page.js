@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
@@ -43,6 +44,7 @@ const getAge = (dob, intake) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const router = useRouter();
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [filterVariables, setFilterVariable] = useState([]);
@@ -72,6 +74,12 @@ export default function Overview() {
       }
     });
   };
+
+  useEffect(() => {
+    if (!csvData || csvData.length === 0) {
+      router.push("/upload");
+    }
+  }, [csvData, router]);
 
   // Add keydown event handler
   useEffect(() => {
