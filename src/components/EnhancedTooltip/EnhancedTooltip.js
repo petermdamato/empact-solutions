@@ -67,7 +67,7 @@ const EnhancedTooltip = ({
           "Pre-dispo": value["Post-dispo"] || 0,
         }))
       : [];
-    console.log(postDispoData, transformedData);
+
     const normalize = (str) =>
       str ? str.toLowerCase().replace(/ies$/, "y").replace(/s$/, "") : "";
 
