@@ -11,6 +11,7 @@ import PieChart from "@/components/PieChart/PieChartV2";
 import Selector from "@/components/Selector/Selector";
 import ZipMap from "@/components/ZipMap/ZipMap";
 import { useCSV } from "@/context/CSVContext";
+import { useTags } from "@/context/TagsContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeAdmissionsOnly,
@@ -97,6 +98,7 @@ const groupOffenseCategories = (data) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const { selectedTags } = useTags();
   const router = useRouter();
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
@@ -221,7 +223,7 @@ export default function Overview() {
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariables, csvData, raceType]);
+  }, [filterVariables, csvData, raceType, selectedTags]);
 
   useEffect(() => {
     if (programType === "All Program Types") {

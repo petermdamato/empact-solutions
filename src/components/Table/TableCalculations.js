@@ -121,6 +121,7 @@ const TableCalculations = ({ data }) => {
                       (value.median && value.median !== 0)
                     );
                   })
+                  .sort((a, b) => a.localeCompare(b))
                   .map((category, catIndex) => {
                     const value = section.body[category];
 

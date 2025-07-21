@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
-import Selector from "../Selector/Selector";
+import { useTags } from "@/context/TagsContext";
 import EnhancedTooltip from "@/components/EnhancedTooltip/EnhancedTooltip";
 
 const defaultColorPalette = [
@@ -16,6 +16,7 @@ const defaultColorPalette = [
 const StackedBarChartGeneric = (props) => {
   const svgRef = useRef();
   const containerRef = useRef();
+  const { selectedTags } = useTags();
   const [parentWidth, setParentWidth] = useState(0);
   const [tooltipData, setTooltipData] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({
@@ -47,6 +48,8 @@ const StackedBarChartGeneric = (props) => {
     sorted = false,
     filterable = true,
   } = props;
+
+  const key = groupByKey === "Disruption Type" ? "Disruption_Type" : groupByKey;
 
   // Resize observer for width changes
   useEffect(() => {
@@ -113,12 +116,12 @@ const StackedBarChartGeneric = (props) => {
     const innerHeight = height - margin.top - margin.bottom;
 
     const finalFilteredData = [...filteredData].sort((a, b) => {
-      if (sorted) {
+      if (selectedTags.includes(key.toLowerCase())) {
         const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
         const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
-        return totalB - totalA;
+        return totalB - totalA; // descending by total value
       } else {
-        return a.category.localeCompare(b.category);
+        return a.category.localeCompare(b.category); // alphabetical by category
       }
     });
 
@@ -152,9 +155,9 @@ const StackedBarChartGeneric = (props) => {
         const currentKey = Object.keys(filterVariable || {})[0];
         const currentValue = filterVariable?.[currentKey];
         const isSameSelection =
-          currentKey === groupByKey && currentValue === selectedValue;
+          currentKey === key && currentValue === selectedValue;
         toggleFilter(
-          isSameSelection ? null : { key: groupByKey, value: selectedValue }
+          isSameSelection ? null : { key: key, value: selectedValue }
         );
       }
     };
@@ -312,7 +315,7 @@ const StackedBarChartGeneric = (props) => {
     context,
     filterVariable,
     toggleFilter,
-    groupByKey,
+    key,
     chartTitle,
     colorMapOverride,
     hasSelector,
@@ -373,7 +376,7 @@ const StackedBarChartGeneric = (props) => {
             showChart={showChart}
             label={tooltipData.label}
             chartTitle={chartTitle}
-            groupByKey={groupByKey}
+            groupByKey={key}
             valueFormatter={(value) => {
               const identifier = chartTitle.split(" by")[0];
               return value === "N/A"

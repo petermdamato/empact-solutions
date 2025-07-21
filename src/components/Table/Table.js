@@ -107,6 +107,7 @@ const TableComponent = ({ data }) => {
                     // Exclude rows where count is zero or falsy
                     return count > 0;
                   })
+                  .sort((a, b) => a.localeCompare(b))
                   .map((category, catIndex) => {
                     const value = section.body[category];
                     const total =
