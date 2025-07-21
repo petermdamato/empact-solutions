@@ -6,6 +6,7 @@ import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
 import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
+import { useTags } from "@/context/TagsContext";
 import ChartCard from "@/components/ChartCard/ChartCard";
 import ZipMap from "@/components/ZipMap/ZipMap";
 import { ResponsiveContainer } from "recharts";
@@ -44,6 +45,7 @@ const getAge = (dob, intake) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const { selectedTags } = useTags();
   const router = useRouter();
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
@@ -54,7 +56,6 @@ export default function Overview() {
   const [programType, setProgramType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [breakdownType, setBreakdownType] = useState("Overall Total");
-
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
@@ -160,7 +161,7 @@ export default function Overview() {
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariables, csvData]);
+  }, [filterVariables, csvData, selectedTags]);
 
   useEffect(() => {
     if (programType === "All Program Types") {

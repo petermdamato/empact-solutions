@@ -11,6 +11,7 @@ import ChartCard from "@/components/ChartCard/ChartCard";
 import Selector from "@/components/Selector/Selector";
 import ZipMap from "@/components/ZipMap/ZipMap";
 import { useCSV } from "@/context/CSVContext";
+import { useTags } from "@/context/TagsContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeLengthByScreenedStatus,
@@ -39,6 +40,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const { selectedTags } = useTags();
   const router = useRouter();
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
@@ -161,7 +163,7 @@ export default function Overview() {
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariables, csvData, raceType]);
+  }, [filterVariables, csvData, raceType, selectedTags]);
 
   // Race array 2
   // Gender array 3

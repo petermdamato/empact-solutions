@@ -11,6 +11,7 @@ import PieChart from "@/components/PieChart/PieChartV3";
 import ZipMap from "@/components/ZipMap/ZipMap";
 import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
+import { useTags } from "@/context/TagsContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeExits,
@@ -38,6 +39,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const { selectedTags } = useTags();
   const router = useRouter();
   const contentRef = useRef();
   const [selectedYear, setSelectedYear] = useState(2024);
@@ -51,7 +53,6 @@ export default function Overview() {
     "All Program Types",
   ]);
   const [raceType, setRaceType] = useState("RaceEthnicity");
-
   const [dataArray11, setDataArray11] = useState([]);
   const [dataArray12, setDataArray12] = useState([]);
   const [dataArray13, setDataArray13] = useState([]);
@@ -165,7 +166,7 @@ export default function Overview() {
     } else {
       setFinalData(csvData);
     }
-  }, [filterVariables, csvData, raceType]);
+  }, [filterVariables, csvData, raceType, selectedTags]);
 
   useEffect(() => {
     if (programType === "All Program Types") {

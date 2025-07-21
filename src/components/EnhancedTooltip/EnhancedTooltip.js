@@ -232,6 +232,7 @@ const EnhancedTooltip = ({
                 chartTitle={groupByKey}
                 hideLegend={true}
                 compact={true}
+                groupByKey={groupByKey}
                 colorMapOverride={colorMapOverride}
               />
             </div>

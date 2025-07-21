@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { CSVProvider } from "@/context/CSVContext";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { LinkOutProvider } from "@/context/LinkOutContext";
+import { TagsProvider } from "@/context/TagsContext";
 
 import SessionWrapper from "@/components/SessionWrapper/SessionWrapper";
 import "./globals.css";
@@ -28,7 +29,12 @@ export default function RootLayout({ children }) {
         <SessionWrapper>
           <CSVProvider>
             <LinkOutProvider>
-              <SidebarProvider>{children}</SidebarProvider>
+              <TagsProvider>
+                <SidebarProvider>
+                  {children}
+                  <div id="modal-root"></div>
+                </SidebarProvider>
+              </TagsProvider>
             </LinkOutProvider>
           </CSVProvider>
         </SessionWrapper>

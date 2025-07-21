@@ -1,18 +1,24 @@
 "use client";
-import React from "react";
+
+import React, { useState } from "react";
 import { Tooltip } from "@mui/material";
-import "./Sidebar.css";
+import SettingsIcon from "@mui/icons-material/Settings";
 import Link from "next/link";
+import { signOut } from "firebase/auth";
+
+import Modal from "../Modal/Modal";
+import SettingsPage from "@/app/settings/page";
+
 import { useCSV } from "@/context/CSVContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { firebaseAuth } from "@/lib/firebaseClient";
-import { signOut } from "firebase/auth";
+
+import "./Sidebar.css";
 
 const menuItems = [
   { label: "User Guide", access: "Active" },
   { label: "Glossary", access: "Active" },
   { label: "Upload", access: "Active" },
-  { label: "Settings", access: "Active" },
   {
     label: "Secure Detention",
     subItems: [
@@ -54,6 +60,8 @@ const Sidebar = () => {
     selectMenu,
   } = useSidebar();
 
+  const [showSettings, setShowSettings] = useState(false);
+
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
       .replace("(", "")
@@ -77,7 +85,10 @@ const Sidebar = () => {
       <div className="header">
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
-          <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <button onClick={() => setShowSettings(true)}>
+              <SettingsIcon style={{ color: "white" }} />
+            </button>
             <button
               onClick={() => {
                 signOut(firebaseAuth)
@@ -92,16 +103,17 @@ const Sidebar = () => {
             </button>
           </div>
         </div>
+
         <h1>
-          {selectedMenu === "User Guide" ||
-          selectedMenu === "Upload" ||
-          selectedMenu === "Settings" ||
-          selectedMenu === "Glossary"
+          {["User Guide", "Upload", "Settings", "Glossary"].includes(
+            selectedMenu
+          )
             ? "Empact Detention Analytics"
             : selectedMenu}
         </h1>
         <h2>{selectedSubItemLabel || selectedMenu}</h2>
       </div>
+
       <nav>
         <ul>
           {menuItems.map((item) => (
@@ -197,31 +209,54 @@ const Sidebar = () => {
           ))}
         </ul>
       </nav>
+
       <footer>
-        <img
-          className="sidebar-logo"
-          src="/logo.png"
-          alt="Empact Solutions Logo"
-        />
-        <p>
-          Developed By <br /> Empact Solutions
-        </p>
-        <Tooltip
-          title={
-            <div>
-              <strong>Release Notes</strong>
-              <ul>
-                <li>Change 1</li>
-                <li>Change 2</li>
-                <li>Change 3</li>
-              </ul>
-            </div>
-          }
-          arrow
-        >
-          <p className="version">Version: Mar 2025</p>
-        </Tooltip>
+        <div style={{ display: "flex" }}>
+          <img
+            className="sidebar-logo"
+            src="/logo.png"
+            alt="Empact Solutions Logo"
+          />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              paddingTop: "14px",
+            }}
+          >
+            <p>
+              Developed By <br /> Empact Solutions
+            </p>
+            <Tooltip
+              title={
+                <div>
+                  <strong>Release Notes</strong>
+                  <ul
+                    style={{
+                      paddingLeft: "1em",
+                      margin: 0,
+                      listStylePosition: "inside",
+                    }}
+                  >
+                    <li>Map function enabled</li>
+                    <li>Final ADP Formula developed</li>
+                    <li>Hover charts for ATD Exits</li>
+                    <li>Final year mark for explore trends charts</li>
+                  </ul>
+                </div>
+              }
+              arrow
+            >
+              <p className="version">Version: July 2025</p>
+            </Tooltip>
+          </div>
+        </div>
       </footer>
+
+      {/* Settings Modal */}
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)}>
+        <SettingsPage />
+      </Modal>
     </div>
   );
 };
