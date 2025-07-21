@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
@@ -12,6 +13,7 @@ import { dataAnalysis } from "@/utils/aggFunctions";
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const router = useRouter();
   const contentRef = useRef();
   const [loading, setLoading] = useState(true);
   const [dataArray1, setDataArray1] = useState([]);
@@ -28,6 +30,12 @@ export default function Overview() {
   const onSelectChange = (e) => {
     setSelectedYear(e);
   };
+
+  useEffect(() => {
+    if (!csvData || csvData.length === 0) {
+      router.push("/upload");
+    }
+  }, [csvData, router]);
 
   useEffect(() => {
     const uniqueYears = [

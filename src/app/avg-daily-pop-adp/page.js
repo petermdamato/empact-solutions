@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
@@ -36,6 +37,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const router = useRouter();
   const contentRef = useRef();
   const [selectedYear, setSelectedYear] = useState(2024);
   const [filterVariables, setFilterVariable] = useState([]);
@@ -70,6 +72,12 @@ export default function Overview() {
       }
     });
   };
+
+  useEffect(() => {
+    if (!csvData || csvData.length === 0) {
+      router.push("/upload");
+    }
+  }, [csvData, router]);
 
   // Add keydown event handler
   useEffect(() => {
@@ -508,6 +516,7 @@ export default function Overview() {
                       Math.round(dataArray11[0]?.current * 10) / 10,
                       dataArray11[0]?.previous,
                     ]}
+                    map={true}
                   />
                 </ResponsiveContainer>
                 <div

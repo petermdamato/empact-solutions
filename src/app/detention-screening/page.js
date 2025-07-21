@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
@@ -18,6 +19,7 @@ import "./styles.css";
 
 export default function Overview() {
   const { csvData } = useCSV();
+  const router = useRouter();
   const contentRef = useRef();
   const [datesRange, setDatesRange] = useState(["2019-01-01", "2024-10-10"]);
   const [datesData, setDatesData] = useState([]);
@@ -32,6 +34,12 @@ export default function Overview() {
   const [timeSeriesDataPercentage, setTimeSeriesDataPercentage] = useState([]);
   const [timeSeriesDataCountByReason, setTimeSeriesDataCountByReason] =
     useState([]);
+
+  useEffect(() => {
+    if (!csvData || csvData.length === 0) {
+      router.push("/upload");
+    }
+  }, [csvData, router]);
 
   useEffect(() => {
     const autoholdVal = autohold === "no" ? 0 : 1;

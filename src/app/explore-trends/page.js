@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
@@ -33,6 +34,7 @@ const parseDateYear = (dateStr) => {
 
 export default function Overview() {
   const { csvData, fileName } = useCSV();
+  const router = useRouter();
   const contentRef = useRef();
   const [finalChartYear, setFinalChartYear] = useState(null);
   const [breakdownType, setBreakdownType] = useState("Overall Total");
@@ -47,6 +49,12 @@ export default function Overview() {
   const [programTypeArray] = useState(["All Program Types"]);
   const [labelsArray] = useState(["Hide", "Show"]);
   const [selectedLabelsChoice, setSelectedLabelsChoice] = useState("Hide");
+
+  useEffect(() => {
+    if (!csvData || csvData.length === 0) {
+      router.push("/upload");
+    }
+  }, [csvData, router]);
 
   useEffect(() => {
     if (fileName && fileName.length > 0) {

@@ -1,6 +1,6 @@
 import React from "react";
 
-const ChangeStatistics = ({ data, caption }) => {
+const ChangeStatistics = ({ data, caption, map = false }) => {
   if (!data || data.length !== 2) return null;
 
   const previous = data[1];
@@ -64,14 +64,16 @@ const ChangeStatistics = ({ data, caption }) => {
           </div>
         </div>
       </div>
-      <div
-        style={{
-          paddingTop: "8px",
-          fontVariant: "small-caps",
-        }}
-      >
-        hover to see zip code map
-      </div>
+      {map && (
+        <div
+          style={{
+            paddingTop: "8px",
+            fontVariant: "small-caps",
+          }}
+        >
+          hover to see zip code map
+        </div>
+      )}
     </div>
   );
 };
