@@ -8,7 +8,7 @@ export default function NotFound() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/upload"); // redirect to /upload
+    router.replace("/overview"); // redirect to /upload
   }, []);
 
   return null; // or a loading spinner while redirecting

@@ -2,10 +2,12 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import "./styles.css";
 import CSVUploader from "@/components/CSVUploader";
+import LogoutButton from "@/components/LogoutButton/LogoutButton";
 
 export default function Overview() {
   const { data: session, status } = useSession();
@@ -24,13 +26,14 @@ export default function Overview() {
   }
 
   return (
-    <div>
+    <div className="max-w-xl mx-auto mt-10">
       <div style={{ display: "flex" }}>
+        <Sidebar />
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
           <Header
             title="Upload"
             subtitle=""
-            caption="Add your organization's detention statistics file in CSV or Excel format"
+            caption="Files missing necessary columns will show up as errors"
             year=""
           />
           {status === "loading" ? <div>Loading...</div> : <CSVUploader />}

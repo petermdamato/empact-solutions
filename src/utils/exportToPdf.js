@@ -5,7 +5,8 @@ export async function exportElementToPdf(
   element,
   filename = "download.pdf",
   scale = 1,
-  orientation = "l"
+  orientation = "l",
+  setExporting
 ) {
   if (!element) return;
 
@@ -72,6 +73,7 @@ export async function exportElementToPdf(
 
         pdf.addImage(dataUrl, "PNG", x, y, imgWidth, imgHeight);
         pdf.save(filename);
+        setExporting(false);
         resolve();
       };
     });

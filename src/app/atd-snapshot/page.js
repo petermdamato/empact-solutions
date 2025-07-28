@@ -37,7 +37,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/overview");
     }
   }, [csvData, router]);
 

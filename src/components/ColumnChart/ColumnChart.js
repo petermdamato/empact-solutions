@@ -54,7 +54,7 @@ const ColumnChart = ({
       .scaleBand()
       .domain(["Pre-dispo", "Post-dispo"])
       .range([margin.left, innerWidth - margin.right])
-      .padding(0.5);
+      .padding(0.1);
 
     const yScale = d3
       .scaleLinear()
@@ -129,7 +129,11 @@ const ColumnChart = ({
       .call(d3.axisBottom(xScale));
   }, [data, format, height, parentWidth]);
 
-  return <svg ref={svgRef} width={parentWidth} height={height}></svg>;
+  return (
+    <div style={{ display: "flex", justifyContent: "space-around" }}>
+      <svg ref={svgRef} width={parentWidth} height={height}></svg>
+    </div>
+  );
 };
 
 export default ColumnChart;

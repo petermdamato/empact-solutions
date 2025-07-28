@@ -47,6 +47,7 @@ const StackedBarChartGeneric = (props) => {
     valueBreakdowns,
     sorted = false,
     filterable = true,
+    compact = false,
   } = props;
 
   const key = groupByKey === "Disruption Type" ? "Disruption_Type" : groupByKey;
@@ -88,28 +89,31 @@ const StackedBarChartGeneric = (props) => {
         defaultColorPalette[i % defaultColorPalette.length];
     });
     showChart;
-    const tempSvg = d3
-      .select(document.body)
-      .append("svg")
-      .attr("class", "temp-label-svg")
-      .style("visibility", "hidden");
+
+    const svg = d3.select(svgRef.current);
+
+    const tempSvg = svg.append("g").attr("class", "temp-label-svg");
+    // .style("visibility", "hidden");
 
     let maxLabelWidth = 0;
-    filteredData.forEach((d) => {
+    filteredData.forEach((d, i) => {
       const text = tempSvg
         .append("text")
+        .attr("x", margin.left)
+        .attr("y", 40 + i * 20)
         .text(d.category)
+        .call(wrap, 136)
         .style("font-size", 14);
+
       const width = text.node().getBBox().width;
       if (width > maxLabelWidth) maxLabelWidth = width;
       text.remove();
     });
     tempSvg.remove();
 
-    const paddingForAxis = 12;
+    const paddingForAxis = 24;
     margin.left = Math.max(margin.left, maxLabelWidth + paddingForAxis);
 
-    const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
     const innerWidth = parentWidth - margin.left - margin.right;
@@ -287,13 +291,13 @@ const StackedBarChartGeneric = (props) => {
       });
     });
 
-    if (!hasSelector) {
+    if (!hasSelector && !compact) {
       chart
         .append("text")
-        .attr("x", -margin.left + 20)
+        .attr("x", -margin.left + 6)
         .attr("y", -8)
         .text(chartTitle)
-        .style("font-size", 14)
+        .style("font-size", 16)
         .style("font-weight", "bold");
     }
 

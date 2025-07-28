@@ -1,4 +1,4 @@
-export const prePostColors = { pre: "#bdbebf", post: "#838990" };
+export const prePostColors = { pre: "#d3d3d3", post: "#5a6b7c" };
 
 export const successColors = {
   successful: "#d3d3d3",

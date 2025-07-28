@@ -1,6 +1,7 @@
 "use client";
 
 import { useCSV } from "@/context/CSVContext";
+import { useModal } from "@/context/ModalContext";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
@@ -11,10 +12,16 @@ import Link from "next/link";
 
 export default function CSVUploader() {
   const { setCsvData, setValidationErrors, setFileName } = useCSV();
-
+  const { setShowUpload, showUpload } = useModal();
   const [errors, setErrors] = useState([]);
   const [csvUploaded, setCsvUploaded] = useState(false);
   const [fileType, setFileType] = useState("CSV");
+
+  const handleClick = () => {
+    console.log("false");
+    console.log(showUpload);
+    setShowUpload(false);
+  };
 
   const validateCSV = (data) => {
     const errorCounts = {}; // { 'column|error': count }
@@ -273,8 +280,12 @@ export default function CSVUploader() {
       {csvUploaded && errors.length === 0 && (
         <div>
           <div className="success-message">
-            <span>{fileType.toUpperCase()} uploaded successfully</span>
-            <Link href="/overview">Go to overview →</Link>
+            <span style={{ color: "#004400" }}>
+              {fileType.toUpperCase()} uploaded successfully
+            </span>
+            <div className="btn-go-to-overview" onClick={handleClick}>
+              Go to overview →
+            </div>
           </div>
         </div>
       )}

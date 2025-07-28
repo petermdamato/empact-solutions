@@ -8,7 +8,7 @@ export default function GlobalError({ error, reset }) {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/upload");
+    router.replace("/overview");
   }, []);
 
   return null;

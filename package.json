@@ -25,6 +25,7 @@
     "lucide-react": "^0.511.0",
     "mapbox-gl": "^3.8.0",
     "maplibre-gl": "^4.7.1",
+    "moment": "^2.30.1",
     "next": "15.2.1",
     "next-auth": "^4.24.11",
     "papaparse": "^5.5.2",

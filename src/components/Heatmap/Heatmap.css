@@ -4,7 +4,12 @@
   width: 100%;
   grid-auto-rows: 1fr;
 }
-
+.heatmap-label.y-label {
+  text-align: right;
+  align-items: right;
+  justify-content: right;
+  padding-right: 4px;
+}
 .heatmap-label,
 .heatmap-cell {
   text-align: center;

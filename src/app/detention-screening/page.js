@@ -13,7 +13,7 @@ import TileContainerV2 from "@/components/TileContainer/TileContainerV2";
 import Selector from "@/components/Selector/Selector";
 import { analyzeOverridesByYear } from "@/utils/analyzeOverridesByYear";
 import { analyzeOverridesByReasonByYear } from "@/utils/analyzeOverridesByReasonByYear";
-
+import moment from "moment";
 import { useEffect, useState, useRef } from "react";
 import "./styles.css";
 
@@ -43,14 +43,15 @@ export default function Overview() {
 
   useEffect(() => {
     const autoholdVal = autohold === "no" ? 0 : 1;
+
     setDatesData(
       csvData.filter((entry) => {
-        const intake = new Date(entry.Intake_Date);
-        const lowerDate = new Date(datesRange[0]);
-        const upperDate = new Date(datesRange[1]);
+        const intake = moment(entry.Intake_Date);
+        const lowerDate = moment(datesRange[0]);
+        const upperDate = moment(datesRange[1]);
         return (
-          intake >= lowerDate &&
-          intake <= upperDate &&
+          intake.isSameOrAfter(lowerDate, "day") &&
+          intake.isSameOrBefore(upperDate, "day") &&
           (autohold === "all" || +entry["Auto_Hold"] === autoholdVal)
         );
       })

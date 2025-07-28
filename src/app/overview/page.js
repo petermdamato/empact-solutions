@@ -37,7 +37,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/overview");
     }
   }, [csvData, router]);
 
@@ -241,8 +241,9 @@ export default function Overview() {
             />
           </Header>
 
-          <div>
-            {dataArray1 &&
+          <div style={{ display: "flex", justifyContent: "space-around" }}>
+            {csvData && csvData.length > 0 ? (
+              dataArray1 &&
               dataArray1.length > 0 &&
               dataArray2 &&
               dataArray2.length > 0 &&
@@ -289,7 +290,22 @@ export default function Overview() {
                     },
                   ]}
                 />
-              )}
+              )
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "400px",
+                  justifyContent: "space-around",
+                }}
+              >
+                <div>
+                  Use the upload functionality in the top left to upload data
+                  for view
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

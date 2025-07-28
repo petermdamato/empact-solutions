@@ -61,9 +61,7 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
   const groupKey = (record, entry) => {
     switch (breakdown) {
       case "bySuccess":
-        return record.ATD_Successful_Exit === "1"
-          ? "successful"
-          : "unsuccessful";
+        return record.ATD_Successful_Exit === "1" ? "undisrupted" : "disrupted";
 
       case "byDispo":
         return record["Post-Dispo Stay Reason"] === null ||

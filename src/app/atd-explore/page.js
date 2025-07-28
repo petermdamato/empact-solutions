@@ -21,7 +21,7 @@ const breakdownMapping = {
   Gender: "byGender",
   "Age at Intake": "byAge",
   "Offense Category": "byOffenseCategory",
-  "Successful/Unsuccessful": "bySuccess",
+  Disruptions: "bySuccess",
 };
 
 const parseDateYear = (dateStr) => {
@@ -53,7 +53,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/overview");
     }
   }, [csvData, router]);
 
@@ -111,7 +111,7 @@ export default function Overview() {
 
     let options = [];
 
-    if (breakdownType === "Successful/Unsuccessful") {
+    if (breakdownType === "Disruptions") {
       options = [...new Set(csvData.map((d) => d.ATD_Successful_Exit))];
     } else if (breakdownType === "Gender") {
       options = [...new Set(csvData.map((d) => d.Gender))];
@@ -223,7 +223,7 @@ export default function Overview() {
                     "Gender",
                     "Age at Intake",
                     "Offense Category",
-                    "Successful/Unsuccessful",
+                    "Disruptions",
                   ]}
                   variable={"Explore"}
                   selectedValue={breakdownType}

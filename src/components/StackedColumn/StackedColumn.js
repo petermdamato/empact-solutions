@@ -28,7 +28,7 @@ const colors = (
 ) => {
   if (detentionType === "alternative-to-detention") {
     switch (filterDimension) {
-      case "Successfulness":
+      case "Disruptions":
         return { 1: "#006890", 0: "#ff7b00" };
 
       case "Race/Ethnicity":
@@ -152,7 +152,7 @@ const StackedColumnChart = ({
 
     if (detentionType === "alternative-to-detention") {
       switch (filterDimension) {
-        case "Successfulness": {
+        case "Disruptions": {
           groupKey =
             d.ATD_Successful_Exit === "1"
               ? "1"

@@ -37,8 +37,8 @@ const PieChart = ({
       if (containerRef.current) observer.unobserve(containerRef.current);
     };
   }, []);
-  const margin = { top: 24, right: 24, bottom: 24, left: 24 };
-  const width = containerSize.width - margin.left - margin.right;
+  const margin = { top: 24, right: 4, bottom: 24, left: 4 };
+  const width = containerSize.width - margin.left - margin.right + 80;
   const height = containerSize.height - margin.top - margin.bottom;
   const radius = Math.min(width, height) / 2 - 40;
   const color =
@@ -138,7 +138,10 @@ const PieChart = ({
 
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md inline-block relative">
-      <div className="text-center mb-2">
+      <div
+        className="text-center mb-2"
+        style={{ marginLeft: "4px", fontSize: "16px" }}
+      >
         <strong>{chartTitle}</strong>
       </div>
       <div

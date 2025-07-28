@@ -37,9 +37,9 @@ const PieChart = ({
     };
   }, []);
   const margin = { top: 24, right: 4, bottom: 24, left: 4 };
-  const width = containerSize.width - margin.left - margin.right + 40;
+  const width = containerSize.width - margin.left - margin.right + 80;
   const height = containerSize.height - margin.top - margin.bottom;
-  const radius = Math.min(width, height) / 2 - 40;
+  const radius = Math.min(width, height) / 2 - 10;
   const color =
     detentionType === "secure-detention"
       ? ["#5a6b7c", "#d5d5d5", "#979ca4"]
@@ -137,7 +137,10 @@ const PieChart = ({
 
   return (
     <div className="p-4 bg-white rounded-2xl shadow-md inline-block relative">
-      <div className="text-center mb-2">
+      <div
+        className="text-center mb-2"
+        style={{ marginLeft: "4px", fontSize: "16px" }}
+      >
         <strong>{chartTitle}</strong>
       </div>
       {records &&

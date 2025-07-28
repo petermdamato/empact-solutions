@@ -152,7 +152,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/overview");
     }
   }, [csvData, router]);
 
@@ -601,7 +601,7 @@ export default function Overview() {
                     padding: "0 4px 0 4px",
                   }}
                 >
-                  <h5 style={{ fontSize: "14px" }}>
+                  <h5 style={{ fontSize: "16px" }}>
                     {raceType === "RaceEthnicity"
                       ? "Admissions by Race/Ethnicity"
                       : "Admissions by Youth of Color vs. White"}

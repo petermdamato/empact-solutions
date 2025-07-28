@@ -1,22 +1,21 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { format } from "date-fns";
 import Slider from "@mui/material/Slider";
+import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import TextField from "@mui/material/TextField";
-import "./DateRangeSlider.css"; // keep your styles if needed
+import "./DateRangeSlider.css";
 
 const getMinMaxDates = (data, dateAccessor) => {
   const dates = data
     .map(dateAccessor)
-    .map((d) => (typeof d === "string" ? new Date(d) : d))
-    .filter((d) => !isNaN(d));
+    .map((d) => (typeof d === "string" ? moment(d) : moment(d)))
+    .filter((d) => d.isValid());
 
   if (dates.length === 0) return [null, null];
 
-  const min = new Date(Math.min(...dates));
-  const max = new Date(Math.max(...dates));
+  const min = moment.min(dates);
+  const max = moment.max(dates);
   return [min, max];
 };
 
@@ -44,25 +43,22 @@ const DateRangeSlider = ({
   const [range, setRange] = useState(() => {
     if (!minDate || !maxDate) return [0, 0];
 
-    const start = new Date(maxDate);
-    start.setFullYear(start.getFullYear() - 1);
+    const startOfYear = moment(maxDate).startOf("year");
+    const endOfYear = moment(maxDate).endOf("year");
 
-    // Ensure start is not before minDate
-    const adjustedStart = start < minDate ? minDate : start;
-
-    return [adjustedStart.getTime(), maxDate.getTime()];
+    return [startOfYear.valueOf(), endOfYear.valueOf()];
   });
 
   useEffect(() => {
     clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
       setDatesRange?.([
-        new Date(range[0]).toISOString().split("T")[0],
-        new Date(range[1]).toISOString().split("T")[0],
+        moment(range[0]).format("YYYY-MM-DD"),
+        moment(range[1]).format("YYYY-MM-DD"),
       ]);
-    }, 300); // debounce delay in ms
+    }, 100);
     return () => clearTimeout(debounceTimeout.current);
-  }, [range]); // only when the range changes
+  }, [range]);
 
   if (!records || records.length === 0 || !minDate || !maxDate) {
     return;
@@ -73,22 +69,22 @@ const DateRangeSlider = ({
   };
 
   const updateStartDate = (date) => {
-    const newStart = date.getTime();
+    const newStart = moment(date).valueOf();
     const newRange = [newStart, range[1]];
     setRange(newRange);
     setDatesRange?.([
-      new Date(newRange[0]).toISOString().split("T")[0],
-      new Date(newRange[1]).toISOString().split("T")[0],
+      moment(newRange[0]).format("YYYY-MM-DD"),
+      moment(newRange[1]).format("YYYY-MM-DD"),
     ]);
   };
 
   const updateEndDate = (date) => {
-    const newEnd = date.getTime();
+    const newEnd = moment(date).valueOf();
     const newRange = [range[0], newEnd];
     setRange(newRange);
     setDatesRange?.([
-      new Date(newRange[0]).toISOString().split("T")[0],
-      new Date(newRange[1]).toISOString().split("T")[0],
+      moment(newRange[0]).format("YYYY-MM-DD"),
+      moment(newRange[1]).format("YYYY-MM-DD"),
     ]);
   };
 
@@ -111,8 +107,8 @@ const DateRangeSlider = ({
       <Slider
         value={range}
         onChange={handleSliderChange}
-        min={minDate.getTime()}
-        max={maxDate.getTime()}
+        min={minDate.valueOf()}
+        max={maxDate.valueOf()}
         step={24 * 60 * 60 * 1000}
         valueLabelDisplay="off"
         sx={{
@@ -153,7 +149,7 @@ const DateRangeSlider = ({
           }}
         >
           <DatePicker
-            value={new Date(range[0])}
+            value={moment(range[0]).toDate()}
             onChange={(date) => date && updateStartDate(date)}
             minDate={minDate}
             maxDate={maxDate}
@@ -189,7 +185,7 @@ const DateRangeSlider = ({
           />
 
           <DatePicker
-            value={new Date(range[1])}
+            value={moment(range[1]).toDate()}
             onChange={(date) => date && updateEndDate(date)}
             minDate={minDate}
             maxDate={maxDate}
