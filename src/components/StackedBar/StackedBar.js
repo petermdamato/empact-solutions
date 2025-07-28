@@ -92,9 +92,9 @@ const StackedBarChart = ({
       .enter()
       .append("rect")
       .attr("class", "pre-bar")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
+      .attr("y", (d) => yScale(d.category))
       .attr("x", 0)
-      .attr("height", yScale.bandwidth() / 2 + 2)
+      .attr("height", yScale.bandwidth())
       .attr("width", (d) =>
         xScale(
           context === "percentages"
@@ -149,7 +149,7 @@ const StackedBarChart = ({
       .enter()
       .append("rect")
       .attr("class", "post-bar")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
+      .attr("y", (d) => yScale(d.category))
       .attr("x", (d) =>
         xScale(
           context === "percentages"
@@ -170,7 +170,7 @@ const StackedBarChart = ({
             )
           : 0
       )
-      .attr("height", yScale.bandwidth() / 2 + 2)
+      .attr("height", yScale.bandwidth())
       .attr("width", (d) =>
         xScale(
           context === "percentages"
@@ -225,7 +225,7 @@ const StackedBarChart = ({
       .enter()
       .append("text")
       .attr("class", "label-invisible")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2)
+      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 - 10)
       .attr("x", (d) => xScale(getValue(d)))
       .attr("dy", "0.35em")
       .text((d) =>
@@ -262,7 +262,7 @@ const StackedBarChart = ({
       .enter()
       .append("text")
       .attr("class", "label-percent")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 5)
+      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 8)
       .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
       .attr("dy", "0.35em")
       .text((d) =>
@@ -281,7 +281,7 @@ const StackedBarChart = ({
       .enter()
       .append("text")
       .attr("class", "label-nominal")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 - 7)
+      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + -6)
       .attr("x", (d, i) => xScale(getValue(d)) + textWidths[i] / 2 + 4)
       .attr("dy", "0.35em")
       .text((d) =>
@@ -312,7 +312,8 @@ const StackedBarChart = ({
       .attr("class", "y-axis")
       .selectAll(".tick text")
       .text((d) => (d === "" ? "N/A" : d))
-      .call(wrap, 96);
+      .call(wrap, 96)
+      .selectAll("text");
   }, [data, height, margin, parentWidth]);
 
   return <svg ref={svgRef} width={parentWidth} height={height}></svg>;

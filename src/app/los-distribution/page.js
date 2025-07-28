@@ -37,7 +37,7 @@ export default function Overview() {
     if (!router) return; // router not yet mounted
 
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/overview");
     }
   }, [csvData, router]);
 

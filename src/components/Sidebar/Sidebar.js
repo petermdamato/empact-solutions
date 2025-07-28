@@ -1,24 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
+import UploadIcon from "@mui/icons-material/Upload";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
-
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
-
+import UploadPage from "@/app/upload/page";
 import { useCSV } from "@/context/CSVContext";
+import { useModal } from "@/context/ModalContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { firebaseAuth } from "@/lib/firebaseClient";
-
 import "./Sidebar.css";
 
 const menuItems = [
-  { label: "User Guide", access: "Active" },
-  { label: "Glossary", access: "Active" },
-  { label: "Upload", access: "Active" },
   {
     label: "Secure Detention",
     subItems: [
@@ -47,6 +45,8 @@ const menuItems = [
     ],
     access: "Inactive",
   },
+  { label: "User Guide", access: "Active" },
+  { label: "Glossary", access: "Active" },
 ];
 
 const Sidebar = () => {
@@ -59,8 +59,16 @@ const Sidebar = () => {
     selectedSubItemLabel,
     selectMenu,
   } = useSidebar();
+  const { showSettings, setShowSettings, showUpload, setShowUpload } =
+    useModal();
 
-  const [showSettings, setShowSettings] = useState(false);
+  useEffect(() => {
+    const hasShownUpload = sessionStorage.getItem("hasShownUpload");
+    if (!hasShownUpload) {
+      setShowUpload(true);
+      sessionStorage.setItem("hasShownUpload", "true");
+    }
+  }, []);
 
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
@@ -87,7 +95,14 @@ const Sidebar = () => {
           <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button onClick={() => setShowSettings(true)}>
-              <SettingsIcon style={{ color: "white" }} />
+              <SimpleTooltip tooltipText="Settings" positioning={"right"}>
+                <SettingsIcon style={{ color: "white" }} />
+              </SimpleTooltip>
+            </button>
+            <button onClick={() => setShowUpload(true)}>
+              <SimpleTooltip tooltipText="Upload" positioning={"right"}>
+                <UploadIcon style={{ color: "white" }} />
+              </SimpleTooltip>
             </button>
             <button
               onClick={() => {
@@ -256,6 +271,11 @@ const Sidebar = () => {
       {/* Settings Modal */}
       <Modal isOpen={showSettings} onClose={() => setShowSettings(false)}>
         <SettingsPage />
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)}>
+        <UploadPage />
       </Modal>
     </div>
   );

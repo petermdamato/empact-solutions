@@ -380,7 +380,7 @@ const Heatmap = ({
           <div
             style={{ display: "flex", width: "100%", alignItems: "stretch" }}
           >
-            {/* Y-axis label (rotated) */}
+            {/* X-axis label */}
             <div
               style={{
                 writingMode: "vertical-rl",
@@ -519,6 +519,8 @@ const Heatmap = ({
                           cursor: "pointer",
                           backgroundColor:
                             decisionValue === y ? "#bfe9fd" : "inherit",
+                          textAlign: "right",
+                          paddingRight: "4px",
                         }}
                       >
                         {y}

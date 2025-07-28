@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import "./styles.css";
 import { useLinkOut } from "@/context/LinkOutContext";
@@ -54,8 +53,7 @@ export default function Overview() {
             }}
           >
             <label htmlFor="linkInput">
-              Enter link out (This is the prefix attached to offense record
-              links):
+              Enter the prefix URL for linking to your CMS:
             </label>
             <input
               id="linkInput"
@@ -107,7 +105,7 @@ export default function Overview() {
                 htmlFor="tagSelect"
                 style={{ display: "block", marginBottom: "0.5rem" }}
               >
-                Sort Topics Below by Value (Other Topics Sorted Alphabetically):
+                Sort topics below by value (other topics sorted alphabetically):
               </label>
               <Autocomplete
                 multiple

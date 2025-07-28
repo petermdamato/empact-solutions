@@ -81,9 +81,9 @@ const StackedBarChartMedian = ({
       .enter()
       .append("rect")
       .attr("class", "pre-bar")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
+      .attr("y", (d) => yScale(d.category))
       .attr("x", 0)
-      .attr("height", yScale.bandwidth() / 2 + 2)
+      .attr("height", yScale.bandwidth())
       .attr("width", (d) =>
         xScale(context === "percentages" ? d.pre : d.medianPre) > 0
           ? Math.max(xScale(context === "percentages" ? d.pre : d.medianPre), 2)
@@ -98,13 +98,13 @@ const StackedBarChartMedian = ({
       .enter()
       .append("rect")
       .attr("class", "post-bar")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 4 - 2)
+      .attr("y", (d) => yScale(d.category))
       .attr("x", (d) =>
         xScale(context === "percentages" ? d.pre : d.medianPre) > 0
           ? Math.max(xScale(context === "percentages" ? d.pre : d.medianPre), 2)
           : 0
       )
-      .attr("height", yScale.bandwidth() / 2 + 2)
+      .attr("height", yScale.bandwidth())
       .attr("width", (d) =>
         xScale(context === "percentages" ? d.post : d.medianPost) > 0
           ? Math.max(
@@ -144,7 +144,7 @@ const StackedBarChartMedian = ({
       .enter()
       .append("text")
       .attr("class", "label-percent")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 5)
+      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + 8)
       .attr(
         "x",
         (d, i) =>
@@ -169,7 +169,7 @@ const StackedBarChartMedian = ({
       .enter()
       .append("text")
       .attr("class", "label-nominal")
-      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 - 7)
+      .attr("y", (d) => yScale(d.category) + yScale.bandwidth() / 2 + -6)
       .attr(
         "x",
         (d, i) =>

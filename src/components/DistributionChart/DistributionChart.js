@@ -60,7 +60,7 @@ const getBucketForRecord = (d, filterDimension, detentionType) => {
     case "Gender": {
       return d.Gender && d.Gender.trim() !== "" ? d.Gender : "Unknown";
     }
-    case "Successfulness": {
+    case "Disruptions": {
       return d["ATD_Successful_Exit"];
     }
 
@@ -70,8 +70,9 @@ const getBucketForRecord = (d, filterDimension, detentionType) => {
 };
 
 const getLegendValues = (data, dimension) => {
+  console.log(dimension);
   switch (dimension.toLowerCase()) {
-    case "successfulness":
+    case "disruptions":
       return ["0", "1"];
     case "race/ethnicity":
       return [
@@ -101,7 +102,7 @@ const FILTER_DIMENSIONS = [
   "Pre/post-dispo",
   "YOC/white",
   "Race/Ethnicity",
-  "Successfulness",
+  "Disruptions",
   "Gender",
   "Offense category (pre-dispo)",
   "Age at entry",
@@ -129,11 +130,11 @@ const calculateLengthOfStay = (record, detentionType) => {
 const expandedColors = (
   detentionType = "alternative-to-detention",
   exploreType = "Overall Total",
-  filterDimension = "Successfulness"
+  filterDimension = "Dispruptions"
 ) => {
   if (detentionType === "alternative-to-detention") {
     switch (filterDimension) {
-      case "Successfulness":
+      case "Disruptions":
         return { 1: "#006890", 0: "#ff7b00" };
 
       case "Race/Ethnicity":
@@ -505,9 +506,9 @@ const DistributionChart = (records) => {
               ></div>
               <span>
                 {option === "1"
-                  ? "Successful"
+                  ? "Undisrupted"
                   : option === "0"
-                  ? "Unsuccessful"
+                  ? "Disrupted"
                   : option}
               </span>
             </div>

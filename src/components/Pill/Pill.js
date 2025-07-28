@@ -28,7 +28,30 @@ const Pill = ({
         }
       >
         {useDropdown ? (
-          <FormControl fullWidth>
+          <FormControl
+            fullWidth
+            sx={{
+              "& label": {
+                color: "#5a6b7c",
+                fontSize: "18px",
+                fontWeight: 600,
+              },
+              "& label.Mui-focused": {
+                color: "#5a6b7c",
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#ccc", // default border
+                },
+                "&:hover fieldset": {
+                  borderColor: "#5a6b7c",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#5a6b7c",
+                },
+              },
+            }}
+          >
             <InputLabel>Type</InputLabel>
             <Select
               labelId="Select"
@@ -36,9 +59,29 @@ const Pill = ({
               value={selectedValue}
               label="Type"
               onChange={onSelectChange}
+              sx={{
+                fontSize: "18px",
+                fontWeight: 600,
+                textAlign: "center",
+                "& .MuiSelect-select": {
+                  textAlign: "center",
+                },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    fontSize: "18px",
+                    fontWeight: 600,
+                  },
+                },
+              }}
             >
               {dropdownOptions.map((entry) => (
-                <MenuItem key={entry} value={entry}>
+                <MenuItem
+                  key={entry}
+                  value={entry}
+                  sx={{ justifyContent: "center" }}
+                >
                   {entry}
                 </MenuItem>
               ))}

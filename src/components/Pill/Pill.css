@@ -71,10 +71,7 @@
 
 .pill-header .MuiSelect-select {
   padding: 8px 32px 8px 14px; /* Adjust padding to fit height */
-  font-size: 14px;
   height: 24px; /* Adjust height to match pill-header */
-  display: flex;
-  align-items: center;
 }
 
 .pill-header .MuiOutlinedInput-root {

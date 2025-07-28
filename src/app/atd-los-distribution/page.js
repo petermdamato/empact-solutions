@@ -16,7 +16,7 @@ const getFilterValue = (entry, dimension) => {
   switch (dimension) {
     case "Race/Ethnicity":
       return entry.Race_Ethnicity;
-    case "Successfulness":
+    case "Disruptions":
       return entry.ATD_Success;
     case "Age":
       return entry.Age_Group;
@@ -46,7 +46,7 @@ export default function Overview() {
   const [programTypeArray, setProgramTypeArray] = useState([
     "All Program Types",
   ]);
-  const [filterDimension, setFilterDimension] = useState("Successfulness");
+  const [filterDimension, setFilterDimension] = useState("Disruptions");
   const [legendOptions, setLegendOptions] = useState([]);
   const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
 
@@ -57,7 +57,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/overview");
     }
   }, [csvData, router]);
 

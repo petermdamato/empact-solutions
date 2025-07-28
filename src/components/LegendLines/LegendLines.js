@@ -31,11 +31,7 @@ const LegendLines = ({
 
     return options.map((option, index) => ({
       label:
-        option === "0"
-          ? "Unsuccessful"
-          : option === "1"
-          ? "Successful"
-          : option,
+        option === "0" ? "Disrupted" : option === "1" ? "Undisrupted" : option,
       color: getColor(option, index),
     }));
   }, [options]);
@@ -100,9 +96,9 @@ const LegendLines = ({
             />
             <span>
               {option === "0"
-                ? "Unsuccessful"
+                ? "Disrupted"
                 : option === "1"
-                ? "Successful"
+                ? "Undisrupted"
                 : option}
             </span>
           </div>

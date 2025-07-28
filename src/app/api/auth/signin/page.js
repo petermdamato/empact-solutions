@@ -19,7 +19,7 @@ export default function SignInPage() {
     if (result?.status !== 200) {
       setError("Invalid credentials.");
     } else {
-      window.location.href = "/upload"; // Redirect after successful login
+      window.location.href = "/overview"; // Redirect after successful login
     }
   };
 

@@ -187,7 +187,7 @@ const EnhancedTooltip = ({
               color: entry.color,
             }}
           >
-            <span>{entry.name}:</span>
+            <span>{entry.name}:&nbsp;</span>
             <span>
               {valueFormatter(entry.value)}
               {percentage && ` (${percentage})`}
@@ -213,7 +213,7 @@ const EnhancedTooltip = ({
           </button> */}
 
           {expanded && innerData.length > 0 && (
-            <div style={{ marginTop: "12px", height: "140px" }}>
+            <div style={{ marginTop: "12px", height: "180px" }}>
               <div>
                 <h3>
                   {groupByKey === "Reason for Detention"
@@ -227,8 +227,8 @@ const EnhancedTooltip = ({
                 data={innerData}
                 sorted={groupByKey === "Reason for Detention"}
                 breakdowns={chartBreakdowns}
-                height={160}
-                margin={{ top: 0, right: 40, bottom: 40, left: 20 }}
+                height={200}
+                margin={{ top: 10, right: 40, bottom: 40, left: 20 }}
                 chartTitle={groupByKey}
                 hideLegend={true}
                 compact={true}
