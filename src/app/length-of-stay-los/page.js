@@ -726,7 +726,7 @@ export default function Overview() {
                         breakdowns={["total"]}
                         calculationType={calculationType}
                         height={220}
-                        margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 50, bottom: 30, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "LOS by Race/Ethnicity"
@@ -757,7 +757,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       height={200}
                       calculationType={calculationType}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -788,7 +788,7 @@ export default function Overview() {
                       innerBreakdowns={["Pre-dispo"]}
                       calculationType={calculationType}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"LOS by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -859,7 +859,7 @@ export default function Overview() {
                       innerBreakdowns={["Pre-dispo"]}
                       height={260}
                       calculationType={calculationType}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -887,7 +887,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       height={260}
                       calculationType={calculationType}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"LOS by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",

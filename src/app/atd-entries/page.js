@@ -123,6 +123,7 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
   const [persistMap, setPersistMap] = useState(false);
@@ -393,7 +394,9 @@ export default function Overview() {
 
       setDataArray20(detData.byGroup.AgeDetail);
 
-      setDataArray21(detData.byGroup.OffenseCategory);
+      setDataArray21(detData.byGroup.ReasonForDetention);
+
+      setDataArray22(detData.PostDispoGroups);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -605,7 +608,7 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["Pre-dispo"]}
                         height={220}
-                        margin={{ top: 0, right: 40, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 40, bottom: 30, left: 20 }}
                         chartTitle={""}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
@@ -630,7 +633,7 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
                       chartTitle={"Entries by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -654,7 +657,7 @@ export default function Overview() {
                       data={dataArray15}
                       breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Entries by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -689,7 +692,7 @@ export default function Overview() {
                       data={dataArray18}
                       breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 12, left: 20 }}
                       chartTitle={"Entries by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -699,7 +702,7 @@ export default function Overview() {
                       filterVariables={filterVariables}
                       groupByKey={"Reason for Detention"}
                       showChart={true}
-                      innerData={dataArray21}
+                      postDispoData={dataArray22}
                     />
                   )}
                 </ResponsiveContainer>
@@ -714,7 +717,7 @@ export default function Overview() {
                       data={dataArray16}
                       breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Entries by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -740,7 +743,7 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["Pre-dispo"]}
                       height={250}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Entries by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",

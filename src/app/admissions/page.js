@@ -544,7 +544,7 @@ export default function Overview() {
 
             {/* Admissions by Type */}
             <ChartCard width="100%">
-              <div style={{ height: "290px", width: "100%" }}>
+              <div style={{ height: "286px", width: "100%" }}>
                 <PieChart
                   records={dataArray12}
                   year={selectedYear}
@@ -558,7 +558,7 @@ export default function Overview() {
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
-              <div style={{ height: "290px", width: "100%" }}>
+              <div style={{ height: "286px", width: "100%" }}>
                 <PieChart
                   records={dataArray19}
                   year={selectedYear}
@@ -625,7 +625,7 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["total"]}
                         height={220}
-                        margin={{ top: 0, right: 40, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 40, bottom: 30, left: 20 }}
                         chartTitle={
                           raceType === "RaceEthnicity"
                             ? "Admissions by Race/Ethnicity"
@@ -656,7 +656,7 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["total"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 0, left: 20 }}
                       chartTitle={"Admissions by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": colors[0],
@@ -682,7 +682,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       innerBreakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Admissions by Age"}
                       colorMapOverride={{
                         "Pre-dispo": colors[0],
@@ -748,7 +748,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       innerBreakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Admissions by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": colors[0],
@@ -775,7 +775,7 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["total"]}
                       height={240}
-                      margin={{ top: 20, right: 40, bottom: 10, left: 20 }}
+                      margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Admissions by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": colors[0],

@@ -36,7 +36,7 @@ const PieChart = ({
       if (containerRef.current) observer.unobserve(containerRef.current);
     };
   }, []);
-  const margin = { top: 24, right: 4, bottom: 24, left: 4 };
+  const margin = { top: 24, right: 4, bottom: 28, left: 4 };
   const width = containerSize.width - margin.left - margin.right + 80;
   const height = containerSize.height - margin.top - margin.bottom;
   const radius = Math.min(width, height) / 2 - 10;

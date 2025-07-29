@@ -1,9 +1,4 @@
-import {
-  parse,
-  differenceInCalendarDays,
-  isWithinInterval,
-  eachDayOfInterval,
-} from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 
 import {
   getAgeBracket,
@@ -64,6 +59,7 @@ function analyzeAdmissionsOnly(
     "Gender",
     "Race",
     "Ethnicity",
+    "Offense",
     "OffenseCategory",
     "OffenseCategoryAligned",
     "RaceEthnicity",
@@ -85,6 +81,8 @@ function analyzeAdmissionsOnly(
       Other: {},
       "Awaiting Placement": {},
       "Confinement to secure detention": {},
+      "New Offenses": {},
+      Technicals: {},
     },
   };
 
@@ -170,10 +168,13 @@ function analyzeAdmissionsOnly(
       groupKey = "Awaiting Placement";
     } else if (postDispoStatus === "confinement to secure detention") {
       groupKey = "Confinement to secure detention";
+    } else {
+      groupKey = offenseMap[row.OffenseCategory];
     }
 
     if (groupKey) {
-      const offenseCategory = row.OffenseCategory || "Unknown";
+      // const offenseCategory = row.OffenseCategory || "Unknown";
+      const offenseRecord = row.Offense || "Unknown";
 
       // Initialize the group if it doesn't exist
       if (!result.PostDispoGroups[groupKey]) {
@@ -181,17 +182,17 @@ function analyzeAdmissionsOnly(
       }
 
       // Initialize the offense category within the group if it doesn't exist
-      if (!result.PostDispoGroups[groupKey][offenseCategory]) {
-        result.PostDispoGroups[groupKey][offenseCategory] = {};
+      if (!result.PostDispoGroups[groupKey][offenseRecord]) {
+        result.PostDispoGroups[groupKey][offenseRecord] = {};
       }
 
       // Initialize the "Post-dispo" count if it doesn't exist
-      if (!result.PostDispoGroups[groupKey][offenseCategory]["Post-dispo"]) {
-        result.PostDispoGroups[groupKey][offenseCategory]["Post-dispo"] = 0;
+      if (!result.PostDispoGroups[groupKey][offenseRecord]["Post-dispo"]) {
+        result.PostDispoGroups[groupKey][offenseRecord]["Post-dispo"] = 0;
       }
 
       // Increment
-      result.PostDispoGroups[groupKey][offenseCategory]["Post-dispo"] += 1;
+      result.PostDispoGroups[groupKey][offenseRecord]["Post-dispo"] += 1;
     }
   }
 
@@ -212,7 +213,7 @@ function analyzeAdmissionsOnly(
     overall: {},
     byGroup: {},
     screened: {},
-    PostDispoGroups: result.PostDispoGroups, // ➡️ include PostDispoGroups in output
+    PostDispoGroups: result.PostDispoGroups,
   };
 
   for (const dispo of Object.keys(result.overall)) {
@@ -281,7 +282,7 @@ const getAgeAtAdmission = (dob, intake, bracketed = true) => {
  *            "medianLengthOfStay", "averageDailyPopulation"
  * @param {number} year - Year to analyze
  * @param {string} groupBy - Column to group by
- *   Options: "Gender", "Age", "RaceEthnicity", "RaceSimplified", "OffenseCategory",
+ *   Options: "Gender", "Age", "RaceEthnicity", "RaceSimplified", "OffenseCategory","Offense",
  *            "OffenseOverall", "Facility", "Referral_Source", "simplifiedReferralSource", "AgeDetail"
  * @param {Object} options - Additional options
  * @returns {Object} Results of the analysis
@@ -332,6 +333,7 @@ const analyzeData = (
     "RaceEthnicity",
     "RaceSimplified",
     "OffenseCategory",
+    "Offense",
     "OffenseOverall",
     "SimplifiedOffense",
     "Facility",
@@ -395,6 +397,9 @@ const analyzeData = (
         break;
       case "RaceSimplified":
         key = getRaceSimplified(row.Race, row.Ethnicity);
+        break;
+      case "Offense":
+        key = row.Offense || "Unknown";
         break;
       case "OffenseCategory":
         key =

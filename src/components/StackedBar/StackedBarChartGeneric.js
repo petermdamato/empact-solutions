@@ -48,10 +48,10 @@ const StackedBarChartGeneric = (props) => {
     sorted = false,
     filterable = true,
     compact = false,
+    wrapWidth = 106,
   } = props;
 
   const key = groupByKey === "Disruption Type" ? "Disruption_Type" : groupByKey;
-
   // Resize observer for width changes
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -102,7 +102,7 @@ const StackedBarChartGeneric = (props) => {
         .attr("x", margin.left)
         .attr("y", 40 + i * 20)
         .text(d.category)
-        .call(wrap, 136)
+        .call(wrap, wrapWidth + 30)
         .style("font-size", 14);
 
       const width = text.node().getBBox().width;
@@ -309,7 +309,7 @@ const StackedBarChartGeneric = (props) => {
       .text((d) => (d === "" ? "N/A" : d))
       .attr("pointer-events", "none")
       .attr("font-size", 14)
-      .call(wrap, 106);
+      .call(wrap, wrapWidth);
   }, [
     data,
     height,

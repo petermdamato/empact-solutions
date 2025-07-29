@@ -40,7 +40,7 @@ const PieChart = ({
   const margin = { top: 24, right: 4, bottom: 24, left: 4 };
   const width = containerSize.width - margin.left - margin.right + 80;
   const height = containerSize.height - margin.top - margin.bottom;
-  const radius = Math.min(width, height) / 2 - 40;
+  const radius = Math.min(width, height) / 2 - 10;
   const color =
     detentionType === "secure-detention"
       ? ["#5a6b7c", "#d5d5d5", "#979ca4"]
@@ -157,7 +157,7 @@ const PieChart = ({
           <g
             transform={`translate(${
               (width + margin.left + margin.right) / 2
-            }, ${(height + margin.top + margin.bottom) / 2})`}
+            }, ${(height + margin.top + margin.bottom - 20) / 2})`}
           >
             {(() => {
               const usedLabelAngles = [];
