@@ -26,7 +26,10 @@ const colors = (
   exploreType = "Overall Total",
   filterDimension = "Successfulness"
 ) => {
-  if (detentionType === "alternative-to-detention") {
+  if (
+    detentionType === "alternative-to-detention" ||
+    detentionType === "secure-detention"
+  ) {
     switch (filterDimension) {
       case "Disruptions":
         return { 1: "#006890", 0: "#ff7b00" };
@@ -102,7 +105,10 @@ const StackedColumnChart = ({
   const [tooltip, setTooltip] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
 
-  const colorScale = colors(detentionType, exploreType, filterDimension);
+  const colorScale =
+    detentionType === "secure-detention"
+      ? colors(detentionType, "Overall Total", exploreType)
+      : colors(detentionType, exploreType, filterDimension);
 
   useEffect(() => {
     const handleResize = () => {
@@ -150,8 +156,13 @@ const StackedColumnChart = ({
 
     let groupKey = "all";
 
-    if (detentionType === "alternative-to-detention") {
-      switch (filterDimension) {
+    if (
+      detentionType === "alternative-to-detention" ||
+      detentionType === "secure-detention"
+    ) {
+      switch (
+        detentionType === "secure-detention" ? exploreType : filterDimension
+      ) {
         case "Disruptions": {
           groupKey =
             d.ATD_Successful_Exit === "1"
@@ -172,7 +183,11 @@ const StackedColumnChart = ({
 
         case "Age at entry": {
           const dob = new Date(d.Date_of_Birth);
-          const entry = new Date(d.ATD_Entry_Date);
+          const entry = new Date(
+            detentionType === "secure-detention"
+              ? d.Admission_Date
+              : d.ATD_Entry_Date
+          );
           const age =
             dob instanceof Date &&
             entry instanceof Date &&

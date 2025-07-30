@@ -1,5 +1,7 @@
 import { differenceInCalendarDays } from "date-fns";
 
+import { offenseMap } from "../categorizationUtils";
+
 const parseDate = (dateStr) => {
   const d = new Date(dateStr);
   return isNaN(d) ? null : d;
@@ -82,15 +84,17 @@ const analyzeLOSBySubgroup = (
       const postDispoStatus = (
         row["Post-Dispo Stay Reason"] || ""
       ).toLowerCase();
+
+      const offenseCategory = row.OffenseCategory || "Unknown";
+      const offenseLabel = row.Offense || "Unknown";
+
       let groupKey;
       if (postDispoStatus.includes("other")) groupKey = "Other";
       else if (postDispoStatus === "awaiting placement")
         groupKey = "Awaiting Placement";
       else if (postDispoStatus === "confinement to secure detention")
         groupKey = "Confinement to secure detention";
-      else groupKey = "Unknown";
-
-      const offenseCategory = row.OffenseCategory || "Unknown";
+      else groupKey = offenseMap[offenseCategory];
 
       const entryDate = parseDate(
         programType === "secure-detention"
@@ -104,8 +108,8 @@ const analyzeLOSBySubgroup = (
       );
 
       if (!acc[groupKey]) acc[groupKey] = {};
-      if (!acc[groupKey][offenseCategory])
-        acc[groupKey][offenseCategory] = { lengthsOfStay: [], count: 0 };
+      if (!acc[groupKey][offenseLabel])
+        acc[groupKey][offenseLabel] = { lengthsOfStay: [], count: 0 };
 
       if (
         entryDate &&
@@ -115,8 +119,8 @@ const analyzeLOSBySubgroup = (
         entryDate <= exitDate
       ) {
         const los = differenceInCalendarDays(exitDate, entryDate) + 1;
-        acc[groupKey][offenseCategory].lengthsOfStay.push(los);
-        acc[groupKey][offenseCategory].count += 1;
+        acc[groupKey][offenseLabel].lengthsOfStay.push(los);
+        acc[groupKey][offenseLabel].count += 1;
       }
 
       return acc;

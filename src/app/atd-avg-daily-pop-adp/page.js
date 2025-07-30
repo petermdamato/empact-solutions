@@ -16,6 +16,7 @@ import { useTags } from "@/context/TagsContext";
 import {
   analyzeEntriesByYear,
   dataAnalysisV3,
+  analyzePostDispoGroup,
   analyzeDailyPopByProgramType,
   analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
@@ -62,6 +63,7 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
   const [persistMap, setPersistMap] = useState(false);
@@ -375,15 +377,66 @@ export default function Overview() {
 
       setDataArray19(byDispoStatus);
 
-      setDataArray20(
-        dataAnalysisV3(
-          finalData,
-          "averageDailyPopulation",
-          +selectedYear,
-          "AgeDetail",
-          "alternative-to-detention"
-        )
+      const adpByAge = dataAnalysisV3(
+        finalData,
+        "averageDailyPopulation",
+        +selectedYear,
+        "AgeDetail",
+        incarcerationType
       );
+
+      const adpByAgeTransformed = Object.entries(adpByAge).reduce(
+        (acc, [key, value]) => {
+          acc[key] = { "Pre-dispo": value };
+          return acc;
+        },
+        {}
+      );
+
+      setDataArray20(adpByAgeTransformed);
+
+      const adpByCat = dataAnalysisV3(
+        finalData,
+        "averageDailyPopulation",
+        +selectedYear,
+        "OffenseCategory",
+        incarcerationType
+      );
+
+      const adpByCatTransformed = Object.entries(adpByCat).reduce(
+        (acc, [key, value]) => {
+          acc[key] = { "Pre-dispo": value };
+          return acc;
+        },
+        {}
+      );
+
+      const adpBySubcat = analyzePostDispoGroup(finalData, +selectedYear, {
+        round: false,
+      });
+
+      const transformGroupedADPData = (data) => {
+        const result = {};
+
+        for (const group in data) {
+          const offenses = data[group];
+          const groupObj = {};
+
+          for (const [category, value] of Object.entries(offenses)) {
+            if (value !== null) {
+              groupObj[category] = {
+                "Post-dispo": value,
+              };
+            }
+          }
+
+          result[group] = groupObj;
+        }
+
+        return result;
+      };
+
+      const adpBySubcatTransformer = transformGroupedADPData(adpBySubcat);
 
       setDataArray21(
         dataAnalysisV3(
@@ -394,6 +447,8 @@ export default function Overview() {
           "alternative-to-detention"
         )
       );
+
+      setDataArray22(adpBySubcatTransformer);
     }
   }, [dataArray11, raceType]);
 
@@ -629,7 +684,7 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 10, left: 20 }}
                       chartTitle={"ADP by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -652,7 +707,7 @@ export default function Overview() {
                       data={dataArray15}
                       breakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"ADP by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -663,7 +718,6 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -688,7 +742,7 @@ export default function Overview() {
                       data={dataArray18}
                       breakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 10, left: 20 }}
                       chartTitle={"ADP by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -699,6 +753,7 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
+                      postDispoData={dataArray22}
                       valueBreakdowns={false}
                     />
                   )}
@@ -714,7 +769,7 @@ export default function Overview() {
                       data={dataArray16}
                       breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"ADP by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -741,7 +796,7 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"ADP by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",

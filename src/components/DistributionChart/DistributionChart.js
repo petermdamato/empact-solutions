@@ -70,7 +70,6 @@ const getBucketForRecord = (d, filterDimension, detentionType) => {
 };
 
 const getLegendValues = (data, dimension) => {
-  console.log(dimension);
   switch (dimension.toLowerCase()) {
     case "disruptions":
       return ["0", "1"];
@@ -89,7 +88,7 @@ const getLegendValues = (data, dimension) => {
     case "pre/post-dispo":
       return ["Pre-dispo", "Post-dispo"];
     case "offense category (pre-dispo)":
-      return ["Felony", "Misdemeanor", "Technical", "Other"];
+      return ["Felony", "Misdemeanor", "Technical", "Status Offense", "Other"];
     case "gender":
       return [...new Set(data.map((d) => d.Gender))];
     default:
@@ -130,9 +129,12 @@ const calculateLengthOfStay = (record, detentionType) => {
 const expandedColors = (
   detentionType = "alternative-to-detention",
   exploreType = "Overall Total",
-  filterDimension = "Dispruptions"
+  filterDimension = "Disruptions"
 ) => {
-  if (detentionType === "alternative-to-detention") {
+  if (
+    detentionType === "alternative-to-detention" ||
+    detentionType === "secure-detention"
+  ) {
     switch (filterDimension) {
       case "Disruptions":
         return { 1: "#006890", 0: "#ff7b00" };
@@ -193,24 +195,6 @@ const expandedColors = (
 
   return { all: "#006890" };
 };
-const colors = (
-  detentionType = "alternative-to-detention",
-  exploreType = "Overall Total"
-) => {
-  return detentionType === "alternative-to-detention"
-    ? {
-        1: "#006890",
-        0: "#ff7b00",
-      }
-    : exploreType === "Pre/post-dispo"
-    ? {
-        "Pre-dispo": "#006890",
-        "Post-dispo": "#ff7b00",
-      }
-    : {
-        all: "#006890",
-      };
-};
 
 const getYear = (date) => new Date(date).getFullYear();
 
@@ -240,19 +224,23 @@ const getMedian = (arr, detentionType) => {
 
 const DistributionChart = (records) => {
   const linkText = useLinkOut();
-
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({
     width: 600,
     height: 300,
   });
   const [tooltip, setTooltip] = useState(null);
+
   const legendHeight =
     records.legendOptions && records.legendOptions.length > 0
       ? records.legendOptions.length * 24
       : 0;
 
-  const colorScale = colors(records.detentionType, records.exploreType);
+  const colorScale = expandedColors(
+    records.detentionType,
+    "Overall Total",
+    records.exploreType
+  );
   const colorMap = expandedColors(
     records.detentionType,
     records.exploreType,
@@ -301,7 +289,12 @@ const DistributionChart = (records) => {
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
-  if (!records.data || records.data.length === 0) return null;
+  if (
+    !records.data ||
+    records.data.length === 0 ||
+    records.exploreType === undefined
+  )
+    return null;
 
   const filteredData = dataCopy.filter((record) => {
     return (
@@ -379,7 +372,7 @@ const DistributionChart = (records) => {
       content: (
         <div className={"tooltip-list"}>
           <div style={{ fontSize: "16px" }}>
-            <em>{days} in detention</em>
+            <em>{days} days in detention</em>
           </div>
           <div>
             <div>Youth ID: </div>
@@ -401,7 +394,7 @@ const DistributionChart = (records) => {
           </div>
           <div>
             <div>
-              Age at
+              Age at{" "}
               {records.detentionType === "secure-detention"
                 ? "Admission"
                 : "Intake"}
@@ -492,7 +485,10 @@ const DistributionChart = (records) => {
             >
               <div
                 style={{
-                  background: colorMap[option],
+                  background:
+                    records.detentionType === "secure-detention"
+                      ? colorScale[option]
+                      : colorMap[option],
                   opacity:
                     !records.selectedLegendOptions ||
                     records.selectedLegendOptions.length === 0 ||
@@ -521,7 +517,6 @@ const DistributionChart = (records) => {
             const barHeight = innerHeight - yScale(days);
             const showLabel =
               d.isLastInGroup && d.groupSize > 1 && days % 10 === 0;
-
             return (
               <g
                 key={d.Youth_ID + "-" + d.Referral_ID}
@@ -554,7 +549,11 @@ const DistributionChart = (records) => {
                               d["Post-Dispo Stay Reason"] === ""
                               ? "Pre-dispo"
                               : "Post-dispo"
-                            : "all"
+                            : getBucketForRecord(
+                                d,
+                                records.exploreType,
+                                records.detentionType
+                              )
                         ]
                   }
                   opacity={
@@ -567,6 +566,12 @@ const DistributionChart = (records) => {
                           d["Post-Dispo Stay Reason"] === ""
                           ? "Pre-dispo"
                           : "Post-dispo"
+                        : records.detentionType === "secure-detention"
+                        ? getBucketForRecord(
+                            d,
+                            records.exploreType,
+                            records.detentionType
+                          )
                         : getBucketForRecord(
                             d,
                             records.filterDimension,

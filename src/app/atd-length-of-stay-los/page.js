@@ -15,7 +15,7 @@ import { useTags } from "@/context/TagsContext";
 import { ResponsiveContainer } from "recharts";
 import {
   analyzeExits,
-  dataAnalysisV2,
+  analyzeLOSBySubgroup,
   dataAnalysisLOS,
   analyzeLengthByProgramType,
   analyzeLengthByDispoStatus,
@@ -64,6 +64,7 @@ export default function Overview() {
   const [dataArray19, setDataArray19] = useState([]);
   const [dataArray20, setDataArray20] = useState([]);
   const [dataArray21, setDataArray21] = useState([]);
+  const [dataArray22, setDataArray22] = useState([]);
   const [raceData, setRaceData] = useState([]);
   const [showMap, setShowMap] = useState(false);
   const [persistMap, setPersistMap] = useState(false);
@@ -401,13 +402,15 @@ export default function Overview() {
         `${calculationType}LengthOfStay`,
         +selectedYear,
         "AgeDetail",
-        "alternative-to-detention"
+        incarcerationType
       );
-      const losByAgeTransformed = Object.fromEntries(
-        Object.entries(losByAge).map(([category, { count, los }]) => [
-          category,
-          los,
-        ])
+
+      const losByAgeTransformed = Object.entries(losByAge).reduce(
+        (acc, [key, value]) => {
+          acc[key] = { "Pre-dispo": value.los };
+          return acc;
+        },
+        {}
       );
 
       setDataArray20(losByAgeTransformed);
@@ -426,7 +429,41 @@ export default function Overview() {
           los,
         ])
       );
+      const losByPostDispoGroup = analyzeLOSBySubgroup(
+        finalData,
+        `${calculationType}LengthOfStay`,
+        +selectedYear,
+        "PostDispoGroup",
+        incarcerationType
+      );
+
+      let losByPostDispoGroupTransformed = {};
+
+      for (const [topLevelKey, offenses] of Object.entries(
+        losByPostDispoGroup
+      )) {
+        if (topLevelKey === "Unknown") continue; // skip Unknown section
+
+        losByPostDispoGroupTransformed[topLevelKey] = {};
+
+        for (const [offense, data] of Object.entries(offenses)) {
+          let losValue = null;
+          if (calculationType === "average") {
+            losValue = data.averageLengthOfStay;
+          } else if (calculationType === "median") {
+            losValue = data.medianLengthOfStay;
+          }
+
+          if (losValue > 0) {
+            losByPostDispoGroupTransformed[topLevelKey][offense] = {
+              "Post-dispo": losValue,
+            };
+          }
+        }
+      }
+
       setDataArray21(losByCatTransformed);
+      setDataArray22(losByPostDispoGroupTransformed);
     }
   }, [dataArray11, calculationType, raceType]);
 
@@ -693,7 +730,7 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["Total"]}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
                       chartTitle={"LOS by Gender"}
                       calculationType={calculationType}
                       colorMapOverride={{
@@ -725,7 +762,7 @@ export default function Overview() {
                       innerBreakdowns={["Pre-dispo"]}
                       calculationType={calculationType}
                       height={200}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"LOS by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -737,7 +774,6 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>
@@ -776,6 +812,7 @@ export default function Overview() {
                       groupByKey={"Reason for Detention"}
                       showChart={true}
                       innerData={dataArray21}
+                      postDispoData={dataArray22}
                       valueBreakdowns={false}
                     />
                   )}
@@ -793,7 +830,7 @@ export default function Overview() {
                       innerBreakdowns={["Pre-dispo"]}
                       height={260}
                       calculationType={calculationType}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
                       chartTitle={"LOS by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",

@@ -630,7 +630,7 @@ export default function Overview() {
                         data={dataArray13}
                         breakdowns={["total"]}
                         height={220}
-                        margin={{ top: 0, right: 60, bottom: 20, left: 20 }}
+                        margin={{ top: 0, right: 60, bottom: 30, left: 20 }}
                         chartTitle={""}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
@@ -656,7 +656,7 @@ export default function Overview() {
                       data={dataArray14}
                       breakdowns={["total"]}
                       height={200}
-                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 0, left: 20 }}
                       chartTitle={"ADP by Gender"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -686,7 +686,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       innerBreakdowns={["Pre-dispo"]}
                       height={200}
-                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 4, left: 20 }}
                       chartTitle={"ADP by Age"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -723,7 +723,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       innerBreakdowns={["Pre-dispo"]}
                       height={180}
-                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 10, left: 20 }}
                       chartTitle={"ADP by Reason for Detention"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -751,7 +751,7 @@ export default function Overview() {
                       breakdowns={["total"]}
                       innerBreakdowns={["Pre-dispo"]}
                       height={260}
-                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 4, left: 20 }}
                       chartTitle={"ADP by Offense Category (pre-dispo)"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
@@ -777,7 +777,7 @@ export default function Overview() {
                       data={dataArray17}
                       breakdowns={["total"]}
                       height={250}
-                      margin={{ top: 20, right: 60, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 60, bottom: 4, left: 20 }}
                       chartTitle={"ADP by Jurisdiction"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",

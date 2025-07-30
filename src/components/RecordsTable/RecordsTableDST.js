@@ -10,13 +10,24 @@ const tdStyle = {
   padding: "8px",
 };
 
-const RecordsTable = ({ data }) => {
+const RecordsTable = ({ data, selectedKey }) => {
   if (!data || data.length === 0) return <p>No records available.</p>;
 
   const parseDate = (str) => (str ? new Date(str) : null);
 
+  const filtered = [...data].filter((record) => {
+    if (selectedKey) {
+      const reason = record.Override_Reason?.toLowerCase().includes("other")
+        ? "Other"
+        : record.Override_Reason;
+      return reason === selectedKey;
+    } else {
+      return record;
+    }
+  });
+
   // Sort data by Admission_Date descending
-  const sorted = [...data].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const d1 = parseDate(b.Admission_Date);
     const d2 = parseDate(a.Admission_Date);
     return d1 - d2;

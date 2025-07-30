@@ -2,3 +2,26 @@
   display: flex;
   justify-content: space-between;
 }
+.custom-datepicker {
+  background-color: #fff !important;
+  border: 1px solid #858585 !important;
+  color: #000 !important;
+  height: 28px;
+  padding: 0 6px;
+  outline: none !important;
+  box-shadow: none !important;
+  width: 100%;
+}
+
+.datepicker-wrapper {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+/* Calendar dropdown shouldn't push layout */
+.react-datepicker-popper {
+  z-index: 10;
+  position: absolute !important;
+  top: 36px !important;
+}

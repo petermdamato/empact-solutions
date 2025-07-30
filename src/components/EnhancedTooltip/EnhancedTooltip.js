@@ -44,10 +44,9 @@ const EnhancedTooltip = ({
   groupByKey,
   valueBreakdowns = true,
   categoryPercent,
-  categoryTotal,
 }) => {
   const [innerData, setInnerData] = useState([]);
-  const [expanded, setExpanded] = useState(showChart);
+  const [expanded] = useState(showChart);
 
   useEffect(() => {
     if (!showChart || !chartData || !label) return;
@@ -57,22 +56,27 @@ const EnhancedTooltip = ({
       chartBreakdowns,
       valueBreakdowns
     );
-    const postDispoGroups = [
-      "Other",
-      "Awaiting Placement",
-      "Confinement to secure detention",
-    ].includes(label)
-      ? Object.entries(postDispoData[label]).map(([key, value]) => ({
-          category: key,
-          "Pre-dispo": value["Post-dispo"] || 0,
-        }))
-      : [];
+    const postDispoGroups =
+      chartTitle && chartTitle.includes("Reason")
+        ? [
+            "Other",
+            "Awaiting Placement",
+            "Confinement to secure detention",
+            "New Offenses",
+            "Technicals",
+          ].includes(label)
+          ? Object.entries(postDispoData[label]).map(([key, value]) => ({
+              category: key,
+              "Pre-dispo": value["Post-dispo"] || 0,
+            }))
+          : []
+        : [];
 
     const normalize = (str) =>
       str ? str.toLowerCase().replace(/ies$/, "y").replace(/s$/, "") : "";
 
     const finalData =
-      chartTitle.includes("Reason") && postDispoGroups.length > 0
+      chartTitle && chartTitle.includes("Reason") && postDispoGroups.length > 0
         ? postDispoGroups
         : transformedData.filter((entry) => {
             return (!chartBreakdowns ||
@@ -139,7 +143,8 @@ const EnhancedTooltip = ({
         padding: "12px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         minWidth: "200px",
-        maxWidth: "320px",
+        maxWidth:
+          chartTitle && chartTitle.includes("Reason") ? "680px" : "320px",
       }}
     >
       <div style={{ marginBottom: "8px", fontWeight: "bold" }}>
@@ -157,7 +162,7 @@ const EnhancedTooltip = ({
         )}
       </div>
       {payload.map((entry, index) =>
-        chartTitle?.includes("LOS") ? (
+        chartTitle && chartTitle?.includes("LOS") ? (
           <div
             key={`item-${index}`}
             style={{
@@ -213,11 +218,18 @@ const EnhancedTooltip = ({
           </button> */}
 
           {expanded && innerData.length > 0 && (
-            <div style={{ marginTop: "12px", height: "180px" }}>
+            <div
+              style={{
+                marginTop: "12px",
+                height: `${
+                  chartTitle && chartTitle.includes("Reason") ? 280 : 180
+                }px`,
+              }}
+            >
               <div>
                 <h3>
                   {groupByKey === "Reason for Detention"
-                    ? `Top ${innerData.length} Reason${
+                    ? `Top ${innerData.length} Offense${
                         innerData.length > 1 ? "s" : ""
                       }`
                     : "Breakdown"}
@@ -227,12 +239,15 @@ const EnhancedTooltip = ({
                 data={innerData}
                 sorted={groupByKey === "Reason for Detention"}
                 breakdowns={chartBreakdowns}
-                height={200}
+                height={chartTitle && chartTitle.includes("Reason") ? 300 : 200}
                 margin={{ top: 10, right: 40, bottom: 40, left: 20 }}
                 chartTitle={groupByKey}
                 hideLegend={true}
                 compact={true}
                 groupByKey={groupByKey}
+                wrapWidth={
+                  chartTitle && chartTitle.includes("Reason") ? 300 : 106
+                }
                 colorMapOverride={colorMapOverride}
               />
             </div>

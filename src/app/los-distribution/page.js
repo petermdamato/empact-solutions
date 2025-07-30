@@ -85,7 +85,15 @@ export default function Overview() {
             dekWithYear={`Showing length-of-stay (LOS) distribution across ${exploreType}`}
           >
             <Selector
-              values={["Overall Total", "Pre/post-dispo"]}
+              values={[
+                "Overall Total",
+                "Pre/post-dispo",
+                "YOC/white",
+                "Race/Ethnicity",
+                "Gender",
+                "Offense category (pre-dispo)",
+                "Age at entry",
+              ]}
               variable={"Explore"}
               selectedValue={exploreType}
               setValue={setExploreType}
@@ -119,6 +127,7 @@ export default function Overview() {
                       exploreType: [exploreType],
                     },
                   ]}
+                  exploreType={exploreType}
                   legendOptions={legendOptions}
                   selectedLegendOptions={selectedLegendOptions}
                   setLegendOptions={setLegendOptions}

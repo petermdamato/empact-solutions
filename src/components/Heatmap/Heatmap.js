@@ -159,7 +159,7 @@ const Heatmap = ({
             },
           }}
         >
-          View Table
+          View Records
         </Button>
       </div>
       {showScores === "hide" ? (

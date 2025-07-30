@@ -6,7 +6,7 @@ import OverridePercentStat from "../StatisticWithLine/StatisticWithLine";
 
 import "./TileContainer.css";
 
-const TileContainerV2 = ({ data }) => {
+const TileContainerV2 = ({ data, setSelectedKey, setRecordsTableObject }) => {
   const outer = data[0];
 
   return (
@@ -39,6 +39,8 @@ const TileContainerV2 = ({ data }) => {
                 height={300}
                 margin={{ top: 20, right: 60, bottom: 30, left: 110 }}
                 chartTitle={outer.chartTitles[i]}
+                setSelectedKey={setSelectedKey}
+                setRecordsTableObject={setRecordsTableObject}
               />
             </div>
           ) : chartType === "distributionStacked" ? (

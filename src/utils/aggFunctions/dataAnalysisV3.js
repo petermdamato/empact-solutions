@@ -255,6 +255,7 @@ const analyzeData = (
     "OffenseCategory",
     "OffenseOverall",
     "SimplifiedOffense",
+    "Offense",
     "Facility",
     "Referral_Source",
     "simplifiedReferralSource",
@@ -340,6 +341,9 @@ const analyzeData = (
         break;
       case "OffenseOverall":
         key = offenseOverall;
+        break;
+      case "Offense":
+        key = row.Offense || "Unknown";
         break;
       case "SimplifiedOffense":
         key = simplifiedOffenseCategory;
@@ -565,15 +569,16 @@ const analyzeReasonForDetention = (
 
 const analyzePostDispoGroup = (csvData, year, options = {}) => {
   // Define mapping function to assign to parent categories
-  const getParentCategory = (reason) => {
-    if (!reason) return null;
-
-    if (reason.toLowerCase().includes("other")) return "Other";
-    if (reason === "Confinement to secure detention")
+  const getParentCategory = (reason, offenseCat) => {
+    if (reason.toLowerCase().includes("other")) {
+      return "Other";
+    } else if (reason === "Confinement to secure detention") {
       return "Confinement to secure detention";
-    if (reason === "Awaiting Placement") return "Awaiting Placement";
-
-    return null;
+    } else if (reason === "Awaiting Placement") {
+      return "Awaiting Placement";
+    } else {
+      return offenseMap[offenseCat];
+    }
   };
 
   // Initialize output object
@@ -584,13 +589,16 @@ const analyzePostDispoGroup = (csvData, year, options = {}) => {
     "Other",
     "Confinement to secure detention",
     "Awaiting Placement",
+    "New Offenses",
+    "Technicals",
   ];
 
   parentCategories.forEach((parent) => {
     // Filter records for this parent category
     const filtered = csvData.filter((row) => {
       const reason = row["Post-Dispo Stay Reason"];
-      return getParentCategory(reason) === parent;
+      const offenseCat = row["OffenseCategory"];
+      return getParentCategory(reason, offenseCat) === parent;
     });
 
     // Skip if no data
@@ -601,7 +609,7 @@ const analyzePostDispoGroup = (csvData, year, options = {}) => {
       filtered,
       "averageDailyPopulation",
       year,
-      "OffenseCategory",
+      "Offense",
       "secure-detention",
       options
     );
