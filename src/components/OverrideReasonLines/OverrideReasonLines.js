@@ -2,7 +2,7 @@ import React from "react";
 import * as d3 from "d3";
 
 const rowHeight = 70;
-const margin = { top: 20, right: 20, bottom: 30, left: 240 };
+const margin = { top: 20, right: 40, bottom: 30, left: 240 };
 const labelPadding = 24;
 
 const OverrideReasonTable = ({ data }) => {

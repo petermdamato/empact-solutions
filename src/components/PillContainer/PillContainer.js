@@ -5,10 +5,8 @@ import ChangeStatistics from "../ChangeStatistics/ChangeStatistics";
 import StackedBarChart from "../StackedBar/StackedBar";
 import StackedBarChartMedian from "../StackedBar/StackedBarMedian";
 import StackedBarChartAverage from "../StackedBar/StackedBarChartAverage";
-import StackedBarChartMulti from "../StackedBar/StackedBarMulti";
 import StackedColumnChart from "../StackedColumn/StackedColumn";
 import ColumnChart from "../ColumnChart/ColumnChart";
-import ColumnChartMulti from "../ColumnChart/ColumnChartMulti";
 import PieChart from "../PieChart/PieChart";
 import DistributionChart from "../DistributionChart/DistributionChart";
 import TableComponent from "../Table/Table";
@@ -22,6 +20,7 @@ const PillContainer = ({
   selectedLegendOptions,
   setLegendOptions,
   setSelectedLegendOptions,
+  exploreType,
 }) => {
   const [chartData, setChartData] = useState([]);
 
@@ -128,7 +127,13 @@ const PillContainer = ({
                 chartTitle={outer.chartTitles[i]}
                 detentionType={outer.detentionType[i]}
                 selectedYear={outer.selectedYear[i]}
-                exploreType={outer.exploreType ? outer.exploreType[i] : null}
+                exploreType={
+                  outer.detentionType[i] === "secure-detention"
+                    ? exploreType
+                    : outer.exploreType
+                    ? outer.exploreType[i]
+                    : null
+                }
                 useFilterDropdown={outer.useFilterDropdown}
                 filterDimension={outer.filterDimension}
                 setFilterDimension={outer.setFilterDimension}

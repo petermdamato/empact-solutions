@@ -402,13 +402,15 @@ export default function Overview() {
         `${calculationType}LengthOfStay`,
         +selectedYear,
         "AgeDetail",
-        "alternative-to-detention"
+        incarcerationType
       );
-      const losByAgeTransformed = Object.fromEntries(
-        Object.entries(losByAge).map(([category, { count, los }]) => [
-          category,
-          los,
-        ])
+
+      const losByAgeTransformed = Object.entries(losByAge).reduce(
+        (acc, [key, value]) => {
+          acc[key] = { "Pre-dispo": value.los };
+          return acc;
+        },
+        {}
       );
 
       setDataArray20(losByAgeTransformed);
@@ -459,7 +461,7 @@ export default function Overview() {
           }
         }
       }
-      console.log(losByPostDispoGroupTransformed);
+
       setDataArray21(losByCatTransformed);
       setDataArray22(losByPostDispoGroupTransformed);
     }
@@ -772,7 +774,6 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>

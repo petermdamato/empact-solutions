@@ -27,6 +27,7 @@ export default function Overview() {
   const [showScores, setShowScores] = useState("show");
   const [xKey, setXKey] = useState("DST Recommendation");
   const [filteredData, setFilteredData] = useState(datesData);
+  const [selectedKey, setSelectedKey] = useState(null);
   const [autohold, setAutohold] = useState("all");
   const [dstValue, setDstValue] = useState(null);
   const [dstScoreValue, setDstScoreValue] = useState(null);
@@ -84,6 +85,7 @@ export default function Overview() {
 
   const handleGoBack = () => {
     setRecordsTableObject(false);
+    setSelectedKey(null);
   };
 
   return (
@@ -123,7 +125,7 @@ export default function Overview() {
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div
                   className="dateslider-container"
-                  style={{ maxWidth: "200px", width: "100%" }}
+                  style={{ maxWidth: "280px", width: "100%" }}
                 >
                   <DateRangeSlider
                     records={csvData}
@@ -184,6 +186,7 @@ export default function Overview() {
                 </Button>
                 <RecordsTableDST
                   data={filteredData}
+                  selectedKey={selectedKey}
                   recordsTableObject={recordsTableObject}
                 />
               </div>
@@ -213,6 +216,8 @@ export default function Overview() {
                       timeSeriesDataCountByReason: timeSeriesDataCountByReason,
                     },
                   ]}
+                  setSelectedKey={setSelectedKey}
+                  setRecordsTableObject={setRecordsTableObject}
                 />
 
                 <Heatmap

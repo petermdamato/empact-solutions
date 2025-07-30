@@ -2,15 +2,24 @@ import React, { useRef, useEffect, useState, useLayoutEffect } from "react";
 import * as d3 from "d3";
 import OverrideReasonTable from "../OverrideReasonLines/OverrideReasonLines";
 
-const DistributionChartV2 = ({ data, height, width }) => {
+const DistributionChartV2 = ({
+  data,
+  height,
+  setSelectedKey,
+  setRecordsTableObject,
+}) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height });
   const [hoveredReason, setHoveredReason] = useState(null);
-  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
-  const [showChart, setShowChart] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltipVisible, setTooltipVisible] = useState(false);
 
-  // Handle resize and initial width measurement
+  const handleClickFilteredData = (key) => {
+    setSelectedKey(key);
+    setRecordsTableObject(true);
+  };
+
   useLayoutEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
@@ -96,7 +105,6 @@ const DistributionChartV2 = ({ data, height, width }) => {
       .append("text")
       .attr("x", margin.left)
       .attr("y", margin.top / -2 - 8)
-      .attr("pointer-events", "none")
       .attr("text-anchor", "left")
       .style("font-size", "14px")
       .style("font-weight", "bold")
@@ -106,10 +114,9 @@ const DistributionChartV2 = ({ data, height, width }) => {
     chart
       .append("g")
       .attr("transform", `translate(0,${innerHeight})`)
-      .attr("pointer-events", "none")
       .call(d3.axisBottom(x).tickFormat(""));
 
-    // Category labels
+    // Labels
     formattedData.forEach((d) => {
       const xPos = x(d[groupKey]) + x.bandwidth() / 2;
       const label = d[groupKey];
@@ -120,7 +127,6 @@ const DistributionChartV2 = ({ data, height, width }) => {
         .append("text")
         .attr("x", xPos)
         .attr("y", innerHeight + 15)
-        .attr("pointer-events", "none")
         .attr("text-anchor", "middle")
         .style("font-size", "12px")
         .attr("fill", "#333");
@@ -135,7 +141,6 @@ const DistributionChartV2 = ({ data, height, width }) => {
         const tempText = chart
           .append("text")
           .attr("opacity", 0)
-          .attr("pointer-events", "none")
           .style("font-size", "12px")
           .text(testLine);
         const textWidth = tempText.node().getBBox().width;
@@ -146,7 +151,6 @@ const DistributionChartV2 = ({ data, height, width }) => {
           textElement
             .append("tspan")
             .attr("x", xPos)
-            .attr("pointer-events", "none")
             .attr("dy", lineNumber === 0 ? 0 : lineHeight)
             .text(line.join(" "));
           line = [word];
@@ -157,7 +161,6 @@ const DistributionChartV2 = ({ data, height, width }) => {
           textElement
             .append("tspan")
             .attr("x", xPos)
-            .attr("pointer-events", "none")
             .attr("dy", lineNumber === 0 ? 0 : lineHeight)
             .text(line.join(" "));
         }
@@ -177,24 +180,30 @@ const DistributionChartV2 = ({ data, height, width }) => {
         .attr("width", x.bandwidth())
         .attr("height", barHeight)
         .attr("fill", "#5a6b7c")
-        .on("mouseenter", (event) => {
+        .on("mouseenter", () => {
+          const containerBox = containerRef.current.getBoundingClientRect();
           setHoveredReason(d[groupKey]);
-          setHoverPosition({ x: event.clientX, y: event.clientY });
-          setShowChart(true);
+          setTooltipVisible(true);
+          setTooltipPosition({
+            x: containerBox.left + xPos + x.bandwidth() / 2,
+            y: containerBox.top + yPos,
+          });
         })
-        .on("mousemove", (event) => {
-          setHoverPosition({ x: event.clientX, y: event.clientY });
-        })
-        .on("mouseleave", () => {
-          setHoveredReason(null);
-          setShowChart(false);
+        .on("mouseleave", (e) => {
+          // We'll hide tooltip only if not hovering over the tooltip
+          requestAnimationFrame(() => {
+            const el = document.elementFromPoint(e.clientX, e.clientY);
+            if (!el?.closest(".override-tooltip")) {
+              setTooltipVisible(false);
+              setHoveredReason(null);
+            }
+          });
         });
 
       chart
         .append("text")
         .attr("x", xPos + x.bandwidth() / 2)
         .attr("y", yPos - 8)
-        .attr("pointer-events", "none")
         .attr("text-anchor", "middle")
         .style("font-size", "11px")
         .style("font-weight", "bold")
@@ -203,38 +212,56 @@ const DistributionChartV2 = ({ data, height, width }) => {
     });
   }, [data, dimensions]);
 
-  const reasonTableData = (() => {
-    if (!hoveredReason || !data?.timeSeriesDataCountByReason) return null;
-    return data.timeSeriesDataCountByReason;
-  })();
+  const reasonTableData =
+    hoveredReason && data?.timeSeriesDataCountByReason
+      ? data.timeSeriesDataCountByReason
+      : null;
 
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <svg
         ref={svgRef}
-        style={{
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      ></svg>
-      {showChart && hoveredReason && reasonTableData && (
+        style={{ width: "100%", height: "100%", overflow: "hidden" }}
+      />
+      {tooltipVisible && hoveredReason && reasonTableData && (
         <div
+          className="override-tooltip"
+          onMouseEnter={() => setTooltipVisible(true)}
+          onMouseLeave={() => {
+            setTooltipVisible(false);
+            setHoveredReason(null);
+          }}
           style={{
             position: "fixed",
-            top: hoverPosition.y + 10,
-            left: hoverPosition.x - 400 + 10,
+            top: tooltipPosition.y + 60,
+            left: tooltipPosition.x - 380,
             background: "#fff",
             border: "1px solid #e2e8f0",
             borderRadius: "8px",
             padding: "12px",
             zIndex: 999,
             boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-            pointerEvents: "none",
+            pointerEvents: "auto",
+            maxWidth: "400px",
           }}
         >
-          <h4 style={{ margin: "0 0 2px", fontSize: "14px" }}>
-            {hoveredReason}
+          <h4 style={{ margin: "0 0 8px", fontSize: "14px" }}>
+            {hoveredReason}{" "}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handleClickFilteredData(hoveredReason);
+              }}
+              style={{
+                fontSize: "12px",
+                color: "#3182ce",
+                textDecoration: "underline",
+                marginLeft: "8px",
+              }}
+            >
+              View Records
+            </a>
           </h4>
           <OverrideReasonTable data={reasonTableData} />
         </div>

@@ -377,15 +377,23 @@ export default function Overview() {
 
       setDataArray19(byDispoStatus);
 
-      setDataArray20(
-        dataAnalysisV3(
-          finalData,
-          "averageDailyPopulation",
-          +selectedYear,
-          "AgeDetail",
-          "alternative-to-detention"
-        )
+      const adpByAge = dataAnalysisV3(
+        finalData,
+        "averageDailyPopulation",
+        +selectedYear,
+        "AgeDetail",
+        incarcerationType
       );
+
+      const adpByAgeTransformed = Object.entries(adpByAge).reduce(
+        (acc, [key, value]) => {
+          acc[key] = { "Pre-dispo": value };
+          return acc;
+        },
+        {}
+      );
+
+      setDataArray20(adpByAgeTransformed);
 
       const adpByCat = dataAnalysisV3(
         finalData,
@@ -710,7 +718,6 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
-                      valueBreakdowns={false}
                     />
                   )}
                 </ResponsiveContainer>

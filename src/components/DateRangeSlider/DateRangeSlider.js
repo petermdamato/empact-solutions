@@ -1,9 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import Slider from "@mui/material/Slider";
 import moment from "moment";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "./DateRangeSlider.css";
 
 const getMinMaxDates = (data, dateAccessor) => {
@@ -69,6 +68,7 @@ const DateRangeSlider = ({
   };
 
   const updateStartDate = (date) => {
+    if (!date) return;
     const newStart = moment(date).valueOf();
     const newRange = [newStart, range[1]];
     setRange(newRange);
@@ -79,6 +79,7 @@ const DateRangeSlider = ({
   };
 
   const updateEndDate = (date) => {
+    if (!date) return;
     const newEnd = moment(date).valueOf();
     const newRange = [range[0], newEnd];
     setRange(newRange);
@@ -139,88 +140,51 @@ const DateRangeSlider = ({
         }}
       />
 
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: "-4px",
-            gap: "12px",
-          }}
-        >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "12px",
+        }}
+      >
+        <div className="datepicker-wrapper">
           <DatePicker
-            value={moment(range[0]).toDate()}
-            onChange={(date) => date && updateStartDate(date)}
-            minDate={minDate}
-            maxDate={maxDate}
-            slotProps={{
-              textField: {
-                size: "small",
-                variant: "outlined",
-                sx: {
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    height: "28px",
-                    borderRadius: "4px",
-                    backgroundColor: "transparent",
-                    padding: "0", // Remove all padding
-                    "& fieldset": {
-                      border: "none",
-                    },
-                    "&:hover fieldset": {
-                      border: "none",
-                    },
-                    "&.Mui-focused fieldset": {
-                      border: "1px solid #888",
-                    },
-                  },
-                  "& .MuiInputBase-input": {
-                    padding: "0 6px", // Only left/right padding, no top/bottom
-                    height: "28px",
-                    boxSizing: "border-box", // Ensures height includes padding
-                  },
-                },
+            selected={moment(range[0]).toDate()}
+            onChange={updateStartDate}
+            minDate={minDate.toDate()}
+            maxDate={maxDate.toDate()}
+            dateFormat="MM/dd/yyyy"
+            className="custom-datepicker"
+            wrapperClassName="datepicker-wrapper"
+            popperPlacement="bottom-start"
+            popperModifiers={[
+              {
+                name: "offset",
+                options: { offset: [0, 4] },
               },
-            }}
-          />
-
-          <DatePicker
-            value={moment(range[1]).toDate()}
-            onChange={(date) => date && updateEndDate(date)}
-            minDate={minDate}
-            maxDate={maxDate}
-            slotProps={{
-              textField: {
-                size: "small",
-                variant: "outlined",
-                sx: {
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "13px",
-                    height: "28px",
-                    borderRadius: "4px",
-                    backgroundColor: "transparent",
-                    padding: "0", // Remove all padding
-                    "& fieldset": {
-                      border: "none",
-                    },
-                    "&:hover fieldset": {
-                      border: "none",
-                    },
-                    "&.Mui-focused fieldset": {
-                      border: "1px solid #888",
-                    },
-                  },
-                  "& .MuiInputBase-input": {
-                    padding: "0 6px", // Only left/right padding, no top/bottom
-                    height: "28px",
-                    boxSizing: "border-box", // Ensures height includes padding
-                  },
-                },
-              },
-            }}
+            ]}
           />
         </div>
-      </LocalizationProvider>
+
+        <div className="datepicker-wrapper">
+          <DatePicker
+            selected={moment(range[1]).toDate()}
+            onChange={updateEndDate}
+            minDate={minDate.toDate()}
+            maxDate={maxDate.toDate()}
+            dateFormat="MM/dd/yyyy"
+            className="custom-datepicker"
+            wrapperClassName="datepicker-wrapper"
+            popperPlacement="bottom-start"
+            popperModifiers={[
+              {
+                name: "offset",
+                options: { offset: [0, 4] },
+              },
+            ]}
+          />
+        </div>
+      </div>
     </div>
   );
 };

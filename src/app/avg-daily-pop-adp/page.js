@@ -407,7 +407,7 @@ export default function Overview() {
       const adpBySubcat = analyzePostDispoGroup(finalData, +selectedYear, {
         round: false,
       });
-      console.log(adpBySubcat);
+
       const transformGroupedADPData = (data) => {
         const result = {};
 
