@@ -623,7 +623,7 @@ const DistributionChart = (records) => {
                     }
                     y={days ? yScale(days) - 4 : 0}
                     textAnchor="middle"
-                    fontSize="10"
+                    fontSize="12"
                     fill="#333"
                   >
                     {days}

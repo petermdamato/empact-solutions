@@ -74,7 +74,7 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .append("path")
       .datum(parsedData)
       .attr("fill", "none")
-      .attr("stroke", "#a8a8a8")
+      .attr("stroke", "#acacac")
       .attr("stroke-width", 2)
       .attr("d", lineUndisrupted);
 
@@ -116,7 +116,7 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .attr("cy", (d) => yScale(d.percentUndisrupted))
       .attr("opacity", (d) => (yScale(d.percentUndisrupted) ? 1 : 0))
       .attr("r", 3)
-      .attr("fill", "#a8a8a8");
+      .attr("fill", "#acacac");
 
     svg
       .selectAll(".label-undisrupted")
@@ -131,7 +131,7 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       })
       .text((d) => d3.format(".0%")(d.percentUndisrupted))
       .style("font-size", "10px")
-      .style("fill", "#a8a8a8");
+      .style("fill", "#acacac");
 
     svg
       .append("text")
@@ -167,7 +167,7 @@ const DisruptionLineChart = ({ data, selectedKey }) => {
       .text("Undisrupted")
       .style("font-size", 14)
       .style("font-weight", 700)
-      .style("fill", "#a8a8a8");
+      .style("fill", "#acacac");
   }, [data, selectedKey]);
 
   return (

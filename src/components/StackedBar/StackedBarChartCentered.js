@@ -31,7 +31,6 @@ const StackedBarChartGeneric = (props) => {
     labelContext,
     breakdowns = ["pre", "post"],
     tooltipPayload,
-    innerBreakdowns,
     innerData = [],
     colorMapOverride = {},
     filterVariable,
@@ -316,10 +315,10 @@ const StackedBarChartGeneric = (props) => {
     if (!hasSelector) {
       chart
         .append("text")
-        .attr("x", -margin.left + 20)
-        .attr("y", -8)
+        .attr("x", -margin.left + 6)
+        .attr("y", -6)
         .text(chartTitle)
-        .style("font-size", 14)
+        .style("font-size", 16)
         .style("font-weight", "bold");
     }
 
@@ -415,7 +414,7 @@ const StackedBarChartGeneric = (props) => {
                       ? " days"
                       : identifier === "Admissions"
                       ? " admissions"
-                      : " " + identifier)
+                      : " " + identifier.toLowerCase())
               }`;
             }}
             showPercentage={context === "percentage"}

@@ -360,7 +360,7 @@ const StackedBarChartGeneric = (props) => {
                 ? `${tooltipPosition.x}px`
                 : `${tooltipPosition.x - 340}px`,
             top: `${
-              tooltipPosition.screenY > 700 && showChart
+              tooltipPosition.screenY > 670 && showChart
                 ? tooltipPosition.y - 220
                 : tooltipPosition.screenY > 760
                 ? tooltipPosition.y - 60
@@ -385,14 +385,16 @@ const StackedBarChartGeneric = (props) => {
               const identifier = chartTitle.split(" by")[0];
               return value === "N/A"
                 ? "N/A"
-                : `${Math.round(value * 10) / 10}${
+                : `${Math.round(value * 10) / 10} ${
                     context === "percentage"
                       ? "%"
                       : identifier === "LOS"
                       ? " days"
                       : identifier === "Admissions"
                       ? " admissions"
-                      : " " + identifier
+                      : identifier === "ADP"
+                      ? "avg. daily pop."
+                      : " " + identifier.toLowerCase()
                   }`;
             }}
             showPercentage={context === "percentage"}

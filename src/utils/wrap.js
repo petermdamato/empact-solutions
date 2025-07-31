@@ -38,7 +38,7 @@ const wrap = (text, width, labelHeight) => {
         .append("tspan")
         .attr("x", text.attr("x"))
         .attr("y", text.attr("y"))
-        .attr("dy", (i === 0 ? startDyEm : lineHeight) + "em")
+        .attr("dy", (i === 0 ? startDyEm : lineHeight + 0.1) + "em")
         .text(lineText);
     });
   });

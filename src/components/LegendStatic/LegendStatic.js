@@ -57,7 +57,13 @@ const LegendStatic = ({ type = "static" }) => {
                 backgroundColor: colorArray[i],
               }}
             />
-            <span>{option}</span>
+            <span
+              style={{
+                fontSize: "14px",
+              }}
+            >
+              {option}
+            </span>
           </div>
         );
       })}

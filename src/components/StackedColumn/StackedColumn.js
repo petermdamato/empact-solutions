@@ -405,7 +405,7 @@ const StackedColumnChart = ({
                   {barHeight > 18 && (
                     <text
                       x={x + xScale.bandwidth() / 2}
-                      y={y + barHeight / 2}
+                      y={y + barHeight / 2 + 4}
                       textAnchor="middle"
                       fill="white"
                       fontSize="12"

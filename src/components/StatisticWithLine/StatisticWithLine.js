@@ -110,7 +110,7 @@ const OverridePercentStat = ({ data }) => {
         width: "200px",
         textAlign: "center",
         background: "transparent",
-        marginTop: "-10px",
+        marginTop: "-16px",
         padding: "16px",
         cursor: "pointer",
       }}
@@ -120,7 +120,7 @@ const OverridePercentStat = ({ data }) => {
       <div style={{ fontSize: "28px", fontWeight: "bold", color: "#1a202c" }}>
         {latestYear.percent}%
       </div>
-      <div style={{ fontSize: "12px", color: "#4a5568" }}>
+      <div style={{ fontSize: "14px", color: "#4a5568" }}>
         Override Percentage{" "}
         {Object.keys(finalData)[Object.keys(finalData).length - 1]}
       </div>

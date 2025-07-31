@@ -60,7 +60,9 @@ const StackedBarChart = ({
     //   return b.pre + b.post - (a.pre + a.post);
     // });
 
-    data = data.sort((a, b) => a.category.localeCompare(b.category));
+    data = data
+      .sort((a, b) => a.category.localeCompare(b.category))
+      .filter((entry) => entry.pre + entry.post > 0);
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous content
@@ -292,7 +294,7 @@ const StackedBarChart = ({
           : Math.round(((d.daysPre + d.daysPost) * 10) / d.pre + d.post) / 10
       )
       .attr("fill", "black")
-      .style("font-size", 16)
+      .style("font-size", 14)
       .style("font-weight", "bold")
       .style("text-anchor", "middle");
 
@@ -303,7 +305,7 @@ const StackedBarChart = ({
       .attr("y", -10)
       .attr("x", -margin.left + 10)
       .text(chartTitle)
-      .style("font-size", 12);
+      .style("font-size", 14);
 
     // Add y-axis
     chart
@@ -312,8 +314,8 @@ const StackedBarChart = ({
       .attr("class", "y-axis")
       .selectAll(".tick text")
       .text((d) => (d === "" ? "N/A" : d))
-      .call(wrap, 96)
-      .selectAll("text");
+      .attr("font-size", 12)
+      .call(wrap, 96);
   }, [data, height, margin, parentWidth]);
 
   return <svg ref={svgRef} width={parentWidth} height={height}></svg>;

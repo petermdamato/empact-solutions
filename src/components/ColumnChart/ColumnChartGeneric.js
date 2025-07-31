@@ -114,6 +114,12 @@ const ColumnChartGeneric = ({
             name: d.category,
             value: d.value,
             count: d.count,
+            percentage:
+              (d.count * 100) /
+              data.reduce(
+                (accumulator, currentValue) => accumulator + currentValue.count,
+                0
+              ),
             color: defaultColor,
           },
         ],
@@ -234,16 +240,17 @@ const ColumnChartGeneric = ({
             label={tooltipData.label}
             chartTitle={chartTitle}
             calculationType={calculationType}
-            valueFormatter={(value) =>
-              `${Math.round(value * 10) / 10}${
+            valueFormatter={(value) => {
+              return `${Math.round(value * 10) / 10}${
                 context === "percentage" ? "%" : ""
-              }`
-            }
-            showPercentage={context === "percentage"}
+              }`;
+            }}
+            showPercentage={true}
             totalValue={tooltipData.payload.reduce(
               (sum, item) => sum + item.value,
               0
             )}
+            categoryPercent={tooltipData.payload[0]?.percentage || 0}
           />
         </div>
       )}

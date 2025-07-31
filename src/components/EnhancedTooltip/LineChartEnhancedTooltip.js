@@ -151,10 +151,10 @@ const LineChartEnhancedTooltip = ({
               display: "flex",
               justifyContent: "space-between",
               marginBottom: "4px",
-              color: entry.color,
+              color: entry.name === "undisrupted" ? "#acacac" : entry.color,
             }}
           >
-            <span>{entry.name}:</span>
+            <span>{entry.name[0].toUpperCase() + entry.name.slice(1)}:</span>
             <span>
               {valueFormatter(entry.value)}
               {percentage && ` (${percentage})`}
