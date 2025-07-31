@@ -143,7 +143,7 @@ const LineChartV2 = ({
         selectedLegendDetails.map((entry) => entry.label.replace("+", ""))
       )
       .range(selectedLegendDetails.map((entry) => entry.color));
-    console.log(selectedLegendDetails);
+
     chartGroup
       .append("g")
       .attr("class", "grid-lines")
@@ -196,6 +196,8 @@ const LineChartV2 = ({
     seriesData.forEach((series) => {
       series.key === "disrupted"
         ? (series.key = "0")
+        : series.key.includes("10")
+        ? (series.key = "10 and younger")
         : series.key === "undisrupted"
         ? (series.key = "1")
         : series.key === "yoc"

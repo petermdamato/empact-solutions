@@ -138,7 +138,7 @@ export default function Overview() {
         const dob = new Date(dobStr);
         const intake = new Date(intakeStr);
         if (!dob || !intake || isNaN(dob) || isNaN(intake)) return null;
-        return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
+        return Math.floor((intake - dob) / (365.25 * 24 * 60 * 60 * 1000));
       };
 
       const getAgeBracket = (age) => {

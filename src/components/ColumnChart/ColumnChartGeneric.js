@@ -194,7 +194,7 @@ const ColumnChartGeneric = ({
       .attr("x", (d) => xScale(d.category) + xScale.bandwidth() / 2)
       .attr("y", (d) => yScale(d.value) - 5)
       .attr("text-anchor", "middle")
-      .style("font-size", "12px")
+      .style("font-size", "14px")
       .attr("pointer-events", "none")
       .text((d) => d.value);
 
