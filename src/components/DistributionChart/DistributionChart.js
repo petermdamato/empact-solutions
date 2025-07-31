@@ -141,10 +141,10 @@ const expandedColors = (
 
       case "Race/Ethnicity":
         return {
-          Hispanic: "#006890",
-          White: "#73c5e1",
-          "African American or Black": "#ff7b00",
-          Asian: "#fcb953",
+          Hispanic: "#fcb953",
+          White: "#ff7b00",
+          "African American or Black": "#006890",
+          Asian: "#73c5e1",
           "American Indian or Alaska Native": "#9b4dca",
           "Native Hawaiian or Pacific Islander": "#5b8a72",
           "Two or more races": "#c02828",
@@ -154,9 +154,9 @@ const expandedColors = (
 
       case "Age at entry":
         return {
-          "10 and younger": "#73c5e1",
+          "10 and younger": "#ff7b00",
           "11-13": "#fcb953",
-          "14-17": "#ff7b00",
+          "14-17": "#006890",
           "18+": "#c02828",
           Unknown: "#ccc",
         };
@@ -170,16 +170,16 @@ const expandedColors = (
 
       case "YOC/white":
         return {
-          White: "#006890",
-          YOC: "#ff7b00",
+          White: "#ff7b00",
+          YOC: "#006890",
         };
 
       case "Offense category (pre-dispo)":
         return {
-          Felony: "#006890",
+          Felony: "#c02828",
           Misdemeanor: "#fcb953",
           "Status Offense": "#ff7b00",
-          Technical: "#c02828",
+          Technical: "#006890",
           Other: "#ccc",
         };
       case "Pre/post-dispo":
@@ -623,7 +623,7 @@ const DistributionChart = (records) => {
                     }
                     y={days ? yScale(days) - 4 : 0}
                     textAnchor="middle"
-                    fontSize="12"
+                    fontSize="14"
                     fill="#333"
                   >
                     {days}
