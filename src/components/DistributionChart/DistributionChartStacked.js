@@ -115,7 +115,7 @@ const DistributionChartStacked = ({
       .attr("x", margin.left)
       .attr("y", margin.top / -2 - 8)
       .attr("text-anchor", "left")
-      .style("font-size", "14px")
+      .style("font-size", "16px")
       .style("font-weight", "bold")
       .attr("fill", "#333")
       .text(data.title);
@@ -124,9 +124,6 @@ const DistributionChartStacked = ({
       .append("g")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(x).tickFormat(""));
-
-    // ... rest of your chart code remains the same ...
-    // (all the chart building code that uses x, y, chart, etc.)
 
     formattedData.forEach((d) => {
       const xPos = x(d[groupKey]) + x.bandwidth() / 2;
@@ -204,9 +201,9 @@ const DistributionChartStacked = ({
       chart
         .append("text")
         .attr("x", xCenter)
-        .attr("y", y(total) - 20)
+        .attr("y", y(total) - 22)
         .attr("text-anchor", "middle")
-        .style("font-size", "11px")
+        .style("font-size", "14px")
         .style("font-weight", "bold")
         .attr("fill", "#333")
         .text(`${total}`);
@@ -216,8 +213,7 @@ const DistributionChartStacked = ({
         .attr("x", xCenter)
         .attr("y", y(total) - 8)
         .attr("text-anchor", "middle")
-        .style("font-size", "11px")
-        .style("font-weight", "bold")
+        .style("font-size", "12px")
         .attr("fill", "#333")
         .text(`(${percent}%)`);
     });
@@ -247,7 +243,7 @@ const DistributionChartStacked = ({
         .attr("x", 20)
         .attr("y", 12)
         .text(key[0].toUpperCase() + key.slice(1))
-        .style("font-size", "12px")
+        .style("font-size", "14px")
         .attr("fill", "#333");
     });
   }, [data, keysArray, dimensions]);

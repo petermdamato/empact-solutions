@@ -631,7 +631,7 @@ export default function Overview() {
                         breakdowns={["total"]}
                         height={220}
                         margin={{ top: 0, right: 60, bottom: 30, left: 20 }}
-                        chartTitle={""}
+                        chartTitle={"ADP by Race/Ethnicity"}
                         colorMapOverride={{
                           "Pre-dispo": "#5a6b7c",
                           total: "#5a6b7c",

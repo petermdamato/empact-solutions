@@ -100,7 +100,7 @@ const ColumnChart = ({
           : getValue(d)
       )
       .attr("fill", "black")
-      .style("font-size", 16)
+      .style("font-size", 14)
       .style("font-weight", "bold")
       .style("text-anchor", "middle");
 
@@ -126,7 +126,9 @@ const ColumnChart = ({
     svg
       .append("g")
       .attr("transform", `translate(0,${innerHeight - margin.bottom})`)
-      .call(d3.axisBottom(xScale));
+      .call(d3.axisBottom(xScale))
+      .selectAll(".tick text")
+      .attr("font-size", 12);
   }, [data, format, height, parentWidth]);
 
   return (

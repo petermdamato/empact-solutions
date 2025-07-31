@@ -198,7 +198,7 @@ const PieChart = ({
                                 outerArc.centroid(d)[0] > 0 ? "start" : "end"
                               }
                               alignmentBaseline="middle"
-                              fontSize={12}
+                              fontSize={14}
                               dy={-6}
                               fontWeight={700}
                               fill="#333"
@@ -259,11 +259,14 @@ const PieChart = ({
                           ? " days"
                           : identifier === "Admissions"
                           ? " admissions"
-                          : identifier)
+                          : identifier === "ADP"
+                          ? " avg. daily pop."
+                          : " " + identifier.toLowerCase())
                   }`;
                 }}
-                showPercentage={true}
+                showPercentage={false}
                 totalValue={records.reduce((sum, item) => sum + item.value, 0)}
+                categoryPercent={tooltipData.payload[0]?.percentage}
               />
             </div>
           )}

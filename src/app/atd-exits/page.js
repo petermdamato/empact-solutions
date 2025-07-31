@@ -38,11 +38,6 @@ const parseDateYear = (dateStr) => {
   return isNaN(year) ? null : year;
 };
 
-const getAge = (dob, intake) => {
-  if (!dob || !intake) return null;
-  return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
-};
-
 export default function Overview() {
   const { csvData } = useCSV();
   const { selectedTags } = useTags();
@@ -52,8 +47,8 @@ export default function Overview() {
   const [filterVariables, setFilterVariable] = useState([]);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [incarcerationType] = useState("alternative-to-detention");
-  const [calculationType, setCalculationType] = useState("Average");
-  const [programType, setProgramType] = useState("All Program Types");
+  const [calculationType] = useState("Average");
+  const [programType] = useState("All Program Types");
   const [yearsArray, setYearsArray] = useState([2024]);
   const [breakdownType, setBreakdownType] = useState("Overall Total");
   const [dataArray1, setDataArray1] = useState([]);
@@ -506,11 +501,6 @@ export default function Overview() {
             </ChartCard>
           </div>
         </div>
-
-        {/* Table at bottom */}
-        {/* <div style={{ height: "500px", padding: "24px", overflow: "auto" }}>
-          <RecordsTable data={dataArray5} />
-        </div> */}
       </div>
     </div>
   );

@@ -6,10 +6,8 @@ import "./LineChartV2.css";
 
 const LineChartV2 = ({
   data,
-  header,
   metric,
   detentionType,
-  comparison = "none",
   labels,
   finalChartYear,
   selectedLegendOptions,
@@ -93,7 +91,7 @@ const LineChartV2 = ({
 
     const margin =
       labels === "Show"
-        ? { top: 20, right: 20, bottom: 40, left: 60 }
+        ? { top: 30, right: 20, bottom: 40, left: 64 }
         : { top: 10, right: 12, bottom: 40, left: 52 };
     const { width, height } = dimensions;
 
@@ -170,7 +168,9 @@ const LineChartV2 = ({
       .append("g")
       .attr("class", "axis x-axis")
       .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll(".tick text")
+      .attr("font-size", 12);
 
     // Post-process tick labels
     xAxisGroup.selectAll("text").each(function (d, i) {
@@ -182,8 +182,10 @@ const LineChartV2 = ({
     chartGroup
       .append("g")
       .attr("class", "axis y-axis")
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(d3.axisLeft(yScale).ticks(4));
+      .attr("transform", `translate(${margin.left - 10},0)`)
+      .call(d3.axisLeft(yScale).ticks(4))
+      .selectAll(".tick text")
+      .attr("font-size", 12);
 
     const line = d3
       .line()
@@ -192,6 +194,16 @@ const LineChartV2 = ({
       .defined((d) => d.value != null && d.value !== 0);
 
     seriesData.forEach((series) => {
+      series.key === "disrupted"
+        ? (series.key = "0")
+        : series.key === "undisrupted"
+        ? (series.key = "1")
+        : series.key === "yoc"
+        ? (series.key = series.key.toUpperCase())
+        : series.key === "white"
+        ? (series.key = "White")
+        : series.key;
+
       chartGroup
         .append("path")
         .datum(series.values)
@@ -203,7 +215,9 @@ const LineChartV2 = ({
         .attr("d", line)
         .attr("opacity", () =>
           selectedLegendOptions.length === 0 ||
-          selectedLegendOptions.includes(series.key)
+          selectedLegendOptions
+            .map((entry) => entry.replaceAll("+", ""))
+            .includes(series.key)
             ? 1
             : 0.3
         );
@@ -223,7 +237,9 @@ const LineChartV2 = ({
         .attr("fill", colorScale(series.key))
         .attr("opacity", () =>
           selectedLegendOptions.length === 0 ||
-          selectedLegendOptions.includes(series.key)
+          selectedLegendOptions
+            .map((entry) => entry.replaceAll("+", ""))
+            .includes(series.key)
             ? 1
             : 0.3
         );
@@ -345,7 +361,9 @@ const LineChartV2 = ({
       seriesData.forEach((series) => {
         if (
           selectedLegendOptions.length === 0 ||
-          selectedLegendOptions.includes(series.key)
+          selectedLegendOptions
+            .map((entry) => entry.replaceAll("+", ""))
+            .includes(series.key)
         ) {
           series.values.forEach((d) => {
             allLabelData.push({
@@ -379,7 +397,7 @@ const LineChartV2 = ({
         .attr("x", (d) => d.x)
         .attr("y", (d) => Math.max(margin.top + 6, d.y))
         .attr("text-anchor", "middle")
-        .attr("font-size", "10px")
+        .attr("font-size", "12px")
         .attr("fill", (d) => d.color)
         .text((d) => d.text);
 

@@ -106,7 +106,7 @@ const DistributionChartV2 = ({
       .attr("x", margin.left)
       .attr("y", margin.top / -2 - 8)
       .attr("text-anchor", "left")
-      .style("font-size", "14px")
+      .style("font-size", "16px")
       .style("font-weight", "bold")
       .attr("fill", "#333")
       .text("DST Override Reason");
@@ -205,7 +205,7 @@ const DistributionChartV2 = ({
         .attr("x", xPos + x.bandwidth() / 2)
         .attr("y", yPos - 8)
         .attr("text-anchor", "middle")
-        .style("font-size", "11px")
+        .style("font-size", "14px")
         .style("font-weight", "bold")
         .attr("fill", "#333")
         .text(d.total);

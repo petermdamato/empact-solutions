@@ -144,12 +144,12 @@ const EnhancedTooltip = ({
         boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         minWidth: "200px",
         maxWidth:
-          chartTitle && chartTitle.includes("Reason") ? "680px" : "320px",
+          chartTitle && chartTitle.includes("Reason") ? "780px" : "320px",
       }}
     >
       <div style={{ marginBottom: "8px", fontWeight: "bold" }}>
         {label}
-        {categoryPercent != null && (
+        {categoryPercent !== null && (
           <span
             style={{
               fontWeight: "normal",
@@ -192,7 +192,9 @@ const EnhancedTooltip = ({
               color: entry.color,
             }}
           >
-            <span>{entry.name}:&nbsp;</span>
+            <span>
+              {entry.name[0].toUpperCase() + entry.name.slice(1)}:&nbsp;
+            </span>
             <span>
               {valueFormatter(entry.value)}
               {percentage && ` (${percentage})`}
@@ -227,13 +229,13 @@ const EnhancedTooltip = ({
               }}
             >
               <div>
-                <h3>
+                <h4>
                   {groupByKey === "Reason for Detention"
                     ? `Top ${innerData.length} Offense${
                         innerData.length > 1 ? "s" : ""
                       }`
                     : "Breakdown"}
-                </h3>
+                </h4>
               </div>
               <StackedBarChartGeneric
                 data={innerData}
@@ -246,7 +248,7 @@ const EnhancedTooltip = ({
                 compact={true}
                 groupByKey={groupByKey}
                 wrapWidth={
-                  chartTitle && chartTitle.includes("Reason") ? 300 : 106
+                  chartTitle && chartTitle.includes("Reason") ? 240 : 106
                 }
                 colorMapOverride={colorMapOverride}
               />

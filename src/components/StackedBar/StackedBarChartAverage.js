@@ -191,7 +191,7 @@ const StackedBarChartAverage = ({
           : Math.round(d.averageTotal * 10) / 10 + " days"
       )
       .attr("fill", "black")
-      .style("font-size", 16)
+      .style("font-size", 14)
       .style("font-weight", "bold")
       .style("text-anchor", "middle");
 
@@ -210,6 +210,7 @@ const StackedBarChartAverage = ({
       .call(d3.axisLeft(yScale))
       .attr("class", "y-axis")
       .selectAll(".tick text")
+      .attr("font-size", 12)
       .text((d) => (d === "" ? "N/A" : d))
       .call(wrap, 96);
   }, [data, height, margin, parentWidth]);

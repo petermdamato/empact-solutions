@@ -710,13 +710,13 @@ export default function Overview() {
             </ChartCard>
             {/* Entries by Category */}
             <ChartCard width="100%">
-              <div style={{ height: "260px", width: "100%" }}>
+              <div style={{ height: "250px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray16.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray16}
                       breakdowns={["Pre-dispo"]}
-                      height={260}
+                      height={250}
                       margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Entries by Offense Category (pre-dispo)"}
                       colorMapOverride={{
@@ -736,13 +736,13 @@ export default function Overview() {
 
             {/* Entries by Jurisdiction */}
             <ChartCard width="100%">
-              <div style={{ height: "250px", width: "100%" }}>
+              <div style={{ height: "240px", width: "100%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray17.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray17}
                       breakdowns={["Pre-dispo"]}
-                      height={250}
+                      height={240}
                       margin={{ top: 20, right: 40, bottom: 4, left: 20 }}
                       chartTitle={"Entries by Jurisdiction"}
                       colorMapOverride={{
