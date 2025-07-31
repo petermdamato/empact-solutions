@@ -142,7 +142,7 @@ const ColumnChartGeneric = ({
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xScale))
       .selectAll("text") // select all tick labels
-      .style("font-size", "14px");
+      .style("font-size", "12px");
 
     // background rectangles for hover + click (behind bars)
     chart
@@ -204,7 +204,7 @@ const ColumnChartGeneric = ({
       .attr("x", margin.left)
       .attr("y", margin.top / 2) // centers title within top margin
       .text(chartTitle)
-      .style("font-size", 14)
+      .style("font-size", 16)
       .style("font-weight", "bold");
   }, [
     data,

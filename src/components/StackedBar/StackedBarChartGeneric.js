@@ -101,9 +101,9 @@ const StackedBarChartGeneric = (props) => {
         .append("text")
         .attr("x", margin.left)
         .attr("y", 40 + i * 20)
+        .style("font-size", 12)
         .text(d.category)
-        .call(wrap, wrapWidth + 30)
-        .style("font-size", 14);
+        .call(wrap, wrapWidth + 30);
 
       const width = text.node().getBBox().width;
       if (width > maxLabelWidth) maxLabelWidth = width;
@@ -308,7 +308,7 @@ const StackedBarChartGeneric = (props) => {
       .selectAll(".tick text")
       .text((d) => (d === "" ? "N/A" : d))
       .attr("pointer-events", "none")
-      .attr("font-size", 14)
+      .attr("font-size", 12)
       .call(wrap, wrapWidth);
   }, [
     data,
