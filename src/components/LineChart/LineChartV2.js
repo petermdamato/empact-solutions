@@ -143,7 +143,7 @@ const LineChartV2 = ({
         selectedLegendDetails.map((entry) => entry.label.replace("+", ""))
       )
       .range(selectedLegendDetails.map((entry) => entry.color));
-
+    console.log(selectedLegendDetails);
     chartGroup
       .append("g")
       .attr("class", "grid-lines")
