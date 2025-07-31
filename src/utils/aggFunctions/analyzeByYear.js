@@ -47,7 +47,7 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
 
   const getAge = (dob, intake) => {
     if (!dob || !intake) return null;
-    return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
+    return Math.floor((intake - dob) / (365.25 * 24 * 60 * 60 * 1000));
   };
 
   const getAgeBracket = (age) => {
@@ -108,6 +108,7 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
 
   data.forEach((record) => {
     const { entry, exit } = getDates(record);
+
     if (!entry) return;
 
     const exitYear = exit ? exit.getFullYear() : null;

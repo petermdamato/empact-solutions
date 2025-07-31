@@ -149,7 +149,7 @@ const expandedColors = (
           "Native Hawaiian or Pacific Islander": "#5b8a72",
           "Two or more races": "#c02828",
           Unknown: "#ccc",
-          Other: "#ccc",
+          Other: "#000",
         };
 
       case "Age at entry":
