@@ -92,8 +92,9 @@ button {
 footer {
   flex-shrink: 0;
   text-align: left;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: auto;
+  text-align: center;
 }
 
 .version:hover {

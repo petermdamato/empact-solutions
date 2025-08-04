@@ -2,6 +2,10 @@
   --background: #ffffff;
   --foreground: #171717;
 }
+::selection {
+  background: #133a6f !important;
+  color: white !important;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {

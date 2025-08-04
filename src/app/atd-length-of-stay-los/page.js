@@ -43,6 +43,7 @@ export default function Overview() {
   const router = useRouter();
   const contentRef = useRef();
   const [selectedYear, setSelectedYear] = useState(2024);
+  const [maxLabelWidth, setMaxLabelWidth] = useState(0);
   const [filterVariables, setFilterVariable] = useState([]);
   const [finalData, setFinalData] = useState(csvData);
   const [incarcerationType] = useState("alternative-to-detention");
@@ -715,6 +716,8 @@ export default function Overview() {
                         filterVariables={filterVariables}
                         groupByKey={"Race/Ethnicity"}
                         showChart={false}
+                        maxLabelWidth={maxLabelWidth}
+                        setMaxLabelWidth={setMaxLabelWidth}
                       />
                     )}
                   </ResponsiveContainer>
@@ -742,6 +745,8 @@ export default function Overview() {
                       filterVariables={filterVariables}
                       groupByKey={"Gender"}
                       showChart={false}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -774,6 +779,8 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -814,6 +821,8 @@ export default function Overview() {
                       innerData={dataArray21}
                       postDispoData={dataArray22}
                       valueBreakdowns={false}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -843,6 +852,8 @@ export default function Overview() {
                       showChart={true}
                       innerData={dataArray21}
                       valueBreakdowns={false}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -869,6 +880,8 @@ export default function Overview() {
                       filterVariables={filterVariables}
                       groupByKey={"Jurisdiction"}
                       showChart={false}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>

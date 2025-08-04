@@ -43,7 +43,7 @@ const DateRangeSlider = ({
     if (!minDate || !maxDate) return [0, 0];
 
     const startOfYear = moment(maxDate).startOf("year");
-    const endOfYear = moment(maxDate).endOf("year");
+    const endOfYear = moment(maxDate).endOf("year").startOf("day");
 
     return [startOfYear.valueOf(), endOfYear.valueOf()];
   });
