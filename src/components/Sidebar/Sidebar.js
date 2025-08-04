@@ -96,12 +96,12 @@ const Sidebar = () => {
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button onClick={() => setShowSettings(true)}>
               <SimpleTooltip tooltipText="Settings" positioning={"right"}>
-                <SettingsIcon style={{ color: "white" }} />
+                <SettingsIcon style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
             <button onClick={() => setShowUpload(true)}>
               <SimpleTooltip tooltipText="Upload" positioning={"right"}>
-                <UploadIcon style={{ color: "white" }} />
+                <UploadIcon style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
             <button

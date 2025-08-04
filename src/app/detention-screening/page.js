@@ -169,21 +169,38 @@ export default function Overview() {
                   flexGrow: 1,
                 }}
               >
-                <Button
-                  variant="contained"
-                  onClick={handleGoBack}
-                  sx={{
-                    marginBottom: "16px",
-                    alignSelf: "flex-start",
-                    backgroundColor: "#333a43",
-                    color: "#fff",
-                    "&:hover": {
-                      backgroundColor: "#4a5568",
-                    },
+                <div
+                  style={{
+                    display: "flex",
                   }}
                 >
-                  Go Back
-                </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleGoBack}
+                    sx={{
+                      marginBottom: "16px",
+                      marginLeft: "4px",
+                      alignSelf: "flex-start",
+                      backgroundColor: "#333a43",
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "#4a5568",
+                      },
+                    }}
+                  >
+                    Go Back
+                  </Button>
+                  <span
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: 700,
+                      lineHeight: "36px",
+                      marginLeft: "8px",
+                    }}
+                  >
+                    {datesData.length} record{datesData.length === 1 ? "" : "s"}
+                  </span>
+                </div>
                 <RecordsTableDST
                   data={filteredData}
                   selectedKey={selectedKey}

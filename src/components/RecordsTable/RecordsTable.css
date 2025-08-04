@@ -25,3 +25,17 @@
   top: 0;
   background-color: #f9f9f9;
 }
+
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 10;
+}
+.th-resizable {
+  position: relative;
+}

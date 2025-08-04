@@ -45,7 +45,7 @@ export default function Overview() {
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [selectedYear, setSelectedYear] = useState(2024);
-
+  const [maxLabelWidth, setMaxLabelWidth] = useState(0);
   const [incarcerationType] = useState("secure-detention");
   const [calculationType, setCalculationType] = useState("average");
   const [programType] = useState("All Program Types");
@@ -741,6 +741,8 @@ export default function Overview() {
                         filterVariables={filterVariables}
                         groupByKey={"Race/Ethnicity"}
                         showChart={false}
+                        maxLabelWidth={maxLabelWidth}
+                        setMaxLabelWidth={setMaxLabelWidth}
                       />
                     )}
                   </ResponsiveContainer>
@@ -768,6 +770,8 @@ export default function Overview() {
                       filterVariables={filterVariables}
                       groupByKey={"Gender"}
                       showChart={false}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -800,6 +804,8 @@ export default function Overview() {
                       groupByKey={"Age"}
                       showChart={true}
                       innerData={dataArray20}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -839,6 +845,8 @@ export default function Overview() {
                       showChart={true}
                       innerData={dataArray21}
                       postDispoData={dataArray22}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -871,6 +879,8 @@ export default function Overview() {
                       groupByKey={"Category"}
                       showChart={true}
                       innerData={dataArray21}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -898,6 +908,8 @@ export default function Overview() {
                       filterVariables={filterVariables}
                       groupByKey={"Jurisdiction"}
                       showChart={false}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>

@@ -7,6 +7,13 @@ import { useLinkOut } from "@/context/LinkOutContext";
 import { useTags } from "@/context/TagsContext";
 import { Autocomplete, TextField } from "@mui/material";
 
+function arraysEqualUnordered(a, b) {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, index) => val === sortedB[index]);
+}
+
 export default function Overview() {
   const { linkOut, setLinkOut } = useLinkOut();
   const { selectedTags, setSelectedTags } = useTags();
@@ -75,6 +82,7 @@ export default function Overview() {
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <button
                 onClick={handleSaveLinkOut}
+                disabled={linkOut === inputValue}
                 style={{
                   padding: "0.5rem 1rem",
                   backgroundColor: "#333a43",
@@ -82,6 +90,8 @@ export default function Overview() {
                   border: "none",
                   borderRadius: "4px",
                   cursor: "pointer",
+                  backgroundColor: linkOut === inputValue ? "#999" : "#333a43",
+                  cursor: linkOut === inputValue ? "not-allowed" : "pointer",
                 }}
               >
                 Save
@@ -112,29 +122,8 @@ export default function Overview() {
                 id="tagSelect"
                 options={options}
                 value={localTags}
-                onChange={(event, newValue) => {
-                  setLocalTags(newValue);
-                }}
+                onChange={(event, newValue) => setLocalTags(newValue)}
                 getOptionLabel={(option) => option.replaceAll("_", " ")}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <span
-                      key={option}
-                      {...getTagProps({ index })}
-                      style={{
-                        display: "inline-block",
-                        padding: "4px 8px",
-                        margin: "2px",
-                        backgroundColor: "#333a43",
-                        color: "white",
-                        borderRadius: "4px",
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      {option.replaceAll("_", " ")}
-                    </span>
-                  ))
-                }
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -142,19 +131,46 @@ export default function Overview() {
                     placeholder="Select tags"
                   />
                 )}
+                renderValue={(selected) => (
+                  <div
+                    style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}
+                  >
+                    {selected.map((option, index) => (
+                      <span
+                        key={index}
+                        style={{
+                          display: "inline-block",
+                          padding: "4px 8px",
+                          margin: "2px",
+                          backgroundColor: "#333a43",
+                          color: "white",
+                          borderRadius: "4px",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        {option.replaceAll("_", " ")}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 style={{ width: "100%" }}
               />
 
               <button
                 onClick={handleSaveTags}
+                disabled={arraysEqualUnordered(localTags, selectedTags)}
                 style={{
                   marginTop: "1rem",
                   padding: "0.5rem 1rem",
-                  backgroundColor: "#333a43",
+                  backgroundColor: arraysEqualUnordered(localTags, selectedTags)
+                    ? "#999"
+                    : "#333a43",
                   color: "white",
                   border: "none",
                   borderRadius: "4px",
-                  cursor: "pointer",
+                  cursor: arraysEqualUnordered(localTags, selectedTags)
+                    ? "not-allowed"
+                    : "pointer",
                 }}
               >
                 Save Sorted

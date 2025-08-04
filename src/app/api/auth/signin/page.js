@@ -2,11 +2,14 @@
 
 import { signIn, signOut } from "next-auth/react";
 import React, { useState } from "react";
+import LockOutline from "@mui/icons-material/LockOutline";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +20,7 @@ export default function SignInPage() {
     });
 
     if (result?.status !== 200) {
-      setError("Invalid credentials.");
+      setError("Wrong email/password combination");
     } else {
       window.location.href = "/overview"; // Redirect after successful login
     }
@@ -42,12 +45,8 @@ export default function SignInPage() {
               alt="Empact Solutions Logo"
             />
             <div style={styles.logoOverlay}>
-              <div style={styles.logoEmPrefix}>a tool from </div>
-              <div style={styles.logoContainer}>
-                <span style={styles.logoEm}>em</span>
-                <span style={styles.logoPact}>pact</span>
-              </div>
-              <div style={styles.solutions}>SOLUTIONS</div>
+              <div style={styles.logoHeadline}>Youth Detention Analytics</div>
+              <div style={styles.logoDek}>A tool from Empact Solutions</div>
             </div>
           </div>
         </div>
@@ -63,6 +62,14 @@ export default function SignInPage() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onFocus={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "black";
+              }}
+              onBlur={(e) => {
+                e.target.style.backgroundColor = "white";
+                e.target.style.color = "black";
+              }}
               required
               style={styles.input}
             />
@@ -71,31 +78,63 @@ export default function SignInPage() {
             <label htmlFor="password" style={styles.label}>
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={styles.input}
-            />
+            <div style={styles.inputWrapper}>
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={styles.inputWithIcon}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={styles.iconButton}
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? (
+                  <LockOpenIcon style={{ fontSize: 20, color: "#133A6F" }} />
+                ) : (
+                  <LockOutline style={{ fontSize: 20, color: "#133A6F" }} />
+                )}
+              </button>
+            </div>
           </div>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p style={styles.errorMessage}>{error}</p>}
           <button
             type="submit"
             style={{
               ...styles.loginButton,
-              backgroundColor: "#333a43",
+              backgroundColor: "#133A6F",
               color: "white",
+              marginTop: "10px",
+              height: "32px",
               padding: "6px 12px",
-              fontSize: "14px",
-              borderRadius: "8px",
+              fontSize: "16px",
+              borderRadius: "4px",
+              width: "100%",
             }}
           >
-            Log In
+            Sign In
           </button>
         </form>
       </div>
+      <style jsx global>{`
+        input::selection {
+          background: #133a6f;
+          color: white;
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 1000px white inset !important;
+          -webkit-text-fill-color: black !important;
+          transition: background-color 5000s ease-in-out 0s;
+        }
+      `}</style>
     </div>
   );
 }
@@ -130,9 +169,7 @@ const styles = {
   },
   container: {
     backgroundColor: "#fff",
-    flexGrow: "1",
     width: "100vw",
-    padding: "40px",
     boxSizing: "border-box",
     fontFamily: "'Avenir', 'Arial', sans-serif",
     position: "relative",
@@ -146,13 +183,12 @@ const styles = {
     top: "20%",
     left: "10%",
     width: "300px",
-    height: "300px",
     opacity: 0.3,
     zIndex: 0,
   },
   backgroundGraphic: {
     width: "400px",
-    height: "auto",
+    height: "300px",
     opacity: 1,
     zIndex: 0,
   },
@@ -184,7 +220,6 @@ const styles = {
     position: "relative",
     display: "inline-block",
     textAlign: "center",
-    marginBottom: "20px",
   },
 
   backgroundGraphic: {
@@ -196,16 +231,27 @@ const styles = {
 
   logoOverlay: {
     position: "absolute",
-    bottom: "-40px", // controls overlap — adjust as needed
+    bottom: "30px", // controls overlap — adjust as needed
     left: "50%",
     transform: "translateX(-50%)",
     textAlign: "center",
     zIndex: 1,
+    width: "480px",
   },
 
-  logoEmPrefix: {
-    color: "#222222",
+  logoHeadline: {
+    color: "#133A6F",
+    fontSize: "38px",
+    letterSpacing: "-0.02em",
+    fontWeight: "bold",
+    textAlign: "center",
+    zIndex: 1,
+  },
+
+  logoDek: {
+    color: "#133A6F",
     fontSize: "20px",
+    textAlign: "center",
     fontWeight: 300,
   },
 
@@ -227,28 +273,64 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     marginBottom: "16px",
-    width: "300px", // consistent width for all fields
+    width: "442px", // consistent width for all fields
   },
 
   label: {
     marginBottom: "6px",
-    color: "black",
-    fontWeight: "500",
-    fontSize: "14px",
+    color: "#133A6F",
+    fontWeight: "400",
+    fontSize: "16px",
   },
-
+  errorMessage: {
+    color: "#6F1B13",
+    position: "absolute",
+    marginTop: "-12px",
+  },
   input: {
     backgroundColor: "white",
-    border: "1px solid black",
     color: "black",
+    border: "1px solid grey",
     borderRadius: "4px",
     padding: "8px",
     fontSize: "14px",
+    outline: "none", // prevents default blue outline in some browsers
   },
+
   solutions: {
     letterSpacing: "2px",
     fontSize: "14px",
     color: "#444",
     fontWeight: 400,
+  },
+  inputWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+  },
+
+  inputWithIcon: {
+    backgroundColor: "white",
+    color: "black",
+    border: "1px solid grey",
+    borderRadius: "4px",
+    padding: "8px 36px 8px 8px", // extra padding on right
+    fontSize: "14px",
+    width: "100%",
+    outline: "none",
+  },
+
+  iconButton: {
+    position: "absolute",
+    right: "10px",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
   },
 };

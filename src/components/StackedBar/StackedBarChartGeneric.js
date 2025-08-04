@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 import "./StackedBar.css";
@@ -49,54 +49,69 @@ const StackedBarChartGeneric = (props) => {
     filterable = true,
     compact = false,
     wrapWidth = 106,
+    maxLabelWidth,
+    setMaxLabelWidth,
   } = props;
 
   const key = groupByKey === "Disruption Type" ? "Disruption_Type" : groupByKey;
-  // Resize observer for width changes
+
+  // --- Resize observer for container width ---
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
-        const { width } = entry.contentRect;
-        setParentWidth(width);
+        setParentWidth(entry.contentRect.width);
       }
     });
-
     const parentElement = svgRef.current?.parentElement;
-    if (parentElement) {
-      resizeObserver.observe(parentElement);
-    }
-
-    return () => {
-      if (parentElement) {
-        resizeObserver.unobserve(parentElement);
-      }
-    };
+    if (parentElement) resizeObserver.observe(parentElement);
+    return () => parentElement && resizeObserver.unobserve(parentElement);
   }, []);
 
-  // Main chart rendering effect
-  useEffect(() => {
-    if (!data || data.length === 0 || parentWidth === 0) return;
-
-    const filteredData = data.filter(
+  // --- Memoized data filtering ---
+  const filteredData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    return data.filter(
       (d) => breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0) > 0
     );
-    if (filteredData.length === 0) return;
+  }, [data, breakdowns]);
 
-    const colorMap = {};
+  // --- Memoized sorting ---
+  const finalFilteredData = useMemo(() => {
+    const sortedData = [...filteredData];
+    if (selectedTags.includes(key.toLowerCase())) {
+      sortedData.sort((a, b) => {
+        const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
+        const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
+        return totalB - totalA;
+      });
+    } else {
+      sortedData.sort((a, b) => a.category.localeCompare(b.category));
+    }
+    return sortedData;
+  }, [filteredData, selectedTags, key, breakdowns]);
+
+  // --- Build color map ---
+  const colorMap = useMemo(() => {
+    const map = {};
     breakdowns.forEach((key, i) => {
-      colorMap[key] =
+      map[key] =
         colorMapOverride[key] ||
         defaultColorPalette[i % defaultColorPalette.length];
     });
-    showChart;
+    return map;
+  }, [breakdowns, colorMapOverride]);
+
+  // --- D3 Chart Rendering ---
+  useEffect(() => {
+    if (!finalFilteredData.length || parentWidth === 0) return;
 
     const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
 
+    // Determine max label width for this chart
+    let localMaxLabelWidth = 0;
     const tempSvg = svg.append("g").attr("class", "temp-label-svg");
-    // .style("visibility", "hidden");
-
-    let maxLabelWidth = 0;
-    filteredData.forEach((d, i) => {
+    finalFilteredData.forEach((d, i) => {
       const text = tempSvg
         .append("text")
         .attr("x", margin.left)
@@ -106,35 +121,29 @@ const StackedBarChartGeneric = (props) => {
         .call(wrap, wrapWidth + 30);
 
       const width = text.node().getBBox().width;
-      if (width > maxLabelWidth) maxLabelWidth = width;
+      localMaxLabelWidth = Math.max(localMaxLabelWidth, width);
+
+      // If setMaxLabelWidth exists, update the global max
+      if (setMaxLabelWidth && width > maxLabelWidth) {
+        setMaxLabelWidth(width);
+      }
       text.remove();
     });
     tempSvg.remove();
 
     const paddingForAxis = 24;
-    margin.left = Math.max(margin.left, maxLabelWidth + paddingForAxis);
+    // Use global maxLabelWidth if available (shared charts), otherwise local
+    const computedLabelWidth = setMaxLabelWidth
+      ? maxLabelWidth
+      : localMaxLabelWidth;
 
-    svg.selectAll("*").remove();
+    const localMargin = {
+      ...margin,
+      left: Math.max(margin.left, computedLabelWidth + paddingForAxis),
+    };
 
-    const innerWidth = parentWidth - margin.left - margin.right;
+    const innerWidth = parentWidth - localMargin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
-
-    const finalFilteredData = [...filteredData].sort((a, b) => {
-      if (selectedTags.includes(key.toLowerCase())) {
-        const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
-        const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
-        return totalB - totalA; // descending by total value
-      } else {
-        return a.category.localeCompare(b.category); // alphabetical by category
-      }
-    });
-
-    const chart = svg
-      .append("g")
-      .attr(
-        "transform",
-        `translate(${margin.left},${hasSelector ? -10 : margin.top})`
-      );
 
     const getTotalValue = (d) =>
       breakdowns.reduce((sum, key) => sum + (d[key] ?? 0), 0);
@@ -150,25 +159,28 @@ const StackedBarChartGeneric = (props) => {
       .range([0, innerHeight])
       .padding(0.1);
 
+    const chart = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${localMargin.left},${hasSelector ? -10 : margin.top})`
+      );
+
     const colors = d3.schemeCategory10;
 
     const handleClick = (event, d) => {
-      if (filterable) {
-        setTooltipData(null);
-        const selectedValue = d.category;
-        const currentKey = Object.keys(filterVariable || {})[0];
-        const currentValue = filterVariable?.[currentKey];
-        const isSameSelection =
-          currentKey === key && currentValue === selectedValue;
-        toggleFilter(
-          isSameSelection ? null : { key: key, value: selectedValue }
-        );
-      }
+      if (!filterable) return;
+      setTooltipData(null);
+      const selectedValue = d.category;
+      const currentKey = Object.keys(filterVariable || {})[0];
+      const currentValue = filterVariable?.[currentKey];
+      const isSameSelection =
+        currentKey === key && currentValue === selectedValue;
+      toggleFilter(isSameSelection ? null : { key: key, value: selectedValue });
     };
 
     const handleMouseMove = (event, d) => {
       if (!containerRef.current) return;
-
       const containerRect = containerRef.current.getBoundingClientRect();
       const x = event.clientX - containerRect.left;
       const y = event.clientY - containerRect.top;
@@ -176,11 +188,7 @@ const StackedBarChartGeneric = (props) => {
       const totalAcrossAllCategories = d3.sum(filteredData, (row) =>
         breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
       );
-
-      const totalForThisCategory = breakdowns.reduce(
-        (sum, key) => sum + (d[key] ?? 0),
-        0
-      );
+      const totalForThisCategory = getTotalValue(d);
 
       setTooltipData({
         active: true,
@@ -215,32 +223,33 @@ const StackedBarChartGeneric = (props) => {
     const labelsLayer = chart.append("g").attr("class", "labels-layer");
     const axisLayer = chart.append("g").attr("class", "axis-layer");
 
+    // --- Background rows for hover/click ---
     backgroundLayer
       .selectAll(".row-background")
       .data(finalFilteredData)
       .enter()
       .append("rect")
       .attr("class", "row-background")
-      .attr("x", -margin.left)
+      .attr("x", -localMargin.left)
       .attr("y", (d) => yScale(d.category))
       .attr("width", parentWidth)
       .attr("height", yScale.bandwidth())
       .attr("fill", "transparent")
       .style("cursor", filterable ? "pointer" : "auto")
       .on("mouseover", function () {
-        if (filterable) {
+        if (filterable)
           d3.select(this).attr("fill", "#000").attr("fill-opacity", 0.05);
-        }
       })
       .on("mouseout", function () {
         d3.select(this).attr("fill", "transparent");
       })
       .on("click", handleClick);
 
+    // --- Bars & labels ---
     finalFilteredData.forEach((d) => {
       let xOffset = 0;
-      breakdowns.forEach((key, bIndex) => {
-        const value = d[key] ?? 0;
+      breakdowns.forEach((bKey, bIndex) => {
+        const value = d[bKey] ?? 0;
         const width = xScale(value) > 0 ? Math.max(xScale(value), 2) : 0;
         barsLayer
           .append("rect")
@@ -248,26 +257,16 @@ const StackedBarChartGeneric = (props) => {
           .attr("y", yScale(d.category))
           .attr("width", width)
           .attr("height", yScale.bandwidth())
-          .attr("fill", colorMap[key] || colors[bIndex % colors.length])
+          .attr("fill", colorMap[bKey] || colors[bIndex % colors.length])
           .style("cursor", "pointer")
           .on("mousemove", (event) => handleMouseMove(event, d))
           .on("mouseout", handleMouseOut)
-          .on("click", () => handleClick(event, d));
+          .on("click", (event) => handleClick(event, d));
 
-        // Label logic...
         const labelText = value.toString();
-        const tempText = chart
-          .append("text")
-          .text(labelText)
-          .attr("font-size", 14)
-          .style("visibility", "hidden");
-
-        const textWidth = tempText.node().getBBox().width;
-        tempText.remove();
-
         labelsLayer
           .append("text")
-          .style("opacity", labelText > 0 ? 1 : 0)
+          .style("opacity", value > 0 ? 1 : 0)
           .attr("x", width + 8)
           .attr("y", yScale(d.category) + yScale.bandwidth() / 2)
           .attr("dy", "0.35em")
@@ -277,7 +276,7 @@ const StackedBarChartGeneric = (props) => {
           .style("user-select", "none")
           .attr("pointer-events", "none")
           .text(
-            labelContext && labelContext === "percent"
+            labelContext === "percent"
               ? Math.round(
                   (+labelText * 100) /
                     d3.sum(filteredData, (row) =>
@@ -294,13 +293,14 @@ const StackedBarChartGeneric = (props) => {
     if (!hasSelector && !compact) {
       chart
         .append("text")
-        .attr("x", -margin.left + 6)
+        .attr("x", -localMargin.left + 6)
         .attr("y", -8)
         .text(chartTitle)
         .style("font-size", 16)
         .style("font-weight", "bold");
     }
 
+    // --- Y-axis ---
     axisLayer
       .append("g")
       .call(d3.axisLeft(yScale))
@@ -311,22 +311,23 @@ const StackedBarChartGeneric = (props) => {
       .attr("font-size", 12)
       .call(wrap, wrapWidth);
   }, [
-    data,
+    finalFilteredData,
+    parentWidth,
     height,
     margin,
-    parentWidth,
+    maxLabelWidth,
     breakdowns,
-    context,
-    filterVariable,
-    toggleFilter,
+    colorMap,
+    filterable,
     key,
     chartTitle,
-    colorMapOverride,
     hasSelector,
+    compact,
     labelContext,
-    sorted,
+    filteredData,
   ]);
 
+  // --- No data case ---
   if (!data || data.every((d) => d.total === 0)) {
     return (
       <div
@@ -345,6 +346,7 @@ const StackedBarChartGeneric = (props) => {
     );
   }
 
+  // --- Render chart & tooltip ---
   return (
     <div
       ref={containerRef}
