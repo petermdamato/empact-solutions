@@ -123,7 +123,7 @@ const Sidebar = () => {
           {["User Guide", "Upload", "Settings", "Glossary"].includes(
             selectedMenu
           )
-            ? "Empact Detention Analytics"
+            ? "Youth Detention Analytics"
             : selectedMenu}
         </h1>
         <h2>{selectedSubItemLabel || selectedMenu}</h2>
