@@ -1,14 +1,6 @@
 export { default as aggregateByGender } from "./aggregateByGender";
 export { default as aggregateByRace } from "./aggregateByRace";
-export { default as aggregateByStatuss } from "./aggregateByStatuss";
-export { default as aggregateByStatus } from "./aggregateByStatus";
-export { default as aggregateByAgeGroup } from "./aggregateByAgeGroup";
-export { default as aggregateByComparison } from "./aggregateByComparison";
-export { default as aggregateCalculationByStatus } from "./aggregateCalculationByStatus";
-export { default as aggregateMedianByStatus } from "./aggregateMedianByStatus";
 export { default as aggregateMedianByOffense } from "./aggregateMedianByOffense";
 export { default as aggregateCalculationByOffense } from "./aggregateCalculationByOffense";
-export { default as aggregatePopulationByStatus } from "./aggregatePopulationByStatus";
 export { default as aggregatePopulationByOffense } from "./aggregatePopulationByOffense";
 export { default as aggregateByOffense } from "./aggregateByOffense";
-export { default as aggregateByLos } from "./aggregateByLos";

@@ -7,7 +7,6 @@ import StackedBarChartMedian from "../StackedBar/StackedBarMedian";
 import StackedBarChartAverage from "../StackedBar/StackedBarChartAverage";
 import StackedColumnChart from "../StackedColumn/StackedColumn";
 import ColumnChart from "../ColumnChart/ColumnChart";
-import PieChart from "../PieChart/PieChart";
 import DistributionChart from "../DistributionChart/DistributionChart";
 import TableComponent from "../Table/Table";
 import TableCalculations from "../Table/TableCalculations";
@@ -156,15 +155,6 @@ const PillContainer = ({
                 useFilterDropdown={outer.useFilterDropdown}
                 filterDimension={outer.filterDimension}
                 selectedLegendOptions={selectedLegendOptions}
-              />
-            ) : outer.charts[i] === "pie" ? (
-              <PieChart
-                key={"pie-chart-" + i}
-                data={inner.data}
-                width={400}
-                height={340}
-                margin={{ top: 60, right: 0, bottom: 30, left: 0 }}
-                chartTitle={outer.chartTitles[i]}
               />
             ) : (
               <></>

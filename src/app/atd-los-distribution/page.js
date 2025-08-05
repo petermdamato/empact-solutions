@@ -8,22 +8,8 @@ import PillContainer from "@/components/PillContainer/PillContainer";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
-import { aggregateByLos } from "@/utils";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import { analyzeByYear } from "@/utils/aggFunctions";
-
-const getFilterValue = (entry, dimension) => {
-  switch (dimension) {
-    case "Race/Ethnicity":
-      return entry.Race_Ethnicity;
-    case "Disruptions":
-      return entry.ATD_Success;
-    case "Age":
-      return entry.Age_Group;
-    default:
-      return null;
-  }
-};
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);

@@ -8,7 +8,7 @@ export {
 export { default as analyzeExitsByExploreType } from "./analyzeByBreakdownType";
 export { default as analyzeDisruptionPercentsByYear } from "./analyzeDisruptionPercentsByYear";
 export { default as analyzeExitsByDisruptionType } from "./analyzeExitsByDisruptionType";
-export { default as dataAnalysisLOS } from "./dataAnalysisLOSAlone";
+export { default as dataAnalysisLOS } from "./dataAnalysisLOS";
 export {
   default as dataAnalysisV3,
   analyzePostDispoGroup,
