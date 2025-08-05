@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./RecordsTable.css";
 import moment from "moment";
+import { useLinkOut } from "@/context/LinkOutContext";
 
 const thBaseStyle = {
   padding: "8px",
@@ -42,6 +43,7 @@ const MIN_COL_WIDTH = 60;
 
 const intake = "Intake_Date";
 const RecordsTable = ({ data, selectedKey }) => {
+  const linkText = useLinkOut();
   const [columnWidths, setColumnWidths] = useState(
     columns.reduce((acc, col) => {
       acc[col.key] = 150; // default initial width in px
@@ -196,8 +198,30 @@ const RecordsTable = ({ data, selectedKey }) => {
                         ...tdStyle,
                         maxWidth: columnWidths[key],
                         width: columnWidths[key],
+                        cursor: key === "Youth_ID" ? "pointer" : "auto",
+                        textDecoration:
+                          key === "Youth_ID" ? "underline" : "none",
                       }}
                       title={value}
+                      onClick={(e) => {
+                        const inmateId = e.target.innerText;
+
+                        // Build base URL dynamically
+                        const baseUrl = window.location.origin; // e.g., "http://localhost:3000" or "https://empact-solutions.onrender.com"
+
+                        // Determine final URL
+                        const url =
+                          !linkText.linkOut || linkText.linkOut.length === 0
+                            ? `${baseUrl}/sample-lookup?${inmateId}`
+                            : (linkText.linkOut.startsWith("http")
+                                ? ""
+                                : "http://") +
+                              linkText.linkOut +
+                              "/" +
+                              inmateId;
+
+                        if (url) window.open(url, "_blank");
+                      }}
                     >
                       {value}
                     </td>

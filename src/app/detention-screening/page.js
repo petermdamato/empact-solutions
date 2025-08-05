@@ -198,7 +198,8 @@ export default function Overview() {
                       marginLeft: "8px",
                     }}
                   >
-                    {datesData.length} record{datesData.length === 1 ? "" : "s"}
+                    {filteredData.length} record
+                    {filteredData.length === 1 ? "" : "s"}
                   </span>
                 </div>
                 <RecordsTableDST

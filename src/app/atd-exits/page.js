@@ -45,6 +45,7 @@ export default function Overview() {
   const contentRef = useRef();
   const [finalData, setFinalData] = useState(csvData);
   const [filterVariables, setFilterVariable] = useState([]);
+  const [maxLabelWidth, setMaxLabelWidth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(2024);
   const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType] = useState("Average");
@@ -128,7 +129,8 @@ export default function Overview() {
         } else if (
           key === "Gender" ||
           key === "Screened/not screened" ||
-          key === "Facility"
+          key === "Facility" ||
+          key === "Exit_To"
         ) {
           filtered = filtered.filter((record) => record[key] === value);
         } else if (key === "Pre/post-dispo filter") {
@@ -271,7 +273,12 @@ export default function Overview() {
   return (
     // Top-level container
     <div
-      style={{ display: "flex", height: "100vh", backgroundColor: "#f5f7fa" }}
+      style={{
+        paddingRight: "20px",
+        display: "flex",
+        height: "100vh",
+        backgroundColor: "#f5f7fa",
+      }}
     >
       <Sidebar />
 
@@ -413,6 +420,8 @@ export default function Overview() {
                       toggleFilter={toggleFilter}
                       filterVariables={filterVariables}
                       groupByKey={"Facility"}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -434,6 +443,8 @@ export default function Overview() {
                       toggleFilter={toggleFilter}
                       filterVariables={filterVariables}
                       groupByKey={"Disruption_Type"}
+                      maxLabelWidth={maxLabelWidth}
+                      setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
                 </ResponsiveContainer>
@@ -456,7 +467,7 @@ export default function Overview() {
             <ChartCard width="100%">
               <div style={{ height: "300px", width: "100%" }}>
                 <div style={{ position: "relative" }}>
-                  <div style={{ position: "absolute", right: "14px", top: 0 }}>
+                  <div style={{ position: "absolute", right: "34px", top: 0 }}>
                     <LegendStatic type="success" />
                   </div>
                 </div>
@@ -467,7 +478,7 @@ export default function Overview() {
                       tooltipPayload={dataArray6}
                       breakdowns={["disrupted", "undisrupted"]}
                       height={300}
-                      margin={{ top: 20, right: 40, bottom: 20, left: 40 }}
+                      margin={{ top: 20, right: 60, bottom: 20, left: 40 }}
                       chartTitle={`Exits by ${breakdownType}`}
                       colorMapOverride={Constants.successColors}
                       toggleFilter={toggleFilter}
@@ -486,13 +497,13 @@ export default function Overview() {
                       data={dataArray5}
                       breakdowns={["total"]}
                       height={390}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                      margin={{ top: 20, right: 70, bottom: 20, left: 20 }}
                       chartTitle={"Exits by Exit To Type"}
                       colorMapOverride={Constants.successColors}
                       filterVariables={filterVariables}
-                      groupByKey={"Exit To"}
+                      groupByKey={"Exit_To"}
+                      toggleFilter={toggleFilter}
                       sorted={true}
-                      filterable={false}
                       labelContext={"percent"}
                     />
                   )}
