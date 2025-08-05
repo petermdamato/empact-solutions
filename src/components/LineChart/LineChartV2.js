@@ -168,9 +168,9 @@ const LineChartV2 = ({
       .append("g")
       .attr("class", "axis x-axis")
       .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(xAxis)
-      .selectAll(".tick text")
-      .attr("font-size", 12);
+      .call(xAxis);
+
+    xAxisGroup.selectAll(".tick text").attr("font-size", 12);
 
     // Post-process tick labels
     xAxisGroup.selectAll("text").each(function (d, i) {
@@ -309,6 +309,19 @@ const LineChartV2 = ({
         let closestCircle = null;
         let minDistance = Infinity;
 
+        let totalForClosestYear = 0;
+
+        seriesData.forEach((series) => {
+          const val = dataByGroupAndYear.get(`${series.key}-${closestYear}`);
+          if (
+            val != null &&
+            (selectedLegendOptions.length === 0 ||
+              selectedLegendOptions.includes(series.key))
+          ) {
+            totalForClosestYear += val;
+          }
+        });
+
         seriesData.forEach((series) => {
           const value = dataByGroupAndYear.get(`${series.key}-${closestYear}`);
           if (
@@ -324,10 +337,22 @@ const LineChartV2 = ({
               .attr("r", 4)
               .attr("fill", colorScale(series.key));
 
+            const thisLabel = series.key.toLowerCase().includes("yoc")
+              ? "YOC"
+              : series.key.toLowerCase().includes("black")
+              ? "African-American or Black"
+              : String(series.key)[0].toUpperCase() +
+                String(series.key).slice(1).toLowerCase();
             // Tooltip data accumulation
-            tooltipHTML += `<span style="color:${colorScale(series.key)};">${
+            tooltipHTML += `<span style="color:${colorScale(
               series.key
-            }:</span> ${value}<br/>`;
+            )};">${thisLabel}:</span> ${value}${
+              metric.includes("LengthOfStay")
+                ? ""
+                : " (" +
+                  Math.round((value * 1000) / totalForClosestYear) / 10 +
+                  "%)"
+            }<br/>`;
 
             // Find closest circle
             const distance = Math.abs(my - y);
@@ -340,12 +365,14 @@ const LineChartV2 = ({
 
         const tooltipWidth = 100; // approximate width in px; adjust as needed
         const chartCenterX = width / 2;
+        const chartCenterY = 150;
         const offsetX = mx > chartCenterX ? -tooltipWidth - 12 : 12;
+        const offsetY = my > chartCenterY ? -100 : offsetX === 12 ? 12 : 24;
 
         tooltip
           .style("display", "block")
           .style("left", `${mx + offsetX}px`)
-          .style("top", `${offsetX === 12 ? my + 12 : my + 24}px`)
+          .style("top", `${offsetY + my}px`)
           .html(tooltipHTML);
       });
     });
@@ -399,7 +426,7 @@ const LineChartV2 = ({
         .attr("x", (d) => d.x)
         .attr("y", (d) => Math.max(margin.top + 6, d.y))
         .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
+        .attr("font-size", "14px")
         .attr("fill", (d) => d.color)
         .text((d) => d.text);
 
@@ -455,7 +482,7 @@ const LineChartV2 = ({
           border: "1px solid #ccc",
           padding: "8px",
           borderRadius: "4px",
-          fontSize: "12px",
+          fontSize: "14px",
           display: "none",
           zIndex: 10,
           maxWidth: "300px",
