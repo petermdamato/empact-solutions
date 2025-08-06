@@ -204,23 +204,25 @@ const RecordsTable = ({ data, selectedKey }) => {
                       }}
                       title={value}
                       onClick={(e) => {
-                        const inmateId = e.target.innerText;
+                        if (key === "Youth_ID") {
+                          const inmateId = e.target.innerText;
 
-                        // Build base URL dynamically
-                        const baseUrl = window.location.origin; // e.g., "http://localhost:3000" or "https://empact-solutions.onrender.com"
+                          // Build base URL dynamically
+                          const baseUrl = window.location.origin; // e.g., "http://localhost:3000" or "https://empact-solutions.onrender.com"
 
-                        // Determine final URL
-                        const url =
-                          !linkText.linkOut || linkText.linkOut.length === 0
-                            ? `${baseUrl}/sample-lookup?${inmateId}`
-                            : (linkText.linkOut.startsWith("http")
-                                ? ""
-                                : "http://") +
-                              linkText.linkOut +
-                              "/" +
-                              inmateId;
+                          // Determine final URL
+                          const url =
+                            !linkText.linkOut || linkText.linkOut.length === 0
+                              ? `${baseUrl}/sample-lookup?${inmateId}`
+                              : (linkText.linkOut.startsWith("http")
+                                  ? ""
+                                  : "http://") +
+                                linkText.linkOut +
+                                "/" +
+                                inmateId;
 
-                        if (url) window.open(url, "_blank");
+                          if (url) window.open(url, "_blank");
+                        }
                       }}
                     >
                       {value}

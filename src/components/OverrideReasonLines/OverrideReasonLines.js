@@ -1,14 +1,37 @@
 import React from "react";
 import * as d3 from "d3";
+import wrap from "@/utils/wrap";
 
 const rowHeight = 70;
-const margin = { top: 20, right: 40, bottom: 30, left: 240 };
+
 const labelPadding = 24;
+
+const getMaxTextWidth = (
+  labels,
+  fontSize = "12px",
+  fontFamily = "sans-serif"
+) => {
+  const svg = d3.select("body").append("svg").attr("visibility", "hidden");
+  const text = svg
+    .append("text")
+    .style("font-size", fontSize)
+    .style("font-family", fontFamily);
+  let maxWidth = 0;
+  labels.forEach((label) => {
+    text.text(label);
+    const width = text.node().getBBox().width;
+    if (width > maxWidth) maxWidth = width;
+  });
+  svg.remove();
+  return maxWidth;
+};
 
 const OverrideReasonTable = ({ data }) => {
   if (!data || Object.keys(data).length === 0) {
     return <div>No override reason data available.</div>;
   }
+
+  const xOffset = 8;
 
   const years = Object.keys(data)
     .map(Number)
@@ -22,6 +45,12 @@ const OverrideReasonTable = ({ data }) => {
   });
   const allReasons = Array.from(allReasonsSet).sort();
 
+  // Calculate dynamic margin
+  const maxLabelWidth = getMaxTextWidth(allReasons);
+  const dynamicLeftMargin = Math.max(180, maxLabelWidth + labelPadding + 20);
+  const chartWidth = dynamicLeftMargin + 200;
+  const margin = { top: 20, right: 40, bottom: 30, left: dynamicLeftMargin };
+
   const series = allReasons.map((reason) => ({
     reason,
     values: years.map((year) => {
@@ -33,7 +62,6 @@ const OverrideReasonTable = ({ data }) => {
     }),
   }));
 
-  const chartWidth = 400;
   const totalHeight = allReasons.length * rowHeight + margin.bottom;
 
   const x = d3
@@ -41,13 +69,13 @@ const OverrideReasonTable = ({ data }) => {
     .domain(d3.extent(years))
     .range([margin.left, chartWidth - margin.right]);
   return (
-    <div style={{ overflowX: "auto" }}>
+    <div style={{ overflowX: "auto", width: `${chartWidth}px` }}>
       <svg width={chartWidth} height={totalHeight}>
         <g>
           {years.map((year) => (
             <text
               key={`x-${year}`}
-              x={x(year)}
+              x={x(year) + xOffset}
               y={margin.top - 10} // position above first row's top margin
               textAnchor="middle"
               fontSize="12px"
@@ -57,8 +85,8 @@ const OverrideReasonTable = ({ data }) => {
             </text>
           ))}
           <line
-            x1={margin.left}
-            x2={chartWidth - margin.right}
+            x1={margin.left + xOffset}
+            x2={chartWidth - margin.right + xOffset}
             y1={margin.top - 5} // small offset above first row
             y2={margin.top - 5}
             stroke="#333"
@@ -80,7 +108,7 @@ const OverrideReasonTable = ({ data }) => {
           const lineGenerator = d3
             .line()
             .defined((d) => d.value > 0 && Number.isFinite(d.value))
-            .x((d) => x(d.year))
+            .x((d) => x(d.year) + xOffset)
             .y((d) => y(d.value));
 
           return (
@@ -143,7 +171,7 @@ const OverrideReasonTable = ({ data }) => {
                   Number.isFinite(d.value) && (
                     <circle
                       key={idx}
-                      cx={x(d.year)}
+                      cx={x(d.year) + xOffset}
                       cy={y(d.value)}
                       r={3}
                       opacity={d.value > 0 ? 1 : 0}
@@ -158,7 +186,7 @@ const OverrideReasonTable = ({ data }) => {
                   d.value > 0 && (
                     <text
                       key={`label-${idx}`}
-                      x={x(d.year)}
+                      x={x(d.year) + xOffset}
                       y={y(d.value) - 8}
                       textAnchor="middle"
                       fontSize="9px"

@@ -63,13 +63,14 @@ export default function Overview() {
     setFilteredData(
       datesData.filter((entry) => {
         return (
+          (selectedKey === null || entry["Override_Reason"] === selectedKey) &&
           (dstValue === null || entry["DST Recommendation"] === dstValue) &&
           (dstScoreValue === null || +entry["DST_Score"] === dstScoreValue) &&
           (decisionValue === null || entry["Intake Decision"] === decisionValue)
         );
       })
     );
-  }, [datesData, dstValue, dstScoreValue, decisionValue]);
+  }, [datesData, dstValue, dstScoreValue, decisionValue, selectedKey]);
 
   useEffect(() => {
     setTimeSeriesDataPercentage(analyzeOverridesByYear(csvData));
@@ -234,6 +235,7 @@ export default function Overview() {
                       timeSeriesDataCountByReason: timeSeriesDataCountByReason,
                     },
                   ]}
+                  selectedKey={selectedKey}
                   setSelectedKey={setSelectedKey}
                   setRecordsTableObject={setRecordsTableObject}
                 />
