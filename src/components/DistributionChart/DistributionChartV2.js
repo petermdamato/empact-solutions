@@ -214,9 +214,22 @@ const DistributionChartV2 = ({
 
   const reasonTableData =
     hoveredReason && data?.timeSeriesDataCountByReason
-      ? data.timeSeriesDataCountByReason
+      ? Object.entries(data.timeSeriesDataCountByReason).reduce(
+          (acc, [year, reasons]) => {
+            const foundKey = Object.keys(reasons).find(
+              (k) =>
+                k.trim().toLowerCase() === hoveredReason.trim().toLowerCase()
+            );
+            if (foundKey) {
+              acc[year] = { [foundKey]: reasons[foundKey] };
+            }
+            return acc;
+          },
+          {}
+        )
       : null;
 
+  console.log(data?.timeSeriesDataCountByReason, reasonTableData);
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <svg
@@ -242,7 +255,6 @@ const DistributionChartV2 = ({
             zIndex: 999,
             boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
             pointerEvents: "auto",
-            maxWidth: "400px",
           }}
         >
           <h4 style={{ margin: "0 0 8px", fontSize: "14px" }}>
