@@ -20,7 +20,7 @@ const getMinMaxDates = (data, dateAccessor) => {
 
 const DateRangeSlider = ({
   records = [],
-  dateAccessor = (d) => d.Admission_Date,
+  dateAccessor = (d) => d.Intake_Date,
   setDatesRange,
   type = "secure-detention",
 }) => {
@@ -29,8 +29,8 @@ const DateRangeSlider = ({
   const filteredData = useMemo(() => {
     return records.filter((record) =>
       type === "secure-detention"
-        ? record.Admission_Date && !isNaN(new Date(record.Admission_Date))
-        : record.ADT_Entry_Date && !isNaN(new Date(record.ADT_Entry_Date))
+        ? record.Intake_Date && !isNaN(new Date(record.Intake_Date))
+        : record.ATD_Entry_Date && !isNaN(new Date(record.ATD_Entry_Date))
     );
   }, [records, type]);
 
