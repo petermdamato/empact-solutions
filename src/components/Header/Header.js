@@ -8,6 +8,7 @@ const Header = ({
   year,
   title = "Secure Detention Utilization",
   subtitle = "Test",
+  errorMessage,
   dekWithYear,
   caption = "",
   useDropdown = false,
@@ -17,6 +18,7 @@ const Header = ({
   dropdownOptions,
   children,
   showFilterInstructions = false,
+  context,
 }) => {
   return (
     <header
@@ -42,9 +44,31 @@ const Header = ({
         <h1 style={{ margin: 0 }}>
           {title}
           {subtitle === "" ? "" : ":"}
-          <span style={{ fontWeight: "bold", marginLeft: "6px" }}>
-            {subtitle}
-          </span>
+          {context === "distribution" ? (
+            <h3
+              style={{
+                fontSize: "20px",
+                fontWeight: "bold",
+                marginLeft: "6px",
+                color: context === "distribution" ? "#941414" : "black",
+                marginRight: "0",
+                marginBottom: "0",
+                marginLeft: "0",
+                marginTop: "8px",
+              }}
+            >
+              {errorMessage}
+            </h3>
+          ) : (
+            <span
+              style={{
+                fontWeight: "bold",
+                marginLeft: "6px",
+              }}
+            >
+              {subtitle}
+            </span>
+          )}
         </h1>
         <div style={{ display: "flex" }}>
           {year ? (
@@ -61,7 +85,7 @@ const Header = ({
             </p>
           )}
         </div>
-        {caption && <span>{caption}</span>}
+        {caption && context !== "distribution" && <span>{caption}</span>}
       </div>
       {/* Middle: Dropdown */}
       {useDropdown && (

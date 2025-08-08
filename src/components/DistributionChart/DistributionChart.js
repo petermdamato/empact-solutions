@@ -1,8 +1,14 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { dateDiff } from "./../../utils/dateDiff";
 import Selector from "../Selector/Selector";
 import { useLinkOut } from "@/context/LinkOutContext";
+import { useModal } from "@/context/ModalContext";
+import Modal from "../Modal/Modal";
+import SettingsPage from "@/app/settings/page";
+import { useRouter } from "next/navigation";
 
 const getBucketForRecord = (d, filterDimension, detentionType) => {
   switch (filterDimension) {
@@ -223,6 +229,8 @@ const getMedian = (arr, detentionType) => {
 };
 
 const DistributionChart = (records) => {
+  const router = useRouter();
+  const { showSettings, setShowSettings } = useModal();
   const linkText = useLinkOut();
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({
@@ -592,14 +600,21 @@ const DistributionChart = (records) => {
                     const url =
                       !linkText.linkOut || linkText.linkOut.length === 0
                         ? `${baseUrl}/sample-lookup?${inmateId}`
-                        : (linkText.linkOut.startsWith("http")
+                        : // ? setShowSettings(true)
+                          (linkText.linkOut.startsWith("http")
                             ? ""
                             : "http://") +
                           linkText.linkOut +
                           "/" +
                           inmateId;
 
-                    if (url) window.open(url, "_blank");
+                    if (url) {
+                      if (!linkText.linkOut || linkText.linkOut.length === 0) {
+                        router.push(url);
+                      } else {
+                        window.open(url, "_blank");
+                      }
+                    }
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.setAttribute("stroke", "#000");
@@ -716,6 +731,9 @@ const DistributionChart = (records) => {
           {tooltip.content}
         </div>
       )}
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)}>
+        <SettingsPage context={"distribution"} />
+      </Modal>
     </div>
   );
 };

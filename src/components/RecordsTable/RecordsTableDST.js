@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import "./RecordsTable.css";
 import moment from "moment";
 import { useLinkOut } from "@/context/LinkOutContext";
+import { useRouter } from "next/navigation";
 
 const thBaseStyle = {
   padding: "8px",
@@ -43,6 +46,7 @@ const MIN_COL_WIDTH = 60;
 
 const intake = "Intake_Date";
 const RecordsTable = ({ data, selectedKey }) => {
+  const router = useRouter();
   const linkText = useLinkOut();
   const [columnWidths, setColumnWidths] = useState(
     columns.reduce((acc, col) => {
@@ -220,8 +224,16 @@ const RecordsTable = ({ data, selectedKey }) => {
                                 linkText.linkOut +
                                 "/" +
                                 inmateId;
-
-                          if (url) window.open(url, "_blank");
+                          if (url) {
+                            if (
+                              !linkText.linkOut ||
+                              linkText.linkOut.length === 0
+                            ) {
+                              router.push(url);
+                            } else {
+                              window.open(url, "_blank");
+                            }
+                          }
                         }
                       }}
                     >
