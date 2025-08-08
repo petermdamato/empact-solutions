@@ -21,7 +21,7 @@ export default function Overview() {
   const { csvData } = useCSV();
   const router = useRouter();
   const contentRef = useRef();
-  const [datesRange, setDatesRange] = useState(["2019-01-01", "2024-10-10"]);
+  const [datesRange, setDatesRange] = useState(["2019-01-01", "2024-12-31"]);
   const [datesData, setDatesData] = useState([]);
   const [recordsTableObject, setRecordsTableObject] = useState(false);
   const [showScores, setShowScores] = useState("show");
@@ -63,7 +63,10 @@ export default function Overview() {
     setFilteredData(
       datesData.filter((entry) => {
         return (
-          (selectedKey === null || entry["Override_Reason"] === selectedKey) &&
+          (selectedKey === null ||
+            (selectedKey === "Other" &&
+              entry["Override_Reason"].toLowerCase().includes("other")) ||
+            entry["Override_Reason"] === selectedKey) &&
           (dstValue === null || entry["DST Recommendation"] === dstValue) &&
           (dstScoreValue === null || +entry["DST_Score"] === dstScoreValue) &&
           (decisionValue === null || entry["Intake Decision"] === decisionValue)
@@ -112,7 +115,13 @@ export default function Overview() {
                 marginTop: "-16px",
               }}
             >
-              <div style={{ display: "flex", flexDirection: "column" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginTop: "25px",
+                }}
+              >
                 <h5 style={{ fontSize: "14px", margin: 0 }}>Auto Hold</h5>
                 <Selector
                   values={["all", "no", "yes"]}

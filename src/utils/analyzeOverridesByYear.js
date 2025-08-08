@@ -1,16 +1,19 @@
+import moment from "moment";
+
 export function analyzeOverridesByYear(data) {
   if (!Array.isArray(data)) return {};
 
   const groupedByYear = {};
 
   data.forEach((record) => {
-    const dateStr = record["Admission_Date"];
+    const dateStr = record["Intake_Date"];
     const score = record["DST_Score"];
     const override = record["Override_Reason"];
 
     if (!dateStr || score === null || score === "") return;
 
-    const year = new Date(dateStr).getFullYear();
+    const year = moment(dateStr).year();
+
     if (!groupedByYear[year]) {
       groupedByYear[year] = {
         totalWithScore: 0,

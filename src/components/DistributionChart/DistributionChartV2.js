@@ -229,7 +229,6 @@ const DistributionChartV2 = ({
         )
       : null;
 
-  console.log(data?.timeSeriesDataCountByReason, reasonTableData);
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <svg
