@@ -14,7 +14,7 @@ function arraysEqualUnordered(a, b) {
   return sortedA.every((val, index) => val === sortedB[index]);
 }
 
-export default function Overview() {
+export default function Overview({ context }) {
   const { linkOut, setLinkOut } = useLinkOut();
   const { selectedTags, setSelectedTags } = useTags();
 
@@ -50,7 +50,9 @@ export default function Overview() {
             title="Settings"
             subtitle=""
             caption="Update admin settings for linkout below"
+            errorMessage="You have not entered a url pointing to your detention lookup tool. Enter a url below and click save to connect these visualizations to see inmate info."
             year=""
+            context={context}
           />
           <div
             style={{
