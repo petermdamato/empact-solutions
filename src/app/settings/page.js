@@ -23,9 +23,9 @@ export default function Overview({ context }) {
 
   const options = [
     "age",
-    "category",
-    "disruption type",
-    "exit to",
+    "offense category",
+    "disruption_type",
+    "exit_to",
     "facility",
     "gender",
     "jurisdiction",

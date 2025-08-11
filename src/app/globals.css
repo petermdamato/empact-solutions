@@ -13,13 +13,96 @@
     --foreground: #ededed;
   }
 }
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+/* Hide scrollbars globally when in PDF export mode */
+body.pdf-export-mode,
+body.pdf-export-mode html,
+body.pdf-export-mode * {
+  /* Firefox */
+  scrollbar-width: none !important;
+  /* IE and Edge */
+  -ms-overflow-style: none !important;
+  /* Maintain scrolling functionality */
+  overflow: visible !important;
 }
 
+/* WebKit browsers (Chrome, Safari, Edge) */
+body.pdf-export-mode::-webkit-scrollbar,
+body.pdf-export-mode html::-webkit-scrollbar,
+body.pdf-export-mode *::-webkit-scrollbar,
+body.pdf-export-mode *::before::-webkit-scrollbar,
+body.pdf-export-mode *::after::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+/* Target specific scrollable containers that might be problematic */
+body.pdf-export-mode .overflow-auto,
+body.pdf-export-mode .overflow-scroll,
+body.pdf-export-mode .overflow-x-auto,
+body.pdf-export-mode .overflow-y-auto,
+body.pdf-export-mode [style*="overflow"],
+body.pdf-export-mode div[class*="scroll"],
+body.pdf-export-mode div[class*="overflow"] {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow: visible !important;
+}
+
+body.pdf-export-mode .overflow-auto::-webkit-scrollbar,
+body.pdf-export-mode .overflow-scroll::-webkit-scrollbar,
+body.pdf-export-mode .overflow-x-auto::-webkit-scrollbar,
+body.pdf-export-mode .overflow-y-auto::-webkit-scrollbar,
+body.pdf-export-mode [style*="overflow"]::-webkit-scrollbar,
+body.pdf-export-mode div[class*="scroll"]::-webkit-scrollbar,
+body.pdf-export-mode div[class*="overflow"]::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Force all elements to be visible for PDF */
+body.pdf-export-mode {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+body.pdf-export-mode html {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* Disable animations and transitions for PDF export */
+body.pdf-export-mode *,
+body.pdf-export-mode *::before,
+body.pdf-export-mode *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.pdf-export-mode {
+  /* Hide all scrollbars */
+  overflow: hidden !important;
+}
+
+.pdf-export-mode * {
+  /* Hide scrollbars on all child elements */
+  overflow: hidden !important;
+
+  /* Hide webkit scrollbars */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pdf-export-mode *::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Target specific containers if needed */
+.pdf-export-mode .dashboard-container,
+.pdf-export-mode .chart-container {
+  overflow: hidden !important;
+}
 body {
   color: var(--foreground);
   background: var(--background);
@@ -67,6 +150,22 @@ body.pdf-export-mode *::after {
   animation: none !important;
   transition: none !important;
 }
+
+/* Hide scrollbar for Chrome, Safari, Edge */
+.pdf-export-mode *::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.pdf-export-mode {
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Optional: ensure still scrollable */
+.pdf-export-mode {
+  overflow: auto; /* or overflow-x/y */
+}
+
 html,
 body,
 #root {
@@ -105,4 +204,8 @@ body,
 
 .css-1rju2q6-MuiButtonBase-root-MuiMenuItem-root.Mui-selected {
   background-color: rgb(90 107 124, 0.08) !important;
+}
+
+.dropdown-select-label {
+  font-size: "14px" !important;
 }

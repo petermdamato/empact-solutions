@@ -77,6 +77,7 @@ const LineChartContainerV2 = ({
               flex: 1,
               minHeight: 0, // Critical for chart sizing
               overflow: "hidden",
+              height: "100%",
             }}
           >
             <LineChartV2

@@ -4,7 +4,7 @@
   height: 100%;
   grid-template-columns: repeat(2, 1fr);
   gap: 4px;
-  padding: 20px 20px 20px 4px;
+  padding: 0 4px 0 4px;
 }
 
 .line-chart-item {
@@ -20,7 +20,6 @@
 }
 .legend-line {
   background-color: #e6e6e6;
-  margin: 20px 8px 8px 8px;
   padding: 4px 4px;
 }
 

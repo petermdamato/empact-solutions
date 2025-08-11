@@ -20,7 +20,7 @@ const menuItems = [
   {
     label: "Secure Detention",
     subItems: [
-      "Overview",
+      "Detention Overview",
       "Table",
       "Admissions",
       "Detention Screening",
@@ -34,7 +34,7 @@ const menuItems = [
   {
     label: "Alternatives to Detention",
     subItems: [
-      "ATD Snapshot",
+      "ATD Overview",
       "ATD Table",
       "ATD Entries",
       "ATD Exits",
@@ -231,12 +231,15 @@ const Sidebar = () => {
             className="sidebar-logo"
             src="/logo.png"
             alt="Empact Solutions Logo"
+            style={{ height: "72px", width: "auto" }}
           />
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               paddingTop: "14px",
+              fontSize: "12px",
+              color: "#979ca4",
             }}
           >
             <p>
@@ -257,12 +260,13 @@ const Sidebar = () => {
                     <li>Final ADP Formula developed</li>
                     <li>Hover charts for ATD Exits</li>
                     <li>Final year mark for explore trends charts</li>
+                    <li>Bar charts left aligned across pages</li>
                   </ul>
                 </div>
               }
               arrow
             >
-              <p className="version">Version: July 2025</p>
+              <p className="version">Version: August 2025</p>
             </Tooltip>
           </div>
         </div>

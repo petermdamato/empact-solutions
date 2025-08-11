@@ -51,6 +51,7 @@ const StackedBarChartGeneric = (props) => {
     wrapWidth = 106,
     maxLabelWidth,
     setMaxLabelWidth,
+    offset = 0,
   } = props;
 
   const key = groupByKey === "Disruption Type" ? "Disruption_Type" : groupByKey;
@@ -163,7 +164,9 @@ const StackedBarChartGeneric = (props) => {
       .append("g")
       .attr(
         "transform",
-        `translate(${localMargin.left},${hasSelector ? -10 : margin.top})`
+        `translate(${localMargin.left},${
+          hasSelector ? -10 + offset * -1 : margin.top
+        })`
       );
 
     const colors = d3.schemeCategory10;
@@ -291,13 +294,25 @@ const StackedBarChartGeneric = (props) => {
     });
 
     if (!hasSelector && !compact) {
-      chart
+      const titleText = chart
         .append("text")
         .attr("x", -localMargin.left + 6)
         .attr("y", -8)
-        .text(chartTitle)
         .style("font-size", 16)
-        .style("font-weight", "bold");
+        .style("font-weight", "bold")
+        .text(chartTitle);
+
+      // Check width and trim if necessary
+      if (titleText.node().getComputedTextLength() > parentWidth) {
+        let text = chartTitle;
+        while (
+          titleText.node().getComputedTextLength() > parentWidth &&
+          text.length
+        ) {
+          text = text.slice(0, -1);
+          titleText.text(text + "…");
+        }
+      }
     }
 
     // --- Y-axis ---

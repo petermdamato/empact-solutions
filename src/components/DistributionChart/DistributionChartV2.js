@@ -7,13 +7,26 @@ const DistributionChartV2 = ({
   height,
   setSelectedKey,
   setRecordsTableObject,
+  toggleFilter,
+  filterVariable,
 }) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height });
   const [hoveredReason, setHoveredReason] = useState(null);
+  const [leftWidth, setLeftWidth] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [tooltipVisible, setTooltipVisible] = useState(false);
+
+  const handleClick = (d) => {
+    const key = "Override_Reason";
+    const selectedValue = d[key];
+    const currentKey = Object.keys(filterVariable || {})[0];
+    const currentValue = filterVariable?.[currentKey];
+    const isSameSelection =
+      currentKey === key && currentValue === selectedValue;
+    toggleFilter(isSameSelection ? null : { key: key, value: selectedValue });
+  };
 
   const handleClickFilteredData = (key) => {
     setSelectedKey(key);
@@ -182,10 +195,11 @@ const DistributionChartV2 = ({
         .attr("fill", "#5a6b7c")
         .on("mouseenter", () => {
           const containerBox = containerRef.current.getBoundingClientRect();
+
           setHoveredReason(d[groupKey]);
           setTooltipVisible(true);
           setTooltipPosition({
-            x: containerBox.left + xPos + x.bandwidth() / 2,
+            x: containerBox.left + xPos + 5 - (leftWidth > 40 ? 10 : 0),
             y: containerBox.top + yPos,
           });
         })
@@ -198,7 +212,8 @@ const DistributionChartV2 = ({
               setHoveredReason(null);
             }
           });
-        });
+        })
+        .on("click", () => handleClick(d));
 
       chart
         .append("text")
@@ -210,7 +225,7 @@ const DistributionChartV2 = ({
         .attr("fill", "#333")
         .text(d.total);
     });
-  }, [data, dimensions]);
+  }, [data, dimensions, leftWidth]);
 
   const reasonTableData =
     hoveredReason && data?.timeSeriesDataCountByReason
@@ -274,7 +289,10 @@ const DistributionChartV2 = ({
               View Records
             </a>
           </h4>
-          <OverrideReasonTable data={reasonTableData} />
+          <OverrideReasonTable
+            data={reasonTableData}
+            setLeftWidth={setLeftWidth}
+          />
         </div>
       )}
     </div>

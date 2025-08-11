@@ -1,45 +1,44 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import * as d3 from "d3";
 import EnhancedTooltip from "@/components/EnhancedTooltip/EnhancedTooltip";
 import "./PieChart.css";
 
 const PieChart = ({
   records = [],
-  size = 280,
+  size,
   chartTitle = "Pie Chart",
   groupByKey,
   toggleFilter,
   filterVariable,
   detentionType = "secure-detention",
+  offset = 0,
 }) => {
-  const containerRef = useRef();
-  const [containerSize, setContainerSize] = useState({
-    width: size,
-    height: size,
-  });
+  // Watch container size
+  const containerWidth = size;
+  const containerHeight = size;
 
-  useEffect(() => {
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setContainerSize({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        });
-      }
-    });
+  // Margins stay constant
+  const margin = { top: 6, right: 4, bottom: 6, left: 4 };
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+  // Recompute radius + arcs when size changes
+  const { radius, arcGen, outerArc } = useMemo(() => {
+    const width = containerWidth - margin.left - margin.right + 80;
+    const height = containerHeight - margin.top - margin.bottom;
+    const radius = Math.min(width, height) / 2 - 30;
 
-    return () => {
-      if (containerRef.current) observer.unobserve(containerRef.current);
+    return {
+      radius,
+      arcGen: d3
+        .arc()
+        .innerRadius(0)
+        .outerRadius(radius - 10),
+      outerArc: d3
+        .arc()
+        .innerRadius(radius + 4)
+        .outerRadius(radius + 4),
     };
-  }, []);
-  const margin = { top: 24, right: 4, bottom: 28, left: 4 };
-  const width = containerSize.width - margin.left - margin.right + 80;
-  const height = containerSize.height - margin.top - margin.bottom;
-  const radius = Math.min(width, height) / 2 - 10;
+  }, [size, margin]);
+
   const color =
     detentionType === "secure-detention"
       ? ["#5a6b7c", "#d5d5d5", "#979ca4"]
@@ -50,16 +49,10 @@ const PieChart = ({
   const [tooltipData, setTooltipData] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
-  const pieData = d3.pie().value((d) => d.value)(records || []);
-  const arcGen = d3
-    .arc()
-    .innerRadius(0)
-    .outerRadius(radius - 10);
-
-  const outerArc = d3
-    .arc()
-    .innerRadius(radius + 4)
-    .outerRadius(radius + 4);
+  const pieData = useMemo(
+    () => d3.pie().value((d) => d.value)(records || []),
+    [records]
+  );
 
   useEffect(() => {
     if (!records || records.length === 0) return;
@@ -77,7 +70,7 @@ const PieChart = ({
           });
       }
     });
-  }, [records]);
+  }, [records, size, arcGen, pieData]);
 
   useEffect(() => {
     if (!records || records.length === 0) return;
@@ -136,9 +129,9 @@ const PieChart = ({
   };
 
   return (
-    <div className="p-4 bg-white rounded-2xl shadow-md inline-block relative">
+    <>
       <div
-        className="text-center mb-2"
+        className="text-center"
         style={{ marginLeft: "4px", fontSize: "16px" }}
       >
         <strong>{chartTitle}</strong>
@@ -147,19 +140,20 @@ const PieChart = ({
       (records.length > 1 || (records.length === 1 && records[0].value > 0)) ? (
         <>
           <div
-            ref={containerRef}
             className="centered-chart"
             style={{ width: "100%", height: "100%" }}
           >
             <svg
               ref={svgRef}
-              width={width + margin.left + margin.right}
-              height={height + margin.top + margin.bottom}
+              width={containerWidth + margin.left + margin.right}
+              height={containerHeight + margin.top + margin.bottom}
             >
               <g
                 transform={`translate(${
-                  (width + margin.left + margin.right) / 2
-                }, ${(height + margin.top + margin.bottom) / 2})`}
+                  (containerWidth + margin.left + margin.right) / 2
+                }, ${
+                  (containerHeight + margin.top + margin.bottom) / 2 - offset
+                })`}
               >
                 {(() => {
                   const usedLabelAngles = [];
@@ -278,7 +272,7 @@ const PieChart = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

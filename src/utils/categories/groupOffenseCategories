@@ -1,0 +1,32 @@
+export const groupOffenseCategories = (data) => {
+  const result = {
+    Felonies: {},
+    Misdemeanors: {},
+    "Status Offense": {},
+    Technicals: {},
+  };
+
+  for (const [label, counts] of Object.entries(data)) {
+    let group;
+    const lower = label.toLowerCase();
+
+    if (lower.includes("felony")) {
+      group = "Felonies";
+    } else if (lower.includes("misdemeanor")) {
+      group = "Misdemeanors";
+    } else if (label.toLowerCase() === "status offense") {
+      group = "Status Offense";
+    } else {
+      group = "Technicals";
+    }
+
+    if (!result[group]) result[group] = {};
+
+    // Sum counts into group-level counts
+    for (const [dispo, count] of Object.entries(counts)) {
+      result[group][dispo] = (result[group][dispo] || 0) + count;
+    }
+  }
+
+  return result;
+};

@@ -24,6 +24,7 @@ export default function Overview() {
   const [datesRange, setDatesRange] = useState(["2019-01-01", "2024-12-31"]);
   const [datesData, setDatesData] = useState([]);
   const [recordsTableObject, setRecordsTableObject] = useState(false);
+  const [filterVariables, setFilterVariable] = useState([]);
   const [showScores, setShowScores] = useState("show");
   const [xKey, setXKey] = useState("DST Recommendation");
   const [filteredData, setFilteredData] = useState(datesData);
@@ -38,10 +39,35 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/upload");
+      router.push("/detention-overview");
     }
   }, [csvData, router]);
 
+  // Add keydown event handler
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setFilterVariable([]);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const toggleFilter = (newFilter) => {
+    setFilterVariable((prev) => {
+      const exists = prev.find((f) => f.key === newFilter.key);
+      if (exists) {
+        return prev.filter((f) => f.key !== newFilter.key);
+      } else {
+        return [...prev, newFilter];
+      }
+    });
+  };
   useEffect(() => {
     const autoholdVal = autohold === "no" ? 0 : 1;
 
@@ -60,20 +86,44 @@ export default function Overview() {
   }, [datesRange, csvData, autohold, dstValue, dstScoreValue, decisionValue]);
 
   useEffect(() => {
-    setFilteredData(
-      datesData.filter((entry) => {
-        return (
-          (selectedKey === null ||
-            (selectedKey === "Other" &&
-              entry["Override_Reason"].toLowerCase().includes("other")) ||
-            entry["Override_Reason"] === selectedKey) &&
-          (dstValue === null || entry["DST Recommendation"] === dstValue) &&
-          (dstScoreValue === null || +entry["DST_Score"] === dstScoreValue) &&
-          (decisionValue === null || entry["Intake Decision"] === decisionValue)
-        );
-      })
-    );
-  }, [datesData, dstValue, dstScoreValue, decisionValue, selectedKey]);
+    let filteredData = [...datesData];
+
+    if (filterVariables.length > 0) {
+      filterVariables.forEach(({ key, value }) => {
+        if (key === "Auto_Hold") {
+          const label = value === "no" ? "0" : "1";
+          filteredData = filteredData.filter((record) => record[key] === label);
+        } else if (key === "Override_Reason") {
+          filteredData = filteredData.filter((record) =>
+            record[key].includes(value)
+          );
+        } else {
+          filteredData = filteredData.filter((record) => record[key] === value);
+        }
+      });
+    }
+
+    filteredData = filteredData.filter((entry) => {
+      return (
+        (selectedKey === null ||
+          (selectedKey === "Other" &&
+            entry["Override_Reason"]?.toLowerCase().includes("other")) ||
+          entry["Override_Reason"] === selectedKey) &&
+        (dstValue === null || entry["DST Recommendation"] === dstValue) &&
+        (dstScoreValue === null || +entry["DST_Score"] === dstScoreValue) &&
+        (decisionValue === null || entry["Intake Decision"] === decisionValue)
+      );
+    });
+
+    setFilteredData(filteredData);
+  }, [
+    datesData,
+    dstValue,
+    dstScoreValue,
+    decisionValue,
+    selectedKey,
+    filterVariables,
+  ]);
 
   useEffect(() => {
     setTimeSeriesDataPercentage(analyzeOverridesByYear(csvData));
@@ -247,10 +297,11 @@ export default function Overview() {
                   selectedKey={selectedKey}
                   setSelectedKey={setSelectedKey}
                   setRecordsTableObject={setRecordsTableObject}
+                  toggleFilter={toggleFilter}
                 />
 
                 <Heatmap
-                  data={datesData}
+                  data={filteredData}
                   xKey={xKey}
                   yKey="Intake Decision"
                   datesRange={datesRange}

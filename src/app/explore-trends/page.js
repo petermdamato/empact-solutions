@@ -49,10 +49,26 @@ export default function Overview() {
   const [programTypeArray] = useState(["All Program Types"]);
   const [labelsArray] = useState(["Hide", "Show"]);
   const [selectedLabelsChoice, setSelectedLabelsChoice] = useState("Hide");
+  const [windowHeight, setWindowHeight] = useState(0);
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    // Set initial height
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/overview");
+      router.push("/detention-overview");
     }
   }, [csvData, router]);
 
@@ -185,16 +201,22 @@ export default function Overview() {
             style={{
               display: "flex",
               flexDirection: "column",
-              maxHeight: "800px",
+              height: `${windowHeight - 100}px`,
             }}
           >
             {/* Top Row */}
             <div
-              style={{ display: "flex", width: "100%", flex: 1, minHeight: 0 }}
+              style={{
+                display: "flex",
+                height: `${(windowHeight - 50) / 2}px`,
+                width: "100%",
+                flex: 1,
+                minHeight: 0,
+              }}
             >
               <div
                 className="legend-line"
-                style={{ flex: 1, maxWidth: "260px" }}
+                style={{ flex: 1, height: "100%", maxWidth: "260px" }}
               >
                 <Selector
                   values={[
@@ -239,10 +261,11 @@ export default function Overview() {
             {/* Bottom Row */}
             <div
               style={{
+                display: "flex",
+                height: `${(windowHeight - 50) / 2}px`,
+                width: "100%",
                 flex: 1,
                 minHeight: 0,
-                height: "100%",
-                width: "100%",
               }}
             >
               <LineChartContainerV2

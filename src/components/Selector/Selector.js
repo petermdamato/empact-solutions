@@ -17,12 +17,11 @@ const Selector = ({
   if (!values || values.length === 0) return null;
 
   return (
-    <div className="flex flex-col">
-      <label className="mb-1 text-gray-600 text-lg font-normal">
-        {variable !== "calc" &&
-          variable !== "Show Labels" &&
-          variable !== "Explore" &&
-          "Select"}{" "}
+    <div className="flex flex-col" style={{ marginLeft: "8px" }}>
+      <label
+        className="mb-1 dropdown-select-label"
+        style={{ fontSize: "14px" }}
+      >
         {variable === "calc" ? "" : variable}
       </label>
       <div className="relative w-48">

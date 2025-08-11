@@ -22,7 +22,7 @@ const LineChartV2 = ({
   const svgRef = useRef();
   const containerRef = useRef();
   const pathname = usePathname();
-  const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
+  const [dimensions, setDimensions] = useState({ width: 0, height: 120 });
   const [renderKey, setRenderKey] = useState(0);
   const [finalDate, setFinalDate] = useState(null);
   const [isFullYear, setIsFullYear] = useState(null);
@@ -57,9 +57,9 @@ const LineChartV2 = ({
     if (!containerRef.current) return;
 
     const measure = () => {
-      const width = containerRef.current.clientWidth;
-      if (width !== dimensions.width) {
-        setDimensions({ width, height: 300 });
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      if (width !== dimensions.width || height !== dimensions.height) {
+        setDimensions({ width, height });
       }
       if (!isInitialized) setIsInitialized(true);
     };
@@ -80,11 +80,12 @@ const LineChartV2 = ({
       clearTimeout(timeout1);
       clearTimeout(timeout2);
     };
-  }, [dimensions.width, isInitialized]);
+  }, [dimensions.width, dimensions.height, isInitialized]);
 
   useEffect(() => {
     if (!isInitialized || !data || !metric || !selectedLegendDetails?.length)
       return;
+    if (dimensions.height === 0 || dimensions.width === 0) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll(".chart-content").remove();
@@ -92,13 +93,11 @@ const LineChartV2 = ({
     const margin =
       labels === "Show"
         ? { top: 30, right: 20, bottom: 40, left: 64 }
-        : { top: 10, right: 12, bottom: 40, left: 52 };
+        : { top: 10, right: 14, bottom: 40, left: 52 };
     const { width, height } = dimensions;
 
-    svg
-      .attr("width", width + (labels === "Show" ? 0 : 4))
-      .attr("height", height)
-      .attr("viewBox", `0 0 ${width + (labels === "Show" ? 0 : 4)} ${height}`);
+    // Set explicit width and height on SVG
+    svg.attr("width", width).attr("height", height);
 
     const chartGroup = svg.append("g").attr("class", "chart-content");
 
@@ -460,7 +459,6 @@ const LineChartV2 = ({
       style={{
         width: "100%",
         height: "100%",
-        minHeight: "320px",
         position: "relative",
       }}
     >

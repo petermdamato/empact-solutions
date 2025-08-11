@@ -30,7 +30,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/overview");
+      router.push("/detention-overview");
     }
   }, [csvData, router]);
 
