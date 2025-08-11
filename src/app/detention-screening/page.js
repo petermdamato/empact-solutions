@@ -302,6 +302,7 @@ export default function Overview() {
 
                 <Heatmap
                   data={filteredData}
+                  dataSkeleton={datesData}
                   xKey={xKey}
                   yKey="Intake Decision"
                   datesRange={datesRange}
