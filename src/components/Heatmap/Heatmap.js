@@ -4,6 +4,7 @@ import Button from "@mui/material/Button";
 
 const Heatmap = ({
   data,
+  dataSkeleton,
   xKey,
   yKey,
   datesRange,
@@ -19,7 +20,7 @@ const Heatmap = ({
   setRecordsTableObject,
 }) => {
   const { xLabels, yLabels, counts, maxCount, min, max } = useMemo(() => {
-    if (!data || data.length === 0) {
+    if (!dataSkeleton || dataSkeleton.length === 0) {
       return {
         xLabels: [],
         yLabels: [],
@@ -30,6 +31,23 @@ const Heatmap = ({
       };
     }
 
+    const xSet = new Set();
+    const ySet = new Set();
+
+    dataSkeleton.forEach((item) => {
+      let x = item[xKey];
+      if (showScores && xKey === "DST_Score") {
+        x = parseInt(x, 10);
+        if (x >= 100) {
+          x = Math.floor(x / 100) * 100;
+        }
+      }
+      const y = item[yKey];
+      xSet.add(x);
+      ySet.add(y);
+    });
+
+    const countMap = {};
     const dates = datesRange.map((date) => new Date(date));
     const filtered = data.filter((entry) => {
       const hasScore = entry[xKey] !== undefined && entry[xKey] !== "";
@@ -42,10 +60,6 @@ const Heatmap = ({
       );
     });
 
-    const countMap = {};
-    const xSet = new Set();
-    const ySet = new Set();
-
     filtered.forEach((item) => {
       let x = item[xKey];
       if (showScores && xKey === "DST_Score") {
@@ -55,16 +69,9 @@ const Heatmap = ({
         }
       }
       const y = item[yKey];
-      xSet.add(x);
-      ySet.add(y);
       const key = `${x}|${y}`;
       countMap[key] = (countMap[key] || 0) + 1;
     });
-
-    const min = Math.min(...filtered.map((entry) => entry["DST_Score"]));
-    const maxForBreaks = Math.max(
-      ...filtered.map((entry) => entry["DST_Score"])
-    );
 
     const yOrder = ["Released", "Released with Conditions", "Detained"];
     let yLabels = Array.from(ySet).sort((a, b) => {
@@ -83,6 +90,19 @@ const Heatmap = ({
       xLabels = Array.from(xSet).sort((a, b) => a - b);
     }
 
+    xLabels.forEach((x) => {
+      yLabels.forEach((y) => {
+        const key = `${x}|${y}`;
+        if (!(key in countMap)) countMap[key] = 0;
+      });
+    });
+
+    const minVal = Math.min(
+      ...filtered.map((entry) => entry["DST_Score"] || 0)
+    );
+    const maxForBreaks = Math.max(
+      ...filtered.map((entry) => entry["DST_Score"] || 0)
+    );
     const max = Math.max(...Object.values(countMap), 0);
 
     return {
@@ -90,10 +110,10 @@ const Heatmap = ({
       yLabels,
       counts: countMap,
       maxCount: max,
-      min: min + 2,
+      min: minVal + 2,
       max: maxForBreaks,
     };
-  }, [data, xKey, yKey, datesRange, showScores]);
+  }, [dataSkeleton, data, xKey, yKey, datesRange, showScores]);
 
   if (
     !data ||
