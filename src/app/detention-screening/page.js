@@ -17,6 +17,15 @@ import moment from "moment";
 import { useEffect, useState, useRef } from "react";
 import "./styles.css";
 
+const bucketScore = (score) => {
+  const num = parseInt(score, 10);
+  if (isNaN(num)) return score;
+  if (num >= 100) {
+    return Math.floor(num / 100) * 100;
+  }
+  return num;
+};
+
 export default function Overview() {
   const { csvData } = useCSV();
   const router = useRouter();
@@ -104,13 +113,21 @@ export default function Overview() {
     }
 
     filteredData = filteredData.filter((entry) => {
+      // Apply bucketing to DST_Score comparison
+      const entryScore = entry["DST_Score"] ? +entry["DST_Score"] : null;
+      const bucketedEntryScore =
+        entryScore !== null ? bucketScore(entryScore) : null;
+      const bucketedSelectedScore =
+        dstScoreValue !== null ? bucketScore(dstScoreValue) : null;
+
       return (
         (selectedKey === null ||
           (selectedKey === "Other" &&
             entry["Override_Reason"]?.toLowerCase().includes("other")) ||
           entry["Override_Reason"] === selectedKey) &&
         (dstValue === null || entry["DST Recommendation"] === dstValue) &&
-        (dstScoreValue === null || +entry["DST_Score"] === dstScoreValue) &&
+        (dstScoreValue === null ||
+          bucketedEntryScore === bucketedSelectedScore) &&
         (decisionValue === null || entry["Intake Decision"] === decisionValue)
       );
     });
@@ -124,7 +141,6 @@ export default function Overview() {
     selectedKey,
     filterVariables,
   ]);
-
   useEffect(() => {
     setTimeSeriesDataPercentage(analyzeOverridesByYear(csvData));
     setTimeSeriesDataCountByReason(analyzeOverridesByReasonByYear(csvData));

@@ -2,6 +2,15 @@ import React, { useMemo } from "react";
 import "./Heatmap.css";
 import Button from "@mui/material/Button";
 
+const bucketScore = (score) => {
+  const num = parseInt(score, 10);
+  if (isNaN(num)) return score;
+  if (num >= 100) {
+    return Math.floor(num / 100) * 100;
+  }
+  return num;
+};
+
 const Heatmap = ({
   data,
   dataSkeleton,
@@ -53,20 +62,18 @@ const Heatmap = ({
       const hasScore = entry[xKey] !== undefined && entry[xKey] !== "";
       const hasDecision = entry[yKey] !== undefined && entry[yKey] !== "";
 
-      let score = entry[xKey];
-      if (showScores && xKey === "DST_Score") {
-        score = parseInt(score, 10);
-        if (score >= 100) {
-          score = Math.floor(score / 100) * 100;
-        }
-      }
+      // Apply bucketing to both the entry score and the selected value
+      const bucketedScore = bucketScore(entry[xKey]);
+      const bucketedSelectedScore =
+        dstScoreValue !== null ? bucketScore(dstScoreValue) : null;
 
       return (
         hasScore &&
         hasDecision &&
         new Date(entry.Intake_Date) <= dates[1] &&
         new Date(entry.Intake_Date) >= dates[0] &&
-        (dstScoreValue === null || score === dstScoreValue) &&
+        (bucketedSelectedScore === null ||
+          bucketedScore === bucketedSelectedScore) &&
         (decisionValue === null || entry[yKey] === decisionValue)
       );
     });
@@ -364,13 +371,17 @@ const Heatmap = ({
                                 setDecisionValue(y);
                               }
                             } else if (showScores === "show") {
-                              if (x === dstScoreValue && y === decisionValue) {
+                              const clickedScore = bucketScore(x); // Apply bucketing to the clicked value
+                              if (
+                                clickedScore === dstScoreValue &&
+                                y === decisionValue
+                              ) {
                                 setDstScoreValue(null);
                                 setDecisionValue(null);
                                 setDstValue(null);
                               } else {
                                 setDstValue(null);
-                                setDstScoreValue(x);
+                                setDstScoreValue(clickedScore); // Store the bucketed value
                                 setDecisionValue(y);
                               }
                             }
