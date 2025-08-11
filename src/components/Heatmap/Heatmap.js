@@ -52,11 +52,22 @@ const Heatmap = ({
     const filtered = data.filter((entry) => {
       const hasScore = entry[xKey] !== undefined && entry[xKey] !== "";
       const hasDecision = entry[yKey] !== undefined && entry[yKey] !== "";
+
+      let score = entry[xKey];
+      if (showScores && xKey === "DST_Score") {
+        score = parseInt(score, 10);
+        if (score >= 100) {
+          score = Math.floor(score / 100) * 100;
+        }
+      }
+
       return (
         hasScore &&
         hasDecision &&
         new Date(entry.Intake_Date) <= dates[1] &&
-        new Date(entry.Intake_Date) >= dates[0]
+        new Date(entry.Intake_Date) >= dates[0] &&
+        (dstScoreValue === null || score === dstScoreValue) &&
+        (decisionValue === null || entry[yKey] === decisionValue)
       );
     });
 
