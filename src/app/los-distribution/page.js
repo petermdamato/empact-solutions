@@ -37,7 +37,7 @@ export default function Overview() {
     if (!router) return; // router not yet mounted
 
     if (!csvData || csvData.length === 0) {
-      router.push("/overview");
+      router.push("/detention-overview");
     }
   }, [csvData, router]);
 

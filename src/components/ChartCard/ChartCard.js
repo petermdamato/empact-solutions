@@ -4,7 +4,6 @@ const ChartCard = ({ title, width, children }) => {
   return (
     <div
       className="bg-white rounded-2xl shadow p-4"
-      width="200px"
       style={{
         marginTop: "8px",
         padding: "12px 4px",

@@ -22,7 +22,7 @@ export default function SignInPage() {
     if (result?.status !== 200) {
       setError("Wrong email/password combination");
     } else {
-      window.location.href = "/overview"; // Redirect after successful login
+      window.location.href = "/detention-overview"; // Redirect after successful login
     }
   };
 

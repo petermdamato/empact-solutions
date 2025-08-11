@@ -15,8 +15,8 @@ import {
   aggregateMedianByOffense,
   aggregatePopulationByOffense,
 } from "@/utils";
-import { isLeapYear } from "date-fns";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
+import { isLeapYear } from "date-fns";
 
 export default function Overview() {
   const { csvData } = useCSV();
@@ -26,7 +26,7 @@ export default function Overview() {
   const [dataArray2, setDataArray2] = useState([]);
   const [dataArray3, setDataArray3] = useState([]);
   const [dataArray4, setDataArray4] = useState([]);
-  const [detentionType] = useState("secure-detention");
+  const [detentionType] = useState("alternative-to-detention");
   const [calculation, setCalculation] = useState("Average LOS");
   const [selectedYear, setSelectedYear] = useState(2024);
   const [yearsArray, setYearsArray] = useState([]);
@@ -65,7 +65,15 @@ export default function Overview() {
       aggregateByGender(csvData, selectedYear, detentionType),
       aggregateByRace(csvData, selectedYear, detentionType),
     ]);
-    const statusData = aggregateByOffense(csvData, selectedYear, detentionType);
+    let statusData = aggregateByOffense(
+      csvData,
+      selectedYear,
+      detentionType,
+      "OffenseCategory"
+    );
+    statusData.results = statusData.results.filter(
+      (entry) => entry.post + entry.pre > 0
+    );
     const columnAgg = statusData.results.reduce(
       (acc, curr) => {
         acc.post += curr.post;
@@ -128,9 +136,11 @@ export default function Overview() {
         return payload;
       }
     );
+
     setDataArray3(
       calculation.toLowerCase().includes("average")
         ? [
+            // The statistic and change stat calculations (currently only average)
             [
               Math.round(
                 ((columnAggCalculations.daysPre +
@@ -141,7 +151,7 @@ export default function Overview() {
               statusDataCalculations.previousPeriodCount,
             ],
             // The statistic and change stat calculations (currently only mapped as average)
-            ["pre", "post"].map((key) => ({
+            ["post", "pre"].map((key) => ({
               label: key === "pre" ? "Pre-dispo" : "Post-dispo",
               value: columnAggCalculations[key],
               days: columnAggCalculations[
@@ -161,7 +171,8 @@ export default function Overview() {
               statusDataMedian.overall.all.median,
               statusDataMedian.previousPeriod.median,
             ],
-            ["pre", "post"].map((key) => ({
+            // The statistic and change stat calculations (currently only mapped as average)
+            ["post", "pre"].map((key) => ({
               label: key === "pre" ? "Pre-dispo" : "Post-dispo",
               value: statusDataMedian.overall[key].count,
               days: statusDataMedian.overall[key].median,
@@ -178,7 +189,12 @@ export default function Overview() {
     const statusDataPopulation = aggregatePopulationByOffense(
       csvData,
       selectedYear,
-      detentionType
+      detentionType,
+      "OffenseCategory"
+    );
+
+    statusDataPopulation.results = statusDataPopulation.results.filter(
+      (entry) => entry.post + entry.pre > 0
     );
 
     const columnAggPopulations = statusDataPopulation.results.reduce(
@@ -197,7 +213,7 @@ export default function Overview() {
         ) / 10,
         statusDataPopulation.previousPeriodCount,
       ],
-      ["pre", "post"].map((key) => ({
+      ["post", "pre"].map((key) => ({
         label: key === "pre" ? "Pre-dispo" : "Post-dispo",
         value: columnAggPopulations[key],
         days: isLeapYear(selectedYear) ? 366 : 365,
@@ -211,39 +227,35 @@ export default function Overview() {
   }, [csvData, selectedYear, calculation]);
 
   return (
-    <div className="max-w-xl mx-auto mt-10" style={{ height: "100vh" }}>
-      <div style={{ display: "flex", height: "100%" }}>
-        <Sidebar /> {/* Sidebar will take full height of parent */}
+    <div className="max-w-xl mx-auto mt-10">
+      <div style={{ display: "flex" }}>
+        <Sidebar />
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             flexGrow: 1,
-            minWidth: 0,
-            overflowY: "auto", // enables scrolling
-            maxHeight: "100vh", // ensures it doesn't exceed viewport
+            flexDirection: "column",
+            overflowY: "auto",
           }}
           ref={contentRef}
         >
           <Header
-            title="Secure Detention Utilization"
-            subtitle="Snapshot"
+            title="ATD Utilization"
+            subtitle="Overview"
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}
-            year={selectedYear}
             useDropdown
-            useLegendStatic
+            year={selectedYear}
           >
+            {" "}
             <DownloadButton
               elementRef={contentRef}
-              filename={`secure-detention-${selectedYear}-overview.pdf`}
+              filename={`alternative-to-detention-overview-${selectedYear}.pdf`}
             />
           </Header>
-
-          <div style={{ display: "flex", justifyContent: "space-around" }}>
-            {csvData && csvData.length > 0 ? (
-              dataArray1 &&
+          <div>
+            {dataArray1 &&
               dataArray1.length > 0 &&
               dataArray2 &&
               dataArray2.length > 0 &&
@@ -254,18 +266,18 @@ export default function Overview() {
                 <PillContainer
                   data={[
                     {
-                      title: "Population",
+                      title: "ATD Population",
                       subtitle:
-                        "Showing all youth who were in detention during time period",
+                        "Showing all youth who were in an ATD during the time period",
                       data: dataArray1,
                       charts: ["stacked-bar", "stacked-bar"],
                       chartTitles: [
-                        "Population by gender",
-                        "Population by race/ethnicity",
+                        "Entries by gender",
+                        "Entries by race/ethnicity",
                       ],
                     },
                     {
-                      title: "Admissions",
+                      title: "Entries",
                       data: dataArray2,
                       charts: ["change", "column", "stacked-bar"],
                       chartTitles: ["Total admissions", "", ""],
@@ -275,7 +287,7 @@ export default function Overview() {
                       data: dataArray3,
                       charts: ["change", "column", "stacked-bar"],
                       chartTitles: ["Days", "", ""],
-                      contexts: ["releases", "releases", "releases"],
+                      contexts: ["exits", "exits", "exits"],
                       useDropdown: true,
                       dropdownOptions: ["Average LOS", "Median LOS"],
                       dropdownValue: calculation,
@@ -290,22 +302,7 @@ export default function Overview() {
                     },
                   ]}
                 />
-              )
-            ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "400px",
-                  justifyContent: "space-around",
-                }}
-              >
-                <div>
-                  Use the upload functionality in the top left to upload data
-                  for view
-                </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       </div>

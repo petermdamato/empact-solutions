@@ -7,7 +7,7 @@ import Header from "@/components/Header/Header";
 import ChangeStatistics from "@/components/ChangeStatistics/ChangeStatistics";
 import StackedBarChartGeneric from "@/components/StackedBar/StackedBarChartGeneric";
 import ChartCard from "@/components/ChartCard/ChartCard";
-import PieChart from "@/components/PieChart/PieChartV3";
+import PieChart from "@/components/PieChart/PieChartV2";
 import ZipMap from "@/components/ZipMap/ZipMap";
 import Selector from "@/components/Selector/Selector";
 import { useCSV } from "@/context/CSVContext";
@@ -27,6 +27,7 @@ import {
   categorizeAge,
   categorizeYoc,
 } from "@/utils/categories";
+import { calculateColumnHeightsStandard } from "@/utils/calculateColumnHeights";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import "./styles.css";
 
@@ -70,9 +71,42 @@ export default function Overview() {
   const [showMap, setShowMap] = useState(false);
   const [persistMap, setPersistMap] = useState(false);
 
+  const [windowHeight, setWindowHeight] = useState(0);
+  const columnConstants = {
+    column1: [0, 286, 286],
+    column2: [270, 180, 200],
+    column3: [160, 260, 230],
+  };
+  const [columnHeights, setColumnHeights] = useState(columnConstants);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    // Set initial height
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Update chart heights when window height changes
+  useEffect(() => {
+    if (windowHeight > 0) {
+      setColumnHeights(
+        calculateColumnHeightsStandard(windowHeight - 20, columnConstants)
+      );
+    }
+  }, [windowHeight, calculateColumnHeightsStandard]);
+
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/overview");
+      router.push("/detention-overview");
     }
   }, [csvData, router]);
 
@@ -125,6 +159,8 @@ export default function Overview() {
           filtered = filtered.filter(
             (record) => categorizeAge(record, incarcerationType) === value
           );
+        } else if (key === "Program Type") {
+          filtered = filtered.filter((record) => record["Facility"] === value);
         } else if (
           key === "Gender" ||
           key === "Screened/not screened" ||
@@ -137,10 +173,10 @@ export default function Overview() {
               chooseCategoryAligned(record, key).toLowerCase() ===
               value.toLowerCase()
           );
-        } else if (key === "Category") {
+        } else if (key === "Offense Category") {
           filtered = filtered.filter(
             (record) =>
-              chooseCategoryAligned(record, key).toLowerCase() ===
+              chooseCategoryAligned(record, "Category").toLowerCase() ===
               value.toLowerCase()
           );
         } else if (key === "Pre/post-dispo filter") {
@@ -490,6 +526,7 @@ export default function Overview() {
           flexDirection: "column",
           overflow: "auto",
         }}
+        ref={contentRef}
       >
         {/* Header */}
         <div
@@ -530,17 +567,16 @@ export default function Overview() {
         </div>
 
         {/* Charts */}
-        <div
-          style={{ display: "flex", gap: "24px", padding: "24px" }}
-          ref={contentRef}
-        >
+        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
           {/* Column 1 */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 33%",
               display: "flex",
               flexDirection: "column",
               gap: "12px",
+              minWidth: "380px",
+              width: "100%",
             }}
           >
             {/* Change Statistics */}
@@ -605,45 +641,53 @@ export default function Overview() {
 
             {/* LOS by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray12.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray12}
-                      breakdowns={[`${calculationType}LengthOfStay`]}
-                      height={300}
-                      margin={{ top: 20, right: 50, bottom: 10, left: 20 }}
-                      chartTitle={"LOS by ATD Program Type"}
-                      colorMapOverride={{
-                        averageLengthOfStay: "#5a6b7c",
-                        medianLengthOfStay: "#5a6b7c",
-                      }}
-                      calculationType={calculationType}
-                      toggleFilter={toggleFilter}
-                      filterVariables={filterVariables}
-                      groupByKey={"Facility"}
-                      showChart={false}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column1[1] - 14}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray12.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray12}
+                    breakdowns={[`${calculationType}LengthOfStay`]}
+                    height={columnHeights.column1[1]}
+                    margin={{ top: 20, right: 50, bottom: 10, left: 20 }}
+                    chartTitle={"LOS by ATD Program Type"}
+                    colorMapOverride={{
+                      averageLengthOfStay: "#5a6b7c",
+                      medianLengthOfStay: "#5a6b7c",
+                    }}
+                    calculationType={calculationType}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Program Type"}
+                    showChart={false}
+                  />
+                )}
               </div>
             </ChartCard>
             {/* Pie Chart */}
             <ChartCard width="100%">
-              <div style={{ height: "290px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    records={dataArray19}
-                    year={selectedYear}
-                    calculationType={calculationType}
-                    groupByKey={"Pre/post-dispo filter"}
-                    type={"alternative-to-detention"}
-                    title={"LOS by Pre/Post-Dispo"}
-                    chartTitle={"LOS by Pre/Post-Dispo"}
-                    filterVariables={filterVariables}
-                    toggleFilter={toggleFilter}
-                  />
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column1[2] - 12}px`,
+                  width: "100%",
+                }}
+              >
+                <PieChart
+                  records={dataArray19}
+                  year={selectedYear}
+                  size={columnHeights.column1[2]}
+                  calculationType={calculationType}
+                  groupByKey={"Pre/post-dispo filter"}
+                  type={"alternative-to-detention"}
+                  title={"LOS by Pre/Post-Dispo"}
+                  chartTitle={"LOS by Pre/Post-Dispo"}
+                  filterVariables={filterVariables}
+                  toggleFilter={toggleFilter}
+                  offset={16}
+                />
               </div>
             </ChartCard>
           </div>
@@ -651,10 +695,11 @@ export default function Overview() {
           {/* Column 2 */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 33%",
               display: "flex",
               flexDirection: "column",
               gap: "12px",
+              width: "100%",
             }}
           >
             {/* LOS by Race/Ethnicity */}
@@ -663,7 +708,7 @@ export default function Overview() {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  height: "270px",
+                  height: `${columnHeights.column2[0]}px`,
                   width: "100%",
                 }}
               >
@@ -693,198 +738,208 @@ export default function Overview() {
                     secondarySetValue={setFilterVariable}
                   />
                 </div>
-                <div style={{ height: "260px", width: "100%" }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    {dataArray13.length > 0 && (
-                      <StackedBarChartGeneric
-                        data={dataArray13}
-                        breakdowns={["Total"]}
-                        height={220}
-                        margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
-                        chartTitle={
-                          raceType === "RaceEthnicity"
-                            ? "LOS by Race/Ethnicity"
-                            : "LOS by Race (Simplified)"
-                        }
-                        colorMapOverride={{
-                          "Pre-dispo": "#5a6b7c",
-                          Total: "#5a6b7c",
-                          "Post-dispo": "#d3d3d3",
-                        }}
-                        calculationType={calculationType}
-                        toggleFilter={toggleFilter}
-                        filterVariables={filterVariables}
-                        groupByKey={"Race/Ethnicity"}
-                        showChart={false}
-                        maxLabelWidth={maxLabelWidth}
-                        setMaxLabelWidth={setMaxLabelWidth}
-                      />
-                    )}
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </ChartCard>
-            {/* LOS by Gender */}
-            <ChartCard width="100%">
-              <div style={{ height: "200px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray14.length > 0 && (
+                <div style={{ height: "100%", width: "100%" }}>
+                  {dataArray13.length > 0 && (
                     <StackedBarChartGeneric
-                      data={dataArray14}
+                      data={dataArray13}
                       breakdowns={["Total"]}
-                      height={200}
-                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
-                      chartTitle={"LOS by Gender"}
-                      calculationType={calculationType}
+                      height={columnHeights.column2[0] - 12}
+                      margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
+                      chartTitle={""}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         Total: "#5a6b7c",
                         "Post-dispo": "#d3d3d3",
                       }}
+                      calculationType={calculationType}
                       toggleFilter={toggleFilter}
                       filterVariables={filterVariables}
-                      groupByKey={"Gender"}
+                      groupByKey={"Race/Ethnicity"}
                       showChart={false}
                       maxLabelWidth={maxLabelWidth}
                       setMaxLabelWidth={setMaxLabelWidth}
                     />
                   )}
-                </ResponsiveContainer>
+                </div>
+              </div>
+            </ChartCard>
+            {/* LOS by Gender */}
+            <ChartCard width="100%">
+              <div
+                style={{
+                  height: `${columnHeights.column2[1]}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray14.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray14}
+                    breakdowns={["Total"]}
+                    height={columnHeights.column2[1]}
+                    margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
+                    chartTitle={"LOS by Gender"}
+                    calculationType={calculationType}
+                    colorMapOverride={{
+                      "Pre-dispo": "#5a6b7c",
+                      Total: "#5a6b7c",
+                      "Post-dispo": "#d3d3d3",
+                    }}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Gender"}
+                    showChart={false}
+                    maxLabelWidth={maxLabelWidth}
+                    setMaxLabelWidth={setMaxLabelWidth}
+                  />
+                )}
               </div>
             </ChartCard>
             {/* LOS by Age */}
             <ChartCard width="100%">
-              <div style={{ height: "200px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray15.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray15.filter(
-                        (entry) =>
-                          entry.category !== "null" &&
-                          entry.category !== "Unknown"
-                      )}
-                      breakdowns={["Total"]}
-                      innerBreakdowns={["Pre-dispo"]}
-                      calculationType={calculationType}
-                      height={200}
-                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
-                      chartTitle={"LOS by Age"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
-                        Total: "#5a6b7c",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                      toggleFilter={toggleFilter}
-                      filterVariables={filterVariables}
-                      groupByKey={"Age"}
-                      showChart={true}
-                      innerData={dataArray20}
-                      maxLabelWidth={maxLabelWidth}
-                      setMaxLabelWidth={setMaxLabelWidth}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column2[2]}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray15.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray15.filter(
+                      (entry) =>
+                        entry.category !== "null" &&
+                        entry.category !== "Unknown"
+                    )}
+                    breakdowns={["Total"]}
+                    innerBreakdowns={["Pre-dispo"]}
+                    calculationType={calculationType}
+                    height={columnHeights.column2[2]}
+                    margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
+                    chartTitle={"LOS by Age"}
+                    colorMapOverride={{
+                      "Pre-dispo": "#5a6b7c",
+                      Total: "#5a6b7c",
+                      "Post-dispo": "#d3d3d3",
+                    }}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Age"}
+                    showChart={true}
+                    innerData={dataArray20}
+                    maxLabelWidth={maxLabelWidth}
+                    setMaxLabelWidth={setMaxLabelWidth}
+                  />
+                )}
               </div>
             </ChartCard>
           </div>
           {/* Column 3 */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 33%",
               display: "flex",
               flexDirection: "column",
-              gap: "4px",
+              gap: "12px",
+              width: "100%",
             }}
           >
             {/* LOS by Reason */}
             <ChartCard width="100%">
-              <div style={{ height: "180px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray18.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray18}
-                      breakdowns={["Total"]}
-                      innerBreakdowns={["Pre-dispo"]}
-                      height={180}
-                      calculationType={calculationType}
-                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
-                      chartTitle={"LOS by Reason for Detention"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
-                        Total: "#5a6b7c",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                      toggleFilter={toggleFilter}
-                      filterVariables={filterVariables}
-                      groupByKey={"Reason for Detention"}
-                      showChart={true}
-                      innerData={dataArray21}
-                      postDispoData={dataArray22}
-                      valueBreakdowns={false}
-                      maxLabelWidth={maxLabelWidth}
-                      setMaxLabelWidth={setMaxLabelWidth}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column3[0]}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray18.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray18}
+                    breakdowns={["Total"]}
+                    innerBreakdowns={["Pre-dispo"]}
+                    height={columnHeights.column3[0]}
+                    calculationType={calculationType}
+                    margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
+                    chartTitle={"LOS by Reason for Detention"}
+                    colorMapOverride={{
+                      "Pre-dispo": "#5a6b7c",
+                      Total: "#5a6b7c",
+                      "Post-dispo": "#d3d3d3",
+                    }}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Reason for Detention"}
+                    showChart={true}
+                    innerData={dataArray21}
+                    postDispoData={dataArray22}
+                    valueBreakdowns={false}
+                    maxLabelWidth={maxLabelWidth}
+                    setMaxLabelWidth={setMaxLabelWidth}
+                  />
+                )}
               </div>
             </ChartCard>
             {/* LOS by Category */}
             <ChartCard width="100%">
-              <div style={{ height: "260px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray16.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray16}
-                      breakdowns={["Total"]}
-                      innerBreakdowns={["Pre-dispo"]}
-                      height={260}
-                      calculationType={calculationType}
-                      margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
-                      chartTitle={"LOS by Offense Category (pre-dispo)"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
-                        Total: "#5a6b7c",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                      toggleFilter={toggleFilter}
-                      filterVariables={filterVariables}
-                      groupByKey={"Category"}
-                      showChart={true}
-                      innerData={dataArray21}
-                      valueBreakdowns={false}
-                      maxLabelWidth={maxLabelWidth}
-                      setMaxLabelWidth={setMaxLabelWidth}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column3[1]}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray16.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray16}
+                    breakdowns={["Total"]}
+                    innerBreakdowns={["Pre-dispo"]}
+                    height={columnHeights.column3[1]}
+                    calculationType={calculationType}
+                    margin={{ top: 20, right: 50, bottom: 4, left: 20 }}
+                    chartTitle={"LOS by Offense Category (pre-dispo)"}
+                    colorMapOverride={{
+                      "Pre-dispo": "#5a6b7c",
+                      Total: "#5a6b7c",
+                      "Post-dispo": "#d3d3d3",
+                    }}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Offense Category"}
+                    showChart={true}
+                    innerData={dataArray21}
+                    valueBreakdowns={false}
+                    maxLabelWidth={maxLabelWidth}
+                    setMaxLabelWidth={setMaxLabelWidth}
+                  />
+                )}
               </div>
             </ChartCard>
 
             {/* LOS by Jurisdiction */}
             <ChartCard width="100%">
-              <div style={{ height: "240px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray17.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray17}
-                      breakdowns={["Total"]}
-                      height={240}
-                      margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
-                      chartTitle={"LOS by Jurisdiction"}
-                      colorMapOverride={{
-                        "Pre-dispo": "#5a6b7c",
-                        Total: "#5a6b7c",
-                        "Post-dispo": "#d3d3d3",
-                      }}
-                      toggleFilter={toggleFilter}
-                      filterVariables={filterVariables}
-                      groupByKey={"Jurisdiction"}
-                      showChart={false}
-                      maxLabelWidth={maxLabelWidth}
-                      setMaxLabelWidth={setMaxLabelWidth}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column3[2]}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray17.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray17}
+                    breakdowns={["Total"]}
+                    height={columnHeights.column3[2]}
+                    margin={{ top: 20, right: 50, bottom: 0, left: 20 }}
+                    chartTitle={"LOS by Jurisdiction"}
+                    colorMapOverride={{
+                      "Pre-dispo": "#5a6b7c",
+                      Total: "#5a6b7c",
+                      "Post-dispo": "#d3d3d3",
+                    }}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Jurisdiction"}
+                    showChart={false}
+                    maxLabelWidth={maxLabelWidth}
+                    setMaxLabelWidth={setMaxLabelWidth}
+                  />
+                )}
               </div>
             </ChartCard>
           </div>

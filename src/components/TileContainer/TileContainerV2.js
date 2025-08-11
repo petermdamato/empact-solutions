@@ -11,6 +11,7 @@ const TileContainerV2 = ({
   setSelectedKey,
   setRecordsTableObject,
   selectedKey,
+  toggleFilter,
 }) => {
   const outer = data[0];
 
@@ -47,6 +48,8 @@ const TileContainerV2 = ({
                 setSelectedKey={setSelectedKey}
                 selectedKey={selectedKey}
                 setRecordsTableObject={setRecordsTableObject}
+                toggleFilter={toggleFilter}
+                filterVariable={"Override_Reason"}
               />
             </div>
           ) : chartType === "distributionStacked" ? (
@@ -65,6 +68,8 @@ const TileContainerV2 = ({
                 height={300}
                 margin={{ top: 20, right: 20, bottom: 30, left: 20 }}
                 caption={outer.chartTitles[i]}
+                toggleFilter={toggleFilter}
+                filterVariable={"DST v Actual comparison"}
               />
             </div>
           ) : (

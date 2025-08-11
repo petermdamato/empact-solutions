@@ -8,6 +8,7 @@ const LegendLines = ({
   selectedOptions,
   setSelectedOptions,
   setSelectedLegendDetails,
+  containerHeight,
 }) => {
   // Memoize the option details calculation
   const getOptionDetails = useCallback(() => {
@@ -47,7 +48,7 @@ const LegendLines = ({
         flexDirection: "column",
         flexWrap: "wrap",
         gap: "12px",
-        marginTop: "16px",
+        marginTop: "12px",
       }}
     >
       {options.map((option, i) => {

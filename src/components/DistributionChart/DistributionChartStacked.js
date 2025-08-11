@@ -5,10 +5,28 @@ const DistributionChartStacked = ({
   data,
   keysArray = ["no", "yes"],
   height,
+  toggleFilter,
+  filterVariable,
 }) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height });
+
+  const handleClick = (e, d, payload) => {
+    const selectedValue = d.category;
+    const currentKey = Object.keys(filterVariable || {})[0];
+    const currentValue = filterVariable?.[currentKey];
+
+    const isSameSelection = false;
+    // const isSameSelection =
+    //   currentKey === key && currentValue === selectedValue;
+    toggleFilter(
+      isSameSelection
+        ? null
+        : { key: "DST v Actual comparison", value: d.label }
+    );
+    toggleFilter(isSameSelection ? null : { key: "Auto_Hold", value: d.key });
+  };
 
   // Handle resize and initial width measurement
   useLayoutEffect(() => {
@@ -184,13 +202,23 @@ const DistributionChartStacked = ({
 
     barGroups
       .selectAll("rect")
-      .data((d) => d)
+      .data((layer) =>
+        layer.map((seg) => ({
+          ...seg,
+          key: layer.key,
+          label: seg.data[groupKey],
+        }))
+      )
       .enter()
       .append("rect")
-      .attr("x", (d) => x(d.data[groupKey]))
+      .style("cursor", "pointer")
+      .attr("x", (d) => x(d.label))
       .attr("y", (d) => y(d[1]))
       .attr("height", (d) => y(d[0]) - y(d[1]))
-      .attr("width", x.bandwidth());
+      .attr("width", x.bandwidth())
+      .on("click", (event, d) => {
+        handleClick(event, { key: d.key, label: d.label });
+      });
 
     formattedData.forEach((d) => {
       const xCenter = x(d[groupKey]) + x.bandwidth() / 2;

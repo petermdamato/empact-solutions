@@ -5,11 +5,9 @@ import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/navigation";
 import "./styles.css";
-import { useCSV } from "@/context/CSVContext";
 import { useState, useEffect } from "react";
 
 export default function Overview() {
-  const { csvData } = useCSV();
   const [youthId, setYouthId] = useState("");
   const router = useRouter();
 

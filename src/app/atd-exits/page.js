@@ -27,6 +27,7 @@ import {
   categorizeAge,
   categorizeDisruptionType,
 } from "@/utils/categories";
+import { calculateColumnHeightsStandard } from "@/utils/calculateColumnHeights";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import LegendStatic from "@/components/LegendStatic/LegendStatic";
 import * as Constants from "./../../constants";
@@ -60,6 +61,38 @@ export default function Overview() {
   const [dataArray6, setDataArray6] = useState([]);
   const [showMap, setShowMap] = useState(false);
   const [persistMap, setPersistMap] = useState(false);
+  const [windowHeight, setWindowHeight] = useState(0);
+
+  const columnConstants = {
+    column1: [0, 340, 240],
+    column2: [300, 390, 0],
+  };
+  const [columnHeights, setColumnHeights] = useState(columnConstants);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    // Set initial height
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Update chart heights when window height changes
+  useEffect(() => {
+    if (windowHeight > 0) {
+      setColumnHeights(
+        calculateColumnHeightsStandard(windowHeight + 20, columnConstants)
+      );
+    }
+  }, [windowHeight, calculateColumnHeightsStandard]);
 
   const toggleFilter = (newFilter) => {
     setFilterVariable((prev) => {
@@ -74,7 +107,7 @@ export default function Overview() {
 
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
-      router.push("/overview");
+      router.push("/detention-overview");
     }
   }, [csvData, router]);
 
@@ -126,10 +159,11 @@ export default function Overview() {
               value
             );
           });
+        } else if (key === "Program Type") {
+          filtered = filtered.filter((record) => record["Facility"] === value);
         } else if (
           key === "Gender" ||
           key === "Screened/not screened" ||
-          key === "Facility" ||
           key === "Exit_To"
         ) {
           filtered = filtered.filter((record) => record[key] === value);
@@ -355,6 +389,7 @@ export default function Overview() {
               display: "flex",
               flexDirection: "column",
               gap: "12px",
+              width: "100%",
             }}
           >
             {/* Change Statistics */}
@@ -407,36 +442,44 @@ export default function Overview() {
 
             {/* Exits by ATD Type */}
             <ChartCard width="100%">
-              <div style={{ height: "340px", width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {dataArray2.length > 0 && (
-                    <StackedBarChartGeneric
-                      data={dataArray2}
-                      breakdowns={["total"]}
-                      height={340}
-                      margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
-                      chartTitle={"Exits by ATD Program Type"}
-                      colorMapOverride={Constants.successColors}
-                      toggleFilter={toggleFilter}
-                      filterVariables={filterVariables}
-                      groupByKey={"Facility"}
-                      maxLabelWidth={maxLabelWidth}
-                      setMaxLabelWidth={setMaxLabelWidth}
-                    />
-                  )}
-                </ResponsiveContainer>
+              <div
+                style={{
+                  height: `${columnHeights.column1[1] - 20}px`,
+                  width: "100%",
+                }}
+              >
+                {dataArray2.length > 0 && (
+                  <StackedBarChartGeneric
+                    data={dataArray2}
+                    breakdowns={["total"]}
+                    height={columnHeights.column1[1]}
+                    margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
+                    chartTitle={"Exits by ATD Program Type"}
+                    colorMapOverride={Constants.successColors}
+                    toggleFilter={toggleFilter}
+                    filterVariables={filterVariables}
+                    groupByKey={"Program Type"}
+                    maxLabelWidth={maxLabelWidth}
+                    setMaxLabelWidth={setMaxLabelWidth}
+                  />
+                )}
               </div>
             </ChartCard>
 
             {/* ATD Disruption Type */}
             <ChartCard width="100%">
-              <div style={{ height: "240px", width: "100%" }}>
+              <div
+                style={{
+                  height: `${columnHeights.column1[2] - 50}px`,
+                  width: "100%",
+                }}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray4.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray4}
                       breakdowns={["total"]}
-                      height={240}
+                      height={columnHeights.column1[2]}
                       margin={{ top: 20, right: 50, bottom: 20, left: 20 }}
                       chartTitle={"Exits by ATD Disruption Type"}
                       colorMapOverride={Constants.successColors}
@@ -460,12 +503,18 @@ export default function Overview() {
               flexGrow: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "24px",
+              gap: "12px",
+              width: "100%",
             }}
           >
             {/* Success breakdown */}
             <ChartCard width="100%">
-              <div style={{ height: "300px", width: "100%" }}>
+              <div
+                style={{
+                  height: `${columnHeights.column2[0]}px`,
+                  width: "100%",
+                }}
+              >
                 <div style={{ position: "relative" }}>
                   <div style={{ position: "absolute", right: "34px", top: 0 }}>
                     <LegendStatic type="success" />
@@ -477,7 +526,7 @@ export default function Overview() {
                       data={dataArray3}
                       tooltipPayload={dataArray6}
                       breakdowns={["disrupted", "undisrupted"]}
-                      height={300}
+                      height={columnHeights.column2[0]}
                       margin={{ top: 20, right: 60, bottom: 20, left: 40 }}
                       chartTitle={`Exits by ${breakdownType}`}
                       colorMapOverride={Constants.successColors}
@@ -490,13 +539,18 @@ export default function Overview() {
               </div>
             </ChartCard>
             <ChartCard width="100%">
-              <div style={{ height: "390px", width: "100%" }}>
+              <div
+                style={{
+                  height: `${columnHeights.column2[1]}px`,
+                  width: "100%",
+                }}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   {dataArray5.length > 0 && (
                     <StackedBarChartGeneric
                       data={dataArray5}
                       breakdowns={["total"]}
-                      height={390}
+                      height={columnHeights.column2[1]}
                       margin={{ top: 20, right: 70, bottom: 20, left: 20 }}
                       chartTitle={"Exits by Exit To Type"}
                       colorMapOverride={Constants.successColors}

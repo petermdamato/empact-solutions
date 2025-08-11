@@ -26,7 +26,7 @@ const getMaxTextWidth = (
   return maxWidth;
 };
 
-const OverrideReasonTable = ({ data }) => {
+const OverrideReasonTable = ({ data, setLeftWidth }) => {
   if (!data || Object.keys(data).length === 0) {
     return <div>No override reason data available.</div>;
   }
@@ -48,7 +48,10 @@ const OverrideReasonTable = ({ data }) => {
   // Calculate dynamic margin
   const maxLabelWidth = getMaxTextWidth(allReasons);
   const dynamicLeftMargin = Math.max(180, maxLabelWidth + labelPadding + 20);
+
   const chartWidth = dynamicLeftMargin + 200;
+  setLeftWidth(maxLabelWidth);
+
   const margin = { top: 20, right: 40, bottom: 30, left: dynamicLeftMargin };
 
   const series = allReasons.map((reason) => ({
