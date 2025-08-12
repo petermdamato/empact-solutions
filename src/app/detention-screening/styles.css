@@ -12,3 +12,24 @@ body.pdf-export-mode .dateslider-text {
 body.pdf-export-mode .scores-display-selector {
   opacity: 0 !important;
 }
+.spinner-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #555;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 0.4s linear infinite; /* adjust speed here */
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

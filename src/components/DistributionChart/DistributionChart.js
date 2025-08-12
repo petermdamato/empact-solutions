@@ -599,8 +599,8 @@ const DistributionChart = (records) => {
                     // Determine final URL
                     const url =
                       !linkText.linkOut || linkText.linkOut.length === 0
-                        ? `${baseUrl}/sample-lookup?${inmateId}`
-                        : // ? setShowSettings(true)
+                        ? setShowSettings(true)
+                        : // ? `${baseUrl}/sample-lookup?${inmateId}`
                           (linkText.linkOut.startsWith("http")
                             ? ""
                             : "http://") +

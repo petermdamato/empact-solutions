@@ -45,20 +45,23 @@ const Header = ({
           {title}
           {subtitle === "" ? "" : ":"}
           {context === "distribution" ? (
-            <h3
-              style={{
-                fontSize: "20px",
-                fontWeight: "bold",
-                marginLeft: "6px",
-                color: context === "distribution" ? "#941414" : "black",
-                marginRight: "0",
-                marginBottom: "0",
-                marginLeft: "0",
-                marginTop: "8px",
-              }}
-            >
-              {errorMessage}
-            </h3>
+            <div>
+              <span
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  marginLeft: "6px",
+                  lineHeight: "12px",
+                  color: context === "distribution" ? "#941414" : "black",
+                  marginRight: "0",
+                  marginBottom: "0",
+                  marginLeft: "0",
+                  marginTop: "8px",
+                }}
+              >
+                {errorMessage}
+              </span>
+            </div>
           ) : (
             <span
               style={{

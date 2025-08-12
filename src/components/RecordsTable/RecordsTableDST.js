@@ -217,8 +217,9 @@ const RecordsTable = ({ data, selectedKey }) => {
                           // Determine final URL
                           const url =
                             !linkText.linkOut || linkText.linkOut.length === 0
-                              ? `${baseUrl}/sample-lookup?${inmateId}`
-                              : (linkText.linkOut.startsWith("http")
+                              ? setShowSettings(true)
+                              : // `${baseUrl}/sample-lookup?${inmateId}`
+                                (linkText.linkOut.startsWith("http")
                                   ? ""
                                   : "http://") +
                                 linkText.linkOut +
