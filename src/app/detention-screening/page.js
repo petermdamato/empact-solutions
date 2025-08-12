@@ -46,6 +46,18 @@ export default function Overview() {
   const [timeSeriesDataCountByReason, setTimeSeriesDataCountByReason] =
     useState([]);
 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (datesData.length > 0) {
+      const timeout = setTimeout(() => {
+        setLoading(false);
+      }, 400); // small debounce so charts settle
+
+      return () => clearTimeout(timeout);
+    }
+  }, [datesData]);
+
   useEffect(() => {
     if (!csvData || csvData.length === 0) {
       router.push("/detention-overview");
@@ -235,8 +247,20 @@ export default function Overview() {
               </div>
             </div>
           </Header>
-
-          <div ref={contentRef}>
+          {loading ? (
+            // Loading state
+            <div className="spinner-container">
+              <div className="spinner" />
+            </div>
+          ) : (
+            <></>
+          )}
+          <div
+            ref={contentRef}
+            style={{
+              opacity: loading ? 0 : 1,
+            }}
+          >
             {recordsTableObject ? (
               <div
                 style={{

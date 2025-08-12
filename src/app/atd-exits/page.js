@@ -68,6 +68,19 @@ export default function Overview() {
     column2: [300, 390, 0],
   };
   const [columnHeights, setColumnHeights] = useState(columnConstants);
+  const [loading, setLoading] = useState(true);
+
+  // Debounced "final value" detection
+  useEffect(() => {
+    if (maxLabelWidth > 0) {
+      // Delay to ensure layout measurements have finished
+      const timeout = setTimeout(() => {
+        setLoading(false);
+      }, 100); // tweak delay as needed
+
+      return () => clearTimeout(timeout);
+    }
+  }, [maxLabelWidth]);
 
   // Handle window resize
   useEffect(() => {
@@ -377,9 +390,24 @@ export default function Overview() {
             />
           </Header>
         </div>
-
+        {loading ? (
+          // Loading state
+          <div className="spinner-container">
+            <div className="spinner" />
+          </div>
+        ) : (
+          <></>
+        )}
         {/* Charts */}
-        <div style={{ display: "flex", gap: "24px", padding: "24px" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "24px",
+            padding: "22px 24px",
+            overscrollBehavior: "contain",
+            opacity: loading ? 0 : 1,
+          }}
+        >
           {/* Column 1 */}
           <div
             style={{
