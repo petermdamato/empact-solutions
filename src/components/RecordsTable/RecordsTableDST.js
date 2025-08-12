@@ -5,6 +5,8 @@ import "./RecordsTable.css";
 import moment from "moment";
 import { useLinkOut } from "@/context/LinkOutContext";
 import { useRouter } from "next/navigation";
+import Modal from "../Modal/Modal";
+import { useModal } from "@/context/ModalContext";
 
 const thBaseStyle = {
   padding: "8px",
@@ -46,6 +48,7 @@ const MIN_COL_WIDTH = 60;
 
 const intake = "Intake_Date";
 const RecordsTable = ({ data, selectedKey }) => {
+  const { showSettings, setShowSettings } = useModal();
   const router = useRouter();
   const linkText = useLinkOut();
   const [columnWidths, setColumnWidths] = useState(
@@ -247,6 +250,9 @@ const RecordsTable = ({ data, selectedKey }) => {
           })}
         </tbody>
       </table>
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)}>
+        <SettingsPage context={"distribution"} />
+      </Modal>
     </div>
   );
 };
