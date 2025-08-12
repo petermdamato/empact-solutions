@@ -52,7 +52,7 @@ export default function Overview({ context }) {
             caption="Update admin settings for linkout below"
             errorMessage="You have not entered a url pointing to your detention lookup tool. Enter a url below and click save to connect these visualizations to your youth data."
             year=""
-            context={context}
+            context={linkOut && linkOut.length > 0 ? "" : context}
           />
           <div
             style={{
