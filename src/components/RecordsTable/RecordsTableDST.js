@@ -7,6 +7,7 @@ import { useLinkOut } from "@/context/LinkOutContext";
 import { useRouter } from "next/navigation";
 import Modal from "../Modal/Modal";
 import { useModal } from "@/context/ModalContext";
+import SettingsPage from "@/app/settings/page";
 
 const thBaseStyle = {
   padding: "8px",
