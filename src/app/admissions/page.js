@@ -97,7 +97,6 @@ export default function Overview() {
     }
   }, [maxLabelWidth]);
 
-  console.log(loading);
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {

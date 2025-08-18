@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { LinkOutProvider } from "@/context/LinkOutContext";
 import { ModalProvider } from "@/context/ModalContext";
 import { TagsProvider } from "@/context/TagsContext";
+import { AuthListener } from "@/components/AuthListener/AuthListener";
 
 import SessionWrapper from "@/components/SessionWrapper/SessionWrapper";
 import "./globals.css";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
       <body>
         <SessionWrapper>
           <CSVProvider>
+            <AuthListener />
             <LinkOutProvider>
               <TagsProvider>
                 <SidebarProvider>

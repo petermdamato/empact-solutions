@@ -17,8 +17,6 @@ import {
   analyzeEntriesByYear,
   dataAnalysisV3,
   analyzePostDispoGroup,
-  analyzeDailyPopByProgramType,
-  analyzeDailyPopByDispoStatus,
 } from "@/utils/aggFunctions";
 import {
   chooseCategoryV2 as chooseCategory,
@@ -266,15 +264,22 @@ export default function Overview() {
 
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].current) {
-      // Set overall
+      // Set by program (facility)
       const byProgram = Object.entries(
-        analyzeDailyPopByProgramType(finalData, +selectedYear)
+        dataAnalysisV3(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear,
+          "Facility",
+          "alternative-to-detention"
+        )
       ).map(([program, value]) => {
         return {
           category: program,
           averageDailyPopulation: value,
         };
       });
+
       setDataArray12(byProgram);
 
       const byRaceEthnicity = Object.entries(
@@ -403,7 +408,13 @@ export default function Overview() {
       setDataArray17(byJurisdiction);
 
       const byDispoStatus = Object.entries(
-        analyzeDailyPopByDispoStatus(finalData, +selectedYear)
+        dataAnalysisV3(
+          finalData,
+          "averageDailyPopulation",
+          +selectedYear,
+          "DispoStatus",
+          "alternative-to-detention"
+        )
       ).map(([dispStatus, value]) => {
         return {
           category: dispStatus,
@@ -440,22 +451,6 @@ export default function Overview() {
       );
 
       setDataArray20(adpByAgeTransformed);
-
-      const adpByCat = dataAnalysisV3(
-        finalData,
-        "averageDailyPopulation",
-        +selectedYear,
-        "OffenseCategory",
-        incarcerationType
-      );
-
-      const adpByCatTransformed = Object.entries(adpByCat).reduce(
-        (acc, [key, value]) => {
-          acc[key] = { "Pre-dispo": value };
-          return acc;
-        },
-        {}
-      );
 
       const adpBySubcat = analyzePostDispoGroup(finalData, +selectedYear, {
         round: false,
