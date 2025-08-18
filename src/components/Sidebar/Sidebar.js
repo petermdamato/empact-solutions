@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
@@ -61,6 +61,30 @@ const Sidebar = () => {
   } = useSidebar();
   const { showSettings, setShowSettings, showUpload, setShowUpload } =
     useModal();
+
+  const navRef = useRef(null);
+
+  // save scroll position before unmount
+  useEffect(() => {
+    const navEl = navRef.current;
+    if (!navEl) return;
+
+    const handleScroll = () => {
+      sessionStorage.setItem("sidebarScroll", String(navEl.scrollTop));
+    };
+
+    navEl.addEventListener("scroll", handleScroll);
+    return () => navEl.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // restore on mount
+  useEffect(() => {
+    const navEl = navRef.current;
+    if (navEl) {
+      const saved = sessionStorage.getItem("sidebarScroll");
+      if (saved) navEl.scrollTop = parseInt(saved, 10);
+    }
+  }, []);
 
   useEffect(() => {
     const hasShownUpload = sessionStorage.getItem("hasShownUpload");
@@ -129,7 +153,7 @@ const Sidebar = () => {
         <h2>{selectedSubItemLabel || selectedMenu}</h2>
       </div>
 
-      <nav>
+      <nav ref={navRef}>
         <ul>
           {menuItems.map((item) => (
             <li
