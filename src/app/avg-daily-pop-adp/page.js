@@ -368,7 +368,7 @@ export default function Overview() {
           "averageDailyPopulation",
           +selectedYear,
           "DispoStatus",
-          "alternative-to-detention"
+          "secure-detention"
         )
       ).map(([dispStatus, value]) => {
         return {
@@ -637,7 +637,7 @@ export default function Overview() {
                 <PieChart
                   records={dataArray19}
                   year={selectedYear}
-                  size={columnHeights.column1[1]}
+                  size={columnHeights.column1[2]}
                   groupByKey={"Pre/post-dispo filter"}
                   type={"secure-detention"}
                   chartTitle={"ADP by Pre/Post-Dispo"}

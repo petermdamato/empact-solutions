@@ -150,7 +150,7 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     width: "100%",
-    position: "relative", // Needed for absolute positioning if we go that route
+    position: "relative",
   },
   pageContent: {
     height: "100vh",
@@ -253,7 +253,7 @@ const styles = {
 
   logoOverlay: {
     position: "absolute",
-    bottom: "30px", // controls overlap — adjust as needed
+    bottom: "30px",
     left: "50%",
     transform: "translateX(-50%)",
     textAlign: "center",
@@ -295,7 +295,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     marginBottom: "16px",
-    width: "442px", // consistent width for all fields
+    width: "442px",
   },
 
   label: {
@@ -316,7 +316,7 @@ const styles = {
     borderRadius: "4px",
     padding: "8px",
     fontSize: "14px",
-    outline: "none", // prevents default blue outline in some browsers
+    outline: "none",
   },
 
   solutions: {
@@ -337,7 +337,7 @@ const styles = {
     color: "black",
     border: "1px solid grey",
     borderRadius: "4px",
-    padding: "8px 36px 8px 8px", // extra padding on right
+    padding: "8px 36px 8px 8px",
     fontSize: "14px",
     width: "100%",
     outline: "none",
