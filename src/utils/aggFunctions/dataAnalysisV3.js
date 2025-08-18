@@ -1,8 +1,4 @@
-import {
-  differenceInCalendarDays,
-  isLeapYear,
-  eachDayOfInterval,
-} from "date-fns";
+import { differenceInCalendarDays, isLeapYear } from "date-fns";
 
 import {
   getAgeBracket,
@@ -53,7 +49,7 @@ function analyzeAdmissionsOnly(
 
   const getAge = (dob, intake) => {
     if (!dob || !intake) return null;
-    return (intake - dob) / (365.25 * 24 * 60 * 60 * 1000);
+    return Math.floor((intake - dob) / (365.25 * 24 * 60 * 60 * 1000));
   };
 
   const groups = [
@@ -174,13 +170,7 @@ const getAgeAtAdmission = (dob, intake, bracketed = true) => {
   const intakeDate = parseDate(intake);
   if (!birth || !intakeDate) return "Unknown";
 
-  const age =
-    intakeDate.getFullYear() -
-    birth.getFullYear() -
-    (intakeDate <
-    new Date(intakeDate.getFullYear(), birth.getMonth(), birth.getDate())
-      ? 1
-      : 0);
+  const age = Math.floor((intakeDate - birth) / (365.25 * 24 * 60 * 60 * 1000));
 
   if (bracketed) {
     if (age < 11) return "10 and younger";
@@ -259,6 +249,8 @@ const analyzeData = (
     "Facility",
     "Referral_Source",
     "simplifiedReferralSource",
+    "DispoStatus",
+    "ScreenedStatus",
   ];
 
   if (groupBy && !validGroupBys.includes(groupBy)) {
@@ -356,6 +348,16 @@ const analyzeData = (
         break;
       case "simplifiedReferralSource":
         key = getSimplifiedReferralSource(referralSource);
+        break;
+      case "DispoStatus":
+        key =
+          row["Post-Dispo Stay Reason"] === null ||
+          row["Post-Dispo Stay Reason"] === ""
+            ? "Pre-dispo"
+            : "Post-dispo";
+        break;
+      case "ScreenedStatus":
+        key = row["Screened/not screened"];
         break;
       default:
         key = "All";

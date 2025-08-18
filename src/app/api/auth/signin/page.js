@@ -51,74 +51,79 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
-      <div style={styles.loginElement}>
-        <form onSubmit={handleSubmit}>
-          <div style={styles.formField}>
-            <label htmlFor="email" style={styles.label}>
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onFocus={(e) => {
-                e.target.style.backgroundColor = "white";
-                e.target.style.color = "black";
-              }}
-              onBlur={(e) => {
-                e.target.style.backgroundColor = "white";
-                e.target.style.color = "black";
-              }}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.formField}>
-            <label htmlFor="password" style={styles.label}>
-              Password
-            </label>
-            <div style={styles.inputWrapper}>
+      <div style={styles.loginContainer}>
+        <div style={styles.loginElement}>
+          <form onSubmit={handleSubmit}>
+            <div style={styles.formField}>
+              <label htmlFor="email" style={styles.label}>
+                Email
+              </label>
               <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onFocus={(e) => {
+                  e.target.style.backgroundColor = "white";
+                  e.target.style.color = "black";
+                }}
+                onBlur={(e) => {
+                  e.target.style.backgroundColor = "white";
+                  e.target.style.color = "black";
+                }}
                 required
-                style={styles.inputWithIcon}
+                style={styles.input}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={styles.iconButton}
-                aria-label="Toggle password visibility"
-              >
-                {showPassword ? (
-                  <LockOpenIcon style={{ fontSize: 20, color: "#133A6F" }} />
-                ) : (
-                  <LockOutline style={{ fontSize: 20, color: "#133A6F" }} />
-                )}
-              </button>
             </div>
+            <div style={styles.formField}>
+              <label htmlFor="password" style={styles.label}>
+                Password
+              </label>
+              <div style={styles.inputWrapper}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={styles.inputWithIcon}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={styles.iconButton}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? (
+                    <LockOpenIcon style={{ fontSize: 20, color: "#133A6F" }} />
+                  ) : (
+                    <LockOutline style={{ fontSize: 20, color: "#133A6F" }} />
+                  )}
+                </button>
+              </div>
+            </div>
+            {error && <p style={styles.errorMessage}>{error}</p>}
+            <button
+              type="submit"
+              style={{
+                ...styles.loginButton,
+                backgroundColor: "#133A6F",
+                color: "white",
+                marginTop: "10px",
+                height: "32px",
+                padding: "6px 12px",
+                fontSize: "16px",
+                borderRadius: "4px",
+                width: "100%",
+              }}
+            >
+              Sign In
+            </button>
+          </form>
+          <div style={styles.copyright}>
+            © 2025 Empact Solutions. Empulse Data Studio™. All rights reserved.
           </div>
-          {error && <p style={styles.errorMessage}>{error}</p>}
-          <button
-            type="submit"
-            style={{
-              ...styles.loginButton,
-              backgroundColor: "#133A6F",
-              color: "white",
-              marginTop: "10px",
-              height: "32px",
-              padding: "6px 12px",
-              fontSize: "16px",
-              borderRadius: "4px",
-              width: "100%",
-            }}
-          >
-            Sign In
-          </button>
-        </form>
+        </div>
       </div>
       <style jsx global>{`
         input::selection {
@@ -140,6 +145,13 @@ export default function SignInPage() {
 }
 
 const styles = {
+  loginContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    width: "100%",
+    position: "relative", // Needed for absolute positioning if we go that route
+  },
   pageContent: {
     height: "100vh",
     display: "flex",
@@ -148,6 +160,14 @@ const styles = {
     justifyContent: "center",
     backgroundColor: "#fff",
     paddingBottom: "20px",
+  },
+  copyright: {
+    marginTop: "20px",
+    textAlign: "center",
+    width: "100%",
+    overflow: "visible",
+    color: "#000",
+    fontSize: "16px",
   },
   loginButton: {
     backgroundColor: "#333a43",
@@ -161,11 +181,13 @@ const styles = {
     display: "inline-block", // helps enforce layout
   },
   loginElement: {
-    width: "100vw",
-    alignItems: "center",
-    backgroundColor: "#fff",
     display: "flex",
-    justifyContent: "space-around",
+    flexDirection: "column",
+    alignItems: "center",
+    width: "100%",
+    maxWidth: "650px",
+    margin: "0 auto",
+    padding: "20px",
   },
   container: {
     backgroundColor: "#fff",

@@ -13,12 +13,7 @@ import ZipMap from "@/components/ZipMap/ZipMap";
 import { useCSV } from "@/context/CSVContext";
 import { useTags } from "@/context/TagsContext";
 import { ResponsiveContainer } from "recharts";
-import {
-  dataAnalysisV3,
-  analyzePostDispoGroup,
-  analyzeDailyPopByScreenedStatus,
-  analyzeDailyPopByDispoStatus,
-} from "@/utils/aggFunctions";
+import { dataAnalysisV3, analyzePostDispoGroup } from "@/utils/aggFunctions";
 import {
   chooseCategoryV2 as chooseCategory,
   chooseCategory as chooseCategoryAligned,
@@ -368,10 +363,12 @@ export default function Overview() {
       setDataArray17(byJurisdiction);
 
       const byDispoStatus = Object.entries(
-        analyzeDailyPopByDispoStatus(
+        dataAnalysisV3(
           finalData,
+          "averageDailyPopulation",
           +selectedYear,
-          "secure-detention"
+          "DispoStatus",
+          "alternative-to-detention"
         )
       ).map(([dispStatus, value]) => {
         return {
@@ -393,9 +390,11 @@ export default function Overview() {
       setDataArray19(byDispoStatus);
 
       const byScreenedStatus = Object.entries(
-        analyzeDailyPopByScreenedStatus(
+        dataAnalysisV3(
           finalData,
+          "averageDailyPopulation",
           +selectedYear,
+          "ScreenedStatus",
           "secure-detention"
         )
       ).map(([scrStatus, value]) => {
@@ -404,11 +403,6 @@ export default function Overview() {
           value: Math.round(value * 10) / 10,
         };
       });
-
-      const totalSumScreened = byScreenedStatus.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.value,
-        0
-      );
 
       byScreenedStatus.map((entry) => {
         entry.percentage = entry.value / totalSum;

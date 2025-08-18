@@ -23,9 +23,9 @@ const menuItems = [
       "Detention Overview",
       "Table",
       "Admissions",
-      "Detention Screening",
       "Length of Stay (LOS)",
       "Avg Daily Pop (ADP)",
+      "Detention Screening",
       "Explore Trends",
       "LOS Distribution",
     ],
@@ -237,13 +237,19 @@ const Sidebar = () => {
             style={{
               display: "flex",
               flexDirection: "column",
-              paddingTop: "14px",
+              paddingTop: "8px",
               fontSize: "12px",
               color: "#979ca4",
+              alignItems: "flex-start",
+              textAlign: "left",
             }}
           >
             <p>
-              Developed By <br /> Empact Solutions
+              © 2025 Empact Solutions
+              <br />
+              Empulse Data Studio™
+              <br />
+              All rights reserved
             </p>
             <Tooltip
               title={
