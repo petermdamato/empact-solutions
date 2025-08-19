@@ -116,7 +116,7 @@ const Sidebar = () => {
     >
       <div className="header">
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <img src="./magnifying_glass.png" alt="Empact Solutions Logo" />
+          <img src="./logo_upper.png" alt="Empact Solutions Logo" />
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button onClick={() => setShowSettings(true)}>
               <SimpleTooltip tooltipText="Settings" positioning={"right"}>
