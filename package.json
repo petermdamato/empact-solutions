@@ -19,6 +19,7 @@
     "date-fns": "^4.1.0",
     "dom-to-image": "^2.6.0",
     "firebase": "^11.10.0",
+    "firebase-admin": "^13.4.0",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.10.3",
     "jspdf": "^3.0.1",
