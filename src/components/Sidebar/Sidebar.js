@@ -253,14 +253,14 @@ const Sidebar = () => {
         <div style={{ display: "flex" }}>
           <a
             href="https://empactsolutions.org"
-            target="_blank"
+            // target="_blank"
             rel="noopener noreferrer"
           >
             <img
               className="sidebar-logo"
               src="/logo.png"
               alt="Empact Solutions Logo"
-              style={{ height: "72px", width: "auto" }}
+              style={{ height: "72px", width: "92px" }}
             />
           </a>
           <div
