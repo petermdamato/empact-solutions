@@ -6,13 +6,14 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
 import UploadIcon from "@mui/icons-material/Upload";
 import Link from "next/link";
-import { signOut } from "firebase/auth";
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
 import { useCSV } from "@/context/CSVContext";
 import { useModal } from "@/context/ModalContext";
 import { useSidebar } from "@/context/SidebarContext";
+import { signOut as nextAuthSignOut } from "next-auth/react";
+import { signOut as firebaseSignOut } from "firebase/auth";
 import { firebaseAuth } from "@/lib/firebaseClient";
 import "./Sidebar.css";
 
@@ -129,12 +130,18 @@ const Sidebar = () => {
               </SimpleTooltip>
             </button>
             <button
-              onClick={() => {
-                signOut(firebaseAuth)
-                  .then(() => {
-                    window.location.href = "/api/auth/signin";
-                  })
-                  .catch(console.error);
+              onClick={async () => {
+                try {
+                  // Sign out from Firebase client-side first
+                  await firebaseSignOut(firebaseAuth);
+
+                  // Then sign out from NextAuth (triggers server-side revocation)
+                  await nextAuthSignOut({ callbackUrl: "/auth/signin" });
+                } catch (error) {
+                  console.error("Signout error:", error);
+                  // Still try to clear NextAuth session even if Firebase fails
+                  await nextAuthSignOut({ callbackUrl: "/auth/signin" });
+                }
               }}
               className="signout-button"
             >
