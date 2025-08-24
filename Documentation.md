@@ -312,8 +312,8 @@ Example Usage:
 
 ## Build for the Web
 
-The application is contained on a GitHub repository with a corresponding [Vercel deployment](https://empact-solutions.vercel.app/detention-overview).
+The application is contained on a GitHub repository with a corresponding [Vercel deployment](https://empact-solutions.vercel.app/detention-overview) off the main branch.
 
-If you want a build to deploy on a static website, run `npm run build` in the project directory on your local machine. This will generate the files that can be hosted in a directory on your site.
+The current version works through this Vercel deployment. However if you decide you want a build to deploy on a static website, run `npm run build` in the project directory on your local machine. This will generate the files that can be hosted in a directory on your site.
 
 Note: The signin page (located in the directory as api/auth/signin) relies on server-side routing via Next Auth and will need to be replaced with a client-side process using something like Firebase Auth, Supabase Auth or Auth0.
