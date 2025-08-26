@@ -79,7 +79,7 @@ const StackedBarChartGeneric = (props) => {
   // --- Memoized sorting ---
   const finalFilteredData = useMemo(() => {
     const sortedData = [...filteredData];
-    if (selectedTags.includes(key.toLowerCase())) {
+    if (selectedTags.includes(key.toLowerCase()) || sorted === true) {
       sortedData.sort((a, b) => {
         const totalA = breakdowns.reduce((sum, key) => sum + (a[key] ?? 0), 0);
         const totalB = breakdowns.reduce((sum, key) => sum + (b[key] ?? 0), 0);
