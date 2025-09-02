@@ -18,6 +18,7 @@ import { firebaseAuth } from "@/lib/firebaseClient";
 import "./Sidebar.css";
 
 const menuItems = [
+  { label: "Detention Screening", access: "Inactive" },
   {
     label: "Secure Detention",
     subItems: [
@@ -26,7 +27,6 @@ const menuItems = [
       "Admissions",
       "Length of Stay (LOS)",
       "Avg Daily Pop (ADP)",
-      "Detention Screening",
       "Explore Trends",
       "LOS Distribution",
     ],
