@@ -8,7 +8,6 @@ import Papa from "papaparse";
 import dataTypes from "../utils/dataTypes";
 import { read, utils } from "xlsx";
 import "./CSVUploader.css";
-import Link from "next/link";
 
 export default function CSVUploader() {
   const { setCsvData, setValidationErrors, setFileName } = useCSV();
@@ -110,8 +109,6 @@ export default function CSVUploader() {
     (acceptedFiles) => {
       const file = acceptedFiles[0];
       if (!file) return;
-
-      setFileName(file.name);
 
       setFileName(file.name);
 
@@ -263,6 +260,8 @@ export default function CSVUploader() {
         ".xlsx",
       ],
       "application/vnd.ms-excel": [".xls"],
+      "application/vnd.ms-excel": [".xlsm"],
+      "application/powerpoint": [".pptx"],
     },
   });
 
