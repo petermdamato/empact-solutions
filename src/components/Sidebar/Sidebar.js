@@ -125,7 +125,7 @@ const Sidebar = () => {
               </SimpleTooltip>
             </button>
             <button onClick={() => setShowUpload(true)}>
-              <SimpleTooltip tooltipText="Upload" positioning={"right"}>
+              <SimpleTooltip tooltipText="Import" positioning={"right"}>
                 <UploadIcon style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>

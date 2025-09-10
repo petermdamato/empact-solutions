@@ -15,8 +15,7 @@ const LegendLines = ({
     if (!options?.length) return [];
 
     return options.map((option, index) => ({
-      label:
-        option === "0" ? "Disrupted" : option === "1" ? "Undisrupted" : option,
+      label: option,
       color: getColorByOption(option),
     }));
   }, [options]);

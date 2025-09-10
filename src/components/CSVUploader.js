@@ -17,8 +17,6 @@ export default function CSVUploader() {
   const [fileType, setFileType] = useState("CSV");
 
   const handleClick = () => {
-    console.log("false");
-    console.log(showUpload);
     setShowUpload(false);
   };
 
@@ -239,7 +237,7 @@ export default function CSVUploader() {
           const jsonData = utils.sheet_to_json(worksheet, { defval: "" });
           handleParsedData(jsonData);
         } else {
-          alert("Unsupported file format. Please upload a CSV or XLSX file.");
+          alert("Unsupported file format. Please import a CSV or XLSX file.");
         }
       };
 
@@ -272,7 +270,7 @@ export default function CSVUploader() {
         {isDragActive ? (
           <p>Drop the file here...</p>
         ) : (
-          <p>Drop CSV or XLSX file here or click to upload.</p>
+          <p>Drop CSV or XLSX file here or click to import.</p>
         )}
       </div>
 
@@ -280,7 +278,7 @@ export default function CSVUploader() {
         <div>
           <div className="success-message">
             <span style={{ color: "#004400" }}>
-              {fileType.toUpperCase()} uploaded successfully
+              {fileType.toUpperCase()} imported successfully
             </span>
             <div className="btn-go-to-overview" onClick={handleClick}>
               Go to overview →

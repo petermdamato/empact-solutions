@@ -239,7 +239,10 @@ const EnhancedTooltip = ({
               </div>
               <StackedBarChartGeneric
                 data={innerData}
-                sorted={groupByKey === "Reason for Detention"}
+                // If true, sort by value is always engaged, not just when category is selected in the settings
+                sorted={["Reason for Detention", "Offense Category"].includes(
+                  groupByKey
+                )}
                 breakdowns={chartBreakdowns}
                 height={chartTitle && chartTitle.includes("Reason") ? 300 : 200}
                 margin={{ top: 10, right: 40, bottom: 40, left: 20 }}

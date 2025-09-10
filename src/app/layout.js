@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Youth Detention Analysis",
+  title: "Empulse: Youth Detention Analytics",
   description: "Developed by Empact Solutions",
 };
 

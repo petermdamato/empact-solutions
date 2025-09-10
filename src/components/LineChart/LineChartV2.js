@@ -139,7 +139,13 @@ const LineChartV2 = ({
     const colorScale = d3
       .scaleOrdinal()
       .domain(
-        selectedLegendDetails.map((entry) => entry.label.replace("+", ""))
+        selectedLegendDetails.map((entry) =>
+          entry.label.toLowerCase() === "disrupted"
+            ? "0"
+            : entry.label.toLowerCase() === "undisrupted"
+            ? "1"
+            : entry.label.replace("+", "")
+        )
       )
       .range(selectedLegendDetails.map((entry) => entry.color));
 
@@ -342,10 +348,15 @@ const LineChartV2 = ({
               ? "African-American or Black"
               : String(series.key)[0].toUpperCase() +
                 String(series.key).slice(1).toLowerCase();
+
             // Tooltip data accumulation
-            tooltipHTML += `<span style="color:${colorScale(
-              series.key
-            )};">${thisLabel}:</span> ${value}${
+            tooltipHTML += `<span style="color:${colorScale(series.key)};">${
+              thisLabel === "1"
+                ? "Undisrupted"
+                : thisLabel === "0"
+                ? "Disrupted"
+                : thisLabel
+            }:</span> ${value}${
               metric.includes("LengthOfStay")
                 ? ""
                 : " (" +

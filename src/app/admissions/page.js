@@ -789,6 +789,7 @@ export default function Overview() {
                     toggleFilter={toggleFilter}
                     filterVariables={filterVariables}
                     groupByKey={"Offense Category"}
+                    // Decide whether to display enhanced tooltip
                     showChart={true}
                     innerData={dataArray21}
                     maxLabelWidth={maxLabelWidth}

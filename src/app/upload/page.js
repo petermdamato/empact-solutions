@@ -28,7 +28,7 @@ export default function Overview() {
       <div style={{ display: "flex" }}>
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
           <Header
-            title="Upload"
+            title="Import"
             subtitle=""
             caption="Add your organization's detention statistics file in CSV or Excel format"
             year=""
