@@ -75,6 +75,7 @@ export default function Overview() {
   useEffect(() => {
     if (fileName && fileName.length > 0) {
       const match = fileName.match(/(\d{8}).*?(\d{8})/);
+
       let secondGroup;
       if (match) {
         secondGroup = match[2];
@@ -99,6 +100,7 @@ export default function Overview() {
       analyzeByYear(dataArray, {
         detentionType: "secure-detention",
         breakdown: mappedBreakdown,
+        fileName: fileName,
       })
     );
   }, [csvData, programType, breakdownType, selectedLegendOptions]);

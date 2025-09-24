@@ -40,7 +40,7 @@ const parseDateYear = (dateStr) => {
 };
 
 export default function Overview() {
-  const { csvData } = useCSV();
+  const { csvData, fileName } = useCSV();
   const { selectedTags } = useTags();
   const router = useRouter();
   const contentRef = useRef();
@@ -51,7 +51,7 @@ export default function Overview() {
   const [calculationType, setCalculationType] = useState("average");
   const [programType] = useState("All Program Types");
   const [filterVariables, setFilterVariable] = useState([]);
-  const [yearsArray, setYearsArray] = useState([2024]);
+  const [yearsArray, setYearsArray] = useState([]);
   const [raceType, setRaceType] = useState("RaceEthnicity");
 
   const [dataArray11, setDataArray11] = useState([]);
@@ -249,12 +249,47 @@ export default function Overview() {
   }, [finalData, selectedYear, programType, filterVariables]);
 
   useEffect(() => {
-    setYearsArray(
-      [...new Set(finalData.map((obj) => parseDateYear(obj.Admission_Date)))]
-        .filter((entry) => entry !== null)
-        .sort((a, b) => a - b)
-    );
-  }, [csvData]);
+    let yearsStringArray;
+
+    if (fileName && fileName.length > 0) {
+      const match = fileName.match(/(\d{8}).*?(\d{8})/);
+      if (match) {
+        yearsStringArray = [match[1], match[2]];
+      }
+    }
+
+    const parseDateYear = (dateString) => {
+      if (!dateString) return null;
+      const date = new Date(dateString);
+      return isNaN(date) ? null : date.getFullYear();
+    };
+
+    const uniqueYears = [
+      ...new Set(csvData.map((obj) => parseDateYear(obj.Admission_Date))),
+    ]
+      .filter((year) => {
+        if (year === null || isNaN(year)) return false;
+
+        // Extract years from yearsStringArray if they exist
+        const startYear =
+          yearsStringArray && yearsStringArray[0]
+            ? parseInt(yearsStringArray[0].slice(4, 8))
+            : null;
+        const endYear =
+          yearsStringArray && yearsStringArray[1]
+            ? parseInt(yearsStringArray[1].slice(4, 8))
+            : null;
+
+        const meetsStartCondition = !startYear || year >= startYear;
+        const meetsEndCondition = !endYear || year <= endYear;
+
+        return meetsStartCondition && meetsEndCondition;
+      })
+      .sort((a, b) => a - b);
+
+    setSelectedYear(uniqueYears[uniqueYears.length - 1]);
+    setYearsArray(uniqueYears);
+  }, [csvData, fileName]);
 
   useEffect(() => {
     if (

@@ -122,7 +122,15 @@ const Sidebar = () => {
           <img src="./logo_upper_color.png" alt="Empact Solutions Logo" />
         </div>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+              margin: "0 12px",
+            }}
+          >
             <button
               onClick={() => setShowSettings(true)}
               className="circular-button"
@@ -180,7 +188,13 @@ const Sidebar = () => {
           </div>
         </div>
 
-        <h1 className="sidebar-menu">
+        <h1
+          className={`sidebar-menu sidebar-menu-${
+            selectedMenu.includes("Alternative")
+              ? "alternative-to-detention"
+              : "secure-detention"
+          }`}
+        >
           {["User Guide", "Upload", "Settings", "Glossary"].includes(
             selectedMenu
           )

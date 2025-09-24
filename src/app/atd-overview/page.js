@@ -19,7 +19,7 @@ import DownloadButton from "@/components/DownloadButton/DownloadButton";
 import { isLeapYear } from "date-fns";
 
 export default function Overview() {
-  const { csvData } = useCSV();
+  const { csvData, fileName } = useCSV();
   const router = useRouter();
   const contentRef = useRef();
   const [dataArray1, setDataArray1] = useState([]);
@@ -42,19 +42,47 @@ export default function Overview() {
   }, [csvData, router]);
 
   useEffect(() => {
+    let yearsArray;
+
+    if (fileName && fileName.length > 0) {
+      const match = fileName.match(/(\d{8}).*?(\d{8})/);
+      if (match) {
+        yearsArray = [match[1], match[2]];
+      }
+    }
+
     const uniqueYears = [
       ...new Set(
         csvData.map((row) => {
-          const date = new Date(row.Admission_Date);
+          const date = new Date(row.ATD_Entry_Date);
           return date.getFullYear();
         })
       ),
     ]
       .sort()
-      .filter((year) => !isNaN(year));
+      .filter((year) => {
+        // Check if year is a valid number
+        if (isNaN(year)) return false;
 
+        // Extract years from yearsArray if they exist
+        const startYear =
+          yearsArray && yearsArray[0]
+            ? parseInt(yearsArray[0].slice(4, 8))
+            : null;
+        const endYear =
+          yearsArray && yearsArray[1]
+            ? parseInt(yearsArray[1].slice(4, 8))
+            : null;
+
+        const meetsStartCondition = !startYear || year >= startYear;
+        const meetsEndCondition = !endYear || year <= endYear;
+
+        return meetsStartCondition && meetsEndCondition;
+      });
+
+    setSelectedYear(uniqueYears[uniqueYears.length - 1]);
     setYearsArray(uniqueYears);
-  }, [csvData]);
+  }, [csvData, fileName]);
 
   const handleSelectChange = (event) => {
     setCalculation(event.target.value);
@@ -95,12 +123,14 @@ export default function Overview() {
     const statusDataCalculations = aggregateCalculationByOffense(
       csvData,
       +selectedYear,
-      detentionType
+      detentionType,
+      fileName
     );
     const statusDataMedian = aggregateMedianByOffense(
       csvData,
       +selectedYear,
-      detentionType
+      detentionType,
+      fileName
     );
 
     const columnAggCalculations = statusDataCalculations.results.reduce(

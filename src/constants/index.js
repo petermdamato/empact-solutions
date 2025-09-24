@@ -5,3 +5,5 @@ export const successColors = {
   unsuccessful: "#5a6b7c",
   total: "#5a6b7c",
 };
+
+export const getLosForUnreleased = true;

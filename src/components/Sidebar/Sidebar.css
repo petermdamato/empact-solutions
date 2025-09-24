@@ -27,7 +27,7 @@
   padding: 0 16px;
 }
 .header div img {
-  width: 120px;
+  width: 100%;
   height: auto;
 }
 .menu-divider {
@@ -90,7 +90,7 @@ nav li.active a button {
 }
 
 nav li.active.alternative {
-  background-color: #2688a5;
+  /* background-color: #2688a5; */
   margin-left: -2px;
 }
 nav li button span {
@@ -154,8 +154,8 @@ img {
   background-color: #292e37;
 }
 .circular-button {
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background-color: #3c424b;
   border: none;
@@ -184,6 +184,9 @@ img {
   font-weight: bold;
   margin-top: 26px;
   /* font-variant: small-caps; */
+}
+.sidebar-menu-alternative-to-detention {
+  color: #afb2b8;
 }
 .signout-button {
   right: 12px;

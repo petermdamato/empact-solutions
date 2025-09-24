@@ -1,9 +1,29 @@
 import getSimplifiedOffenseCategory from "../helper";
 import * as d3 from "d3";
 import { isLeapYear } from "date-fns";
+import { getLosForUnreleased } from "@/constants";
 
-function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
-  const entryYears = data
+function analyzeByYear(
+  data,
+  { detentionType, breakdown = "none", fileName = "" } = {}
+) {
+  const dateMatch = fileName.match(/(\d{8}).*?(\d{8})/);
+
+  let endDateString;
+  if (dateMatch) {
+    endDateString = dateMatch[2];
+  }
+
+  // Filter data based on getLosForUnreleased setting
+  const filteredData = data.filter((record) => {
+    if (detentionType === "alternative-to-detention") {
+      return getLosForUnreleased || record.ATD_Exit_Date;
+    } else {
+      return getLosForUnreleased || record.Release_Date;
+    }
+  });
+
+  const entryYears = filteredData
     .map((item) => {
       const d = new Date(
         detentionType === "alternative-to-detention"
@@ -14,13 +34,17 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
     })
     .filter((y) => y !== null);
 
-  const exitYears = data
+  const exitYears = filteredData
     .map((item) => {
-      const d = new Date(
-        detentionType === "alternative-to-detention"
-          ? item.ATD_Exit_Date
-          : item.Release_Date
-      );
+      const exitDate = getLosForUnreleased
+        ? detentionType === "alternative-to-detention"
+          ? item.ATD_Exit_Date || endDateString
+          : item.Release_Date || endDateString
+        : detentionType === "alternative-to-detention"
+        ? item.ATD_Exit_Date
+        : item.Release_Date;
+
+      const d = new Date(exitDate);
       return isNaN(d) ? null : d.getFullYear();
     })
     .filter((y) => y !== null);
@@ -32,15 +56,39 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
 
   const getDates = (record) => {
     if (detentionType === "secure-detention") {
-      return {
-        entry: record.Admission_Date ? new Date(record.Admission_Date) : null,
-        exit: record.Release_Date ? new Date(record.Release_Date) : null,
-      };
+      const entry = record.Admission_Date
+        ? new Date(record.Admission_Date)
+        : null;
+      let exit = record.Release_Date ? new Date(record.Release_Date) : null;
+
+      // If getLosForUnreleased is true and no release date, use endDateString
+      if (getLosForUnreleased && !exit && endDateString) {
+        exit = new Date(
+          `${endDateString.slice(0, 4)}-${endDateString.slice(
+            4,
+            6
+          )}-${endDateString.slice(6, 8)}`
+        );
+      }
+
+      return { entry, exit };
     } else if (detentionType === "alternative-to-detention") {
-      return {
-        entry: record.ATD_Entry_Date ? new Date(record.ATD_Entry_Date) : null,
-        exit: record.ATD_Exit_Date ? new Date(record.ATD_Exit_Date) : null,
-      };
+      const entry = record.ATD_Entry_Date
+        ? new Date(record.ATD_Entry_Date)
+        : null;
+      let exit = record.ATD_Exit_Date ? new Date(record.ATD_Exit_Date) : null;
+
+      // If getLosForUnreleased is true and no exit date, use endDateString
+      if (getLosForUnreleased && !exit && endDateString) {
+        exit = new Date(
+          `${endDateString.slice(0, 4)}-${endDateString.slice(
+            4,
+            6
+          )}-${endDateString.slice(6, 8)}`
+        );
+      }
+
+      return { entry, exit };
     }
     return { entry: null, exit: null };
   };
@@ -106,7 +154,7 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
   const results = {};
   const validYears = new Set();
 
-  data.forEach((record) => {
+  filteredData.forEach((record) => {
     const { entry, exit } = getDates(record);
 
     if (!entry) return;
@@ -155,31 +203,44 @@ function analyzeByYear(data, { detentionType, breakdown = "none" } = {}) {
       results[yr][key].totalOverlapDays += overlapDays;
     }
 
-    // If released, increment exits and LOS in exit year
-    if (exitYear) {
+    // Calculate LOS - include unreleased records if getLosForUnreleased is true
+    if (exit) {
       const los = Math.max(
         0,
         Math.ceil((exit - entry) / (1000 * 60 * 60 * 24)) + 1
       );
 
-      validYears.add(exitYear);
-      if (!results[exitYear]) results[exitYear] = {};
-      if (!results[exitYear][key]) {
-        results[exitYear][key] = {
-          entries: 0,
-          exits: 0,
-          totalLOS: 0,
-          countLOS: 0,
-          lengthOfStays: [],
-          totalOverlapDays: 0,
-          daysInYear: isLeapYear(exit) ? 366 : 365,
-        };
-      }
+      // For unreleased records, only count them in the exit year if we're using getLosForUnreleased
+      const isUnreleased =
+        detentionType === "alternative-to-detention"
+          ? !record.ATD_Exit_Date
+          : !record.Release_Date;
 
-      results[exitYear][key].exits += 1;
-      results[exitYear][key].totalLOS += los;
-      results[exitYear][key].countLOS += 1;
-      results[exitYear][key].lengthOfStays.push(los);
+      if (!isUnreleased || getLosForUnreleased) {
+        const targetYear = exitYear;
+        validYears.add(targetYear);
+        if (!results[targetYear]) results[targetYear] = {};
+        if (!results[targetYear][key]) {
+          results[targetYear][key] = {
+            entries: 0,
+            exits: 0,
+            totalLOS: 0,
+            countLOS: 0,
+            lengthOfStays: [],
+            totalOverlapDays: 0,
+            daysInYear: isLeapYear(exit) ? 366 : 365,
+          };
+        }
+
+        // Only count as exit if the record was actually released (not using endDateString)
+        if (!isUnreleased) {
+          results[targetYear][key].exits += 1;
+        }
+
+        results[targetYear][key].totalLOS += los;
+        results[targetYear][key].countLOS += 1;
+        results[targetYear][key].lengthOfStays.push(los);
+      }
     }
   });
 
