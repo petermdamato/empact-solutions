@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { firebaseAuth } from "@/lib/firebaseClient";
 import { updatePassword } from "firebase/auth";
