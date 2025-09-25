@@ -300,7 +300,7 @@ const StackedBarChartGeneric = (props) => {
         .attr("y", -8)
         .style("font-size", 16)
         .style("font-weight", "bold")
-        .text(chartTitle);
+        .text(chartTitle === "LOS by Race" ? "" : chartTitle);
 
       // Check width and trim if necessary
       if (titleText.node().getComputedTextLength() > parentWidth) {

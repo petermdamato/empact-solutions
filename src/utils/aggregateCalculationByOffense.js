@@ -3,14 +3,23 @@ const aggregateCalculationByStatus = (
   selectedYear,
   detentionType,
   statusColumn = "OffenseCategory", // Changed default to OffenseCategory
-  calculation = "average"
+  calculation = "average",
+  fileName = "" // Added fileName parameter
 ) => {
-  const yearStart = new Date(`${selectedYear}-01-01`);
-  const yearEnd = new Date(`${selectedYear}-12-31`);
+  // Extract date range from fileName if provided
+  let dateRange = null;
+  if (fileName && fileName.length > 0) {
+    const match = fileName.match(/(\d{8}).*?(\d{8})/);
+    if (match) {
+      dateRange = [match[1], match[2]];
+    }
+  }
 
-  // Previous year range
-  const prevStartDate = new Date(`${selectedYear - 1}-01-01`);
-  const prevEndDate = new Date(`${selectedYear - 1}-12-31`);
+  // Extract years from dateRange if they exist
+  const startYear =
+    dateRange && dateRange[0] ? parseInt(dateRange[0].slice(0, 4)) : null;
+  const endYear =
+    dateRange && dateRange[1] ? parseInt(dateRange[1].slice(0, 4)) : null;
 
   const getIntakeDate = (record) =>
     detentionType === "secure-detention"
@@ -30,14 +39,35 @@ const aggregateCalculationByStatus = (
       ? new Date(record.ATD_Exit_Date)
       : null;
 
+  // Filter data based on date range from fileName
+  const filteredData = data.filter((record) => {
+    const intakeDate = getIntakeDate(record);
+    if (!intakeDate) return false;
+
+    const intakeYear = intakeDate.getFullYear();
+
+    // Check if intakeYear falls within the date range
+    const meetsStartCondition = !startYear || intakeYear >= startYear;
+    const meetsEndCondition = !endYear || intakeYear <= endYear;
+
+    return meetsStartCondition && meetsEndCondition;
+  });
+
+  const yearStart = new Date(`${selectedYear}-01-01`);
+  const yearEnd = new Date(`${selectedYear}-12-31`);
+
+  // Previous year range
+  const prevStartDate = new Date(`${selectedYear - 1}-01-01`);
+  const prevEndDate = new Date(`${selectedYear - 1}-12-31`);
+
   // Filter records where the release date occurred in the selected year
-  const releasedThisYear = data.filter((record) => {
+  const releasedThisYear = filteredData.filter((record) => {
     const releaseDate = getReleaseDate(record);
     return releaseDate && releaseDate >= yearStart && releaseDate <= yearEnd;
   });
 
   // Filter previous year releases for comparison
-  const releasedPrevYear = data.filter((record) => {
+  const releasedPrevYear = filteredData.filter((record) => {
     const releaseDate = getReleaseDate(record);
     return (
       releaseDate && releaseDate >= prevStartDate && releaseDate <= prevEndDate
@@ -64,14 +94,13 @@ const aggregateCalculationByStatus = (
     { prevTotal: 0, prevCount: 0 }
   );
 
-  const releasedCalculatedPrevYear = prevTotal / prevCount;
+  const releasedCalculatedPrevYear = prevCount > 0 ? prevTotal / prevCount : 0;
 
   const categorizeOffense = (record) => {
-    const postStatus = record.Post_Adjudicated_Status;
     const postReason = record["Post-Dispo Stay Reason"];
     const offenseCategory = record.OffenseCategory?.toLowerCase() || "";
 
-    // First check Post_Adjudicated_Status
+    // First check Post-Dispo Stay Reason
     if (postReason) {
       const lowerStatus = postReason.toLowerCase();
       if (lowerStatus.includes("awaiting")) {
@@ -138,13 +167,15 @@ const aggregateCalculationByStatus = (
 
   return {
     previousPeriodCount: releasedCalculatedPrevYear,
-    results: Object.entries(result).map(([category, stats]) => ({
-      category,
-      post: stats.post,
-      pre: stats.pre,
-      daysPost: stats.daysPost,
-      daysPre: stats.daysPre,
-    })),
+    results: Object.entries(result).map(([category, stats]) => {
+      return {
+        category,
+        post: stats.post,
+        pre: stats.pre,
+        daysPost: stats.daysPost,
+        daysPre: stats.daysPre,
+      };
+    }),
   };
 };
 

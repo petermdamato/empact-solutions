@@ -42,7 +42,8 @@ const ColumnChart = ({
     const getValue =
       context === "releases" || context === "exits"
         ? calculation.toLowerCase().includes("average")
-          ? (d) => Math.round((d.days * 10) / d.value) / 10
+          ? (d) =>
+              d.value === 0 ? 0 : Math.round((d.days * 10) / d.value) / 10
           : (d) => d.days
         : context === "population"
         ? (d) => Math.round(d.value * 10) / 10

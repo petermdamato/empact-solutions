@@ -18,8 +18,22 @@
   pointer-events: none;
   opacity: 0.4;
 }
+.inner-text {
+  display: flex;
+  justify-content: space-between;
+}
 .header {
   flex-shrink: 0;
+  padding: 0 16px;
+}
+.header div img {
+  width: 100%;
+  height: auto;
+}
+.menu-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 14px 10px 14px 6px;
 }
 h1 {
   font-weight: 300;
@@ -31,7 +45,7 @@ h2 {
 }
 nav {
   padding: 2px 2px 0 12px;
-  margin-top: 30px;
+  margin-top: 20px;
   flex-grow: 1;
   overflow-y: auto;
 }
@@ -43,8 +57,12 @@ nav ul {
 span:hover {
   text-decoration: none !important;
 }
-nav li:not(.expanded):hover {
-  outline: 1px solid white;
+nav li:not(.expanded):not(.active):hover {
+  box-shadow: inset 2px 0 0 0 white;
+}
+.expanded > button {
+  padding-top: 12px !important;
+  margin-bottom: 2px;
 }
 nav li {
   /* margin-bottom: 8px; */
@@ -61,13 +79,18 @@ nav li.collapsed {
   height: 36px;
 }
 nav li.active {
-  background-color: #4a5461;
-  border-left: 2px solid white;
+  /* background-color: #4a5461; */
+  border-left: 2px solid transparent;
   margin-left: -2px;
+  box-shadow: inset 2px 0 0 0 #de3b38;
 }
+nav li.active a button {
+  /* background-color: #4a5461; */
+  font-weight: bold;
+}
+
 nav li.active.alternative {
-  background-color: #2688a5;
-  border-left: 2px solid white;
+  /* background-color: #2688a5; */
   margin-left: -2px;
 }
 nav li button span {
@@ -122,13 +145,51 @@ img {
   margin-right: 4px;
 }
 .submenu {
-  padding: 16px 0 0 24px;
+  padding: 12px 0 0 24px;
 }
 .sidebar-alternative-to-detention {
   background-color: #00668e;
 }
 .sidebar-secure-detention {
-  background-color: #333a43;
+  background-color: #292e37;
+}
+.circular-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #3c424b;
+  border: none;
+  display: flex;
+  align-items: center; /* Vertically center icon */
+  justify-content: center; /* Horizontally center icon */
+  cursor: pointer;
+  padding: 4px 0 0 0;
+}
+.circular-button svg {
+  scale: 0.8;
+}
+.circular-button-account svg {
+  scale: 1;
+}
+.circular-button-import svg {
+  scale: 1.2;
+}
+.circular-button-import {
+  padding: 3px 1px 0 0;
+}
+.circular-button-logout {
+  padding: 3px 0 0 3px;
+}
+.sidebar-menu {
+  color: #5e6470;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-top: 26px;
+  /* font-variant: small-caps; */
+}
+.sidebar-menu-alternative-to-detention {
+  color: #afb2b8;
 }
 .signout-button {
   right: 12px;

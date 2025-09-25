@@ -4,11 +4,14 @@ import React, { useEffect, useRef } from "react";
 import { Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
-import UploadIcon from "@mui/icons-material/Upload";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { FaFileImport } from "react-icons/fa";
+import LogoutIcon from "@mui/icons-material/Logout";
 import Link from "next/link";
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
+import AccountPage from "@/app/account/page";
 import { useCSV } from "@/context/CSVContext";
 import { useModal } from "@/context/ModalContext";
 import { useSidebar } from "@/context/SidebarContext";
@@ -60,8 +63,15 @@ const Sidebar = () => {
     selectedSubItemLabel,
     selectMenu,
   } = useSidebar();
-  const { showSettings, setShowSettings, showUpload, setShowUpload } =
-    useModal();
+
+  const {
+    showSettings,
+    setShowSettings,
+    showUpload,
+    setShowUpload,
+    showAccount,
+    setShowAccount,
+  } = useModal();
 
   const navRef = useRef(null);
 
@@ -117,19 +127,65 @@ const Sidebar = () => {
     >
       <div className="header">
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <img src="./logo_upper.png" alt="Empact Solutions Logo" />
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <button onClick={() => setShowSettings(true)}>
+          <img src="./logo_upper_color.png" alt="Empact Solutions Logo" />
+        </div>
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+              margin: "0 12px",
+            }}
+          >
+            <button
+              onClick={() => setShowSettings(true)}
+              className="circular-button"
+            >
               <SimpleTooltip tooltipText="Settings" positioning={"right"}>
                 <SettingsIcon style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
-            <button onClick={() => setShowUpload(true)}>
+            <button
+              onClick={() => setShowUpload(true)}
+              className="circular-button circular-button-import"
+            >
               <SimpleTooltip tooltipText="Import" positioning={"right"}>
-                <UploadIcon style={{ cursor: "pointer", color: "white" }} />
+                <FaFileImport style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
+            {/* <button
+              onClick={() => setShowAccount(true)}
+              className="circular-button circular-button-account"
+            >
+              <SimpleTooltip tooltipText="Account" positioning={"right"}>
+                <AccountCircleIcon
+                  style={{ cursor: "pointer", color: "white" }}
+                />
+              </SimpleTooltip>
+            </button> */}
             <button
+              onClick={async () => {
+                try {
+                  // Sign out from Firebase client-side first
+                  await firebaseSignOut(firebaseAuth);
+
+                  // Then sign out from NextAuth (triggers server-side revocation)
+                  await nextAuthSignOut({ callbackUrl: "/auth/signin" });
+                } catch (error) {
+                  console.error("Signout error:", error);
+                  // Still try to clear NextAuth session even if Firebase fails
+                  await nextAuthSignOut({ callbackUrl: "/auth/signin" });
+                }
+              }}
+              className="circular-button circular-button-logout"
+            >
+              <SimpleTooltip tooltipText="Log Out" positioning={"right"}>
+                <LogoutIcon style={{ cursor: "pointer", color: "white" }} />
+              </SimpleTooltip>
+            </button>
+            {/* <button
               onClick={async () => {
                 try {
                   // Sign out from Firebase client-side first
@@ -146,112 +202,126 @@ const Sidebar = () => {
               className="signout-button"
             >
               Sign Out
-            </button>
+            </button> */}
           </div>
         </div>
 
-        <h1>
+        <h1
+          className={`sidebar-menu sidebar-menu-${
+            selectedMenu.includes("Alternative")
+              ? "alternative-to-detention"
+              : "secure-detention"
+          }`}
+        >
           {["User Guide", "Upload", "Settings", "Glossary"].includes(
             selectedMenu
           )
-            ? "Youth Detention Analytics"
+            ? "youth detention analytics"
             : selectedMenu}
         </h1>
-        <h2>{selectedSubItemLabel || selectedMenu}</h2>
+        {/* <h2>{selectedSubItemLabel || selectedMenu}</h2> */}
       </div>
 
       <nav ref={navRef}>
         <ul>
-          {menuItems.map((item) => (
-            <li
-              key={item.label}
-              className={`${
-                item.subItems && openMenus[item.label]
-                  ? "expanded"
-                  : item.subItems
-                  ? "collapsed"
-                  : item.label
-                      .replace("(", "")
-                      .replace(")", "")
+          {menuItems.map((item, index) => (
+            <React.Fragment key={item.label}>
+              <li
+                className={`${
+                  item.subItems && openMenus[item.label]
+                    ? "expanded"
+                    : item.subItems
+                    ? "collapsed"
+                    : item.label
+                        .replace("(", "")
+                        .replace(")", "")
+                        .replaceAll(" ", "-")
+                        .toLowerCase() === selectedElement
+                    ? "active"
+                    : "single"
+                } ${
+                  item.access === "Active" || csvData.length > 0
+                    ? ""
+                    : "deactivated"
+                }`}
+                onClick={() =>
+                  handleSelect(item.label, item.subItems ? "" : item.label)
+                }
+              >
+                {item.subItems ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMenu(item.label);
+                    }}
+                  >
+                    <div className="inner-text">
+                      <span>{item.label}</span>
+                      {item.subItems && (
+                        <span className="menu-toggle">
+                          {openMenus[item.label] ? "▼" : "▶"}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ) : (
+                  <Link
+                    href={`/${item.label
+                      .toLowerCase()
                       .replaceAll(" ", "-")
-                      .toLowerCase() === selectedElement
-                  ? "active"
-                  : "single"
-              } ${
-                item.access === "Active" || csvData.length > 0
-                  ? ""
-                  : "deactivated"
-              }`}
-              onClick={() =>
-                handleSelect(item.label, item.subItems ? "" : item.label)
-              }
-            >
-              {item.subItems ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleMenu(item.label);
-                  }}
-                >
-                  {item.subItems && (
-                    <span className="menu-toggle">
-                      {openMenus[item.label] ? "▼" : "▶"}
-                    </span>
-                  )}
-                  <span>{item.label}</span>
-                </button>
-              ) : (
-                <Link
-                  href={`/${item.label
-                    .toLowerCase()
-                    .replaceAll(" ", "-")
-                    .replace("(", "")
-                    .replace(")", "")}`}
-                >
-                  <button>{item.label}</button>
-                </Link>
-              )}
-              {item.subItems && openMenus[item.label] && (
-                <ul className="submenu">
-                  {item.subItems.map((subItem) => (
-                    <li
-                      key={subItem}
-                      className={`${
-                        `${item.label}-${subItem}`
-                          .replace("(", "")
-                          .replace(")", "")
-                          .replaceAll(" ", "-")
-                          .toLowerCase() === selectedElement
-                          ? selectedMenu.includes("Alternative")
-                            ? "active alternative"
-                            : "active"
-                          : "single"
-                      }`}
-                      onClick={() =>
-                        handleSelect(
-                          item.label,
-                          `${item.label}-${subItem}`,
-                          subItem
-                        )
-                      }
-                    >
-                      <Link
-                        href={
-                          "/" +
-                          subItem
-                            .toLowerCase()
-                            .replaceAll(" ", "-")
+                      .replace("(", "")
+                      .replace(")", "")}`}
+                  >
+                    <button>{item.label}</button>
+                  </Link>
+                )}
+                {item.subItems && openMenus[item.label] && (
+                  <ul className="submenu">
+                    {item.subItems.map((subItem) => (
+                      <li
+                        key={subItem}
+                        className={`${
+                          `${item.label}-${subItem}`
                             .replace("(", "")
                             .replace(")", "")
+                            .replaceAll(" ", "-")
+                            .toLowerCase() === selectedElement
+                            ? selectedMenu.includes("Alternative")
+                              ? "active alternative"
+                              : "active"
+                            : "single"
+                        }`}
+                        onClick={() =>
+                          handleSelect(
+                            item.label,
+                            `${item.label}-${subItem}`,
+                            subItem
+                          )
                         }
                       >
-                        <button>{subItem}</button>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                        <Link
+                          href={
+                            "/" +
+                            subItem
+                              .toLowerCase()
+                              .replaceAll(" ", "-")
+                              .replace("(", "")
+                              .replace(")", "")
+                          }
+                        >
+                          <button>{subItem}</button>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+
+              {/* Add divider after Alternatives to Detention */}
+              {item.label === "Alternatives to Detention" && (
+                <div className="menu-divider" />
               )}
-            </li>
+            </React.Fragment>
           ))}
         </ul>
       </nav>
@@ -323,6 +393,11 @@ const Sidebar = () => {
       {/* Settings Modal */}
       <Modal isOpen={showUpload} onClose={() => setShowUpload(false)}>
         <UploadPage />
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal isOpen={showAccount} onClose={() => setShowAccount(false)}>
+        <AccountPage />
       </Modal>
     </div>
   );

@@ -265,6 +265,7 @@ const StackedBarChartGeneric = (props) => {
     finalFilteredData.forEach((d) => {
       let xOffset = 0;
       const cat = d;
+
       breakdowns.forEach((key, bIndex) => {
         const value = d[key] ?? 0;
         const width = xScale(value) > 0 ? Math.max(xScale(value), 2) : 0;
@@ -299,9 +300,7 @@ const StackedBarChartGeneric = (props) => {
           .text(
             Math.round(
               (+labelText * 100) /
-                d3.sum(filteredData, (row) =>
-                  breakdowns.reduce((sum, key) => sum + (row[key] ?? 0), 0)
-                )
+                breakdowns.reduce((acc, key) => acc + (d[key] ?? 0), 0)
             ) +
               "% (" +
               Math.round(labelText * 10) / 10 +

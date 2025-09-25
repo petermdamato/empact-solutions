@@ -52,7 +52,11 @@ const ChangeStatistics = ({ data, caption, map = false }) => {
                 marginTop: isPositive ? "-4px" : "0",
               }}
             >
-              {isNaN(percentageChange) ? "" : isPositive ? "▲" : "▼"}
+              {percentageChange === null || isNaN(percentageChange)
+                ? ""
+                : isPositive
+                ? "▲"
+                : "▼"}
             </span>
             {percentageChange === null || isNaN(percentageChange)
               ? "--"

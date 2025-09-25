@@ -16,8 +16,8 @@ export default function SimpleTooltip({
     if (showTooltip && wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect();
       setPosition({
-        top: rect.top + window.scrollY - 60, // 60px above the button
-        left: rect.left + rect.width / 2,
+        top: rect.top + window.scrollY - 70, // 60px above the button
+        left: rect.left + rect.width / 2 + 40,
       });
     }
   }, [showTooltip]);
@@ -47,8 +47,8 @@ export default function SimpleTooltip({
               borderRadius: "4px",
               padding: "12px",
               boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-              minWidth: "200px",
-              maxWidth: "320px",
+              minWidth: "120px",
+              maxWidth: "240px",
               zIndex: 9999,
               pointerEvents: "none",
               textAlign: "center",

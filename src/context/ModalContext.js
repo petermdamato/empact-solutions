@@ -9,6 +9,7 @@ export const useModal = () => useContext(ModalContext);
 export const ModalProvider = ({ children }) => {
   const [showUpload, setShowUpload] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
 
   return (
     <ModalContext.Provider
@@ -17,6 +18,8 @@ export const ModalProvider = ({ children }) => {
         setShowUpload,
         showSettings,
         setShowSettings,
+        showAccount,
+        setShowAccount,
       }}
     >
       {children}

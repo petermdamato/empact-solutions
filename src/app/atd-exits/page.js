@@ -40,7 +40,7 @@ const parseDateYear = (dateStr) => {
 };
 
 export default function Overview() {
-  const { csvData } = useCSV();
+  const { csvData, fileName } = useCSV();
   const { selectedTags } = useTags();
   const router = useRouter();
   const contentRef = useRef();
@@ -51,7 +51,7 @@ export default function Overview() {
   const [incarcerationType] = useState("alternative-to-detention");
   const [calculationType] = useState("Average");
   const [programType] = useState("All Program Types");
-  const [yearsArray, setYearsArray] = useState([2024]);
+  const [yearsArray, setYearsArray] = useState([]);
   const [breakdownType, setBreakdownType] = useState("Overall Total");
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
@@ -231,13 +231,56 @@ export default function Overview() {
     }
   }, [finalData, selectedYear, programType]);
 
+  // useEffect(() => {
+  //   setYearsArray(
+  //     [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
+  //       .filter((entry) => entry !== null)
+  //       .sort((a, b) => a - b)
+  //   );
+  // }, [finalData, fileName]);
+
   useEffect(() => {
-    setYearsArray(
-      [...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date)))]
-        .filter((entry) => entry !== null)
-        .sort((a, b) => a - b)
-    );
-  }, [finalData]);
+    let yearsStringArray;
+
+    if (fileName && fileName.length > 0) {
+      const match = fileName.match(/(\d{8}).*?(\d{8})/);
+      if (match) {
+        yearsStringArray = [match[1], match[2]];
+      }
+    }
+
+    const parseDateYear = (dateString) => {
+      if (!dateString) return null;
+      const date = new Date(dateString);
+      return isNaN(date) ? null : date.getFullYear();
+    };
+
+    const uniqueYears = [
+      ...new Set(finalData.map((obj) => parseDateYear(obj.ATD_Exit_Date))),
+    ]
+      .filter((year) => {
+        if (year === null || isNaN(year)) return false;
+
+        // Extract years from yearsStringArray if they exist
+        const startYear =
+          yearsStringArray && yearsStringArray[0]
+            ? parseInt(yearsStringArray[0].slice(4, 8))
+            : null;
+        const endYear =
+          yearsStringArray && yearsStringArray[1]
+            ? parseInt(yearsStringArray[1].slice(4, 8))
+            : null;
+
+        const meetsStartCondition = !startYear || year >= startYear;
+        const meetsEndCondition = !endYear || year <= endYear;
+
+        return meetsStartCondition && meetsEndCondition;
+      })
+      .sort((a, b) => a - b);
+
+    setSelectedYear(uniqueYears[uniqueYears.length - 1]);
+    setYearsArray(uniqueYears);
+  }, [finalData, fileName]);
 
   useEffect(() => {
     if (dataArray1.length > 0 && dataArray1[0].body?.exitsByProgramType) {
@@ -355,7 +398,11 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Exits - ${programType}`}
-            dekWithYear={`Showing exits to ATDs for ${selectedYear}`}
+            dekWithYear={`Showing exits to ATDs for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector
