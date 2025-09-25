@@ -607,7 +607,11 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Average LOS`}
-            dekWithYear={`Showing LOS in secure detention for ${selectedYear}`}
+            dekWithYear={`Showing LOS in secure detention for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector

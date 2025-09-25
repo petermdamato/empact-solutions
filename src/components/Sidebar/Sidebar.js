@@ -4,13 +4,14 @@ import React, { useEffect, useRef } from "react";
 import { Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
-// import UploadIcon from "@mui/icons-material/Upload";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { FaFileImport } from "react-icons/fa";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Link from "next/link";
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
+import AccountPage from "@/app/account/page";
 import { useCSV } from "@/context/CSVContext";
 import { useModal } from "@/context/ModalContext";
 import { useSidebar } from "@/context/SidebarContext";
@@ -62,8 +63,15 @@ const Sidebar = () => {
     selectedSubItemLabel,
     selectMenu,
   } = useSidebar();
-  const { showSettings, setShowSettings, showUpload, setShowUpload } =
-    useModal();
+
+  const {
+    showSettings,
+    setShowSettings,
+    showUpload,
+    setShowUpload,
+    showAccount,
+    setShowAccount,
+  } = useModal();
 
   const navRef = useRef(null);
 
@@ -128,6 +136,7 @@ const Sidebar = () => {
               alignItems: "center",
               justifyContent: "space-between",
               gap: "8px",
+              // margin: "0 4px",
               margin: "0 12px",
             }}
           >
@@ -147,6 +156,16 @@ const Sidebar = () => {
                 <FaFileImport style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
+            {/* <button
+              onClick={() => setShowAccount(true)}
+              className="circular-button circular-button-account"
+            >
+              <SimpleTooltip tooltipText="Account" positioning={"right"}>
+                <AccountCircleIcon
+                  style={{ cursor: "pointer", color: "white" }}
+                />
+              </SimpleTooltip>
+            </button> */}
             <button
               onClick={async () => {
                 try {
@@ -375,6 +394,11 @@ const Sidebar = () => {
       {/* Settings Modal */}
       <Modal isOpen={showUpload} onClose={() => setShowUpload(false)}>
         <UploadPage />
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal isOpen={showAccount} onClose={() => setShowAccount(false)}>
+        <AccountPage />
       </Modal>
     </div>
   );

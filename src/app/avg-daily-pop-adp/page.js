@@ -549,7 +549,11 @@ export default function Overview() {
           <Header
             title={"Secure Detention Utilization"}
             subtitle={`Average Daily Population`}
-            dekWithYear={`Showing ADP in secure detention for ${selectedYear}`}
+            dekWithYear={`Showing ADP in secure detention for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector

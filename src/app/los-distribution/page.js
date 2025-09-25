@@ -120,7 +120,11 @@ export default function Overview() {
           <Header
             title={`${incarcerationType}`}
             subtitle={`LOS Distribution`}
-            dekWithYear={`Showing length-of-stay (LOS) distribution across ${exploreType}`}
+            dekWithYear={`Showing length-of-stay (LOS) distribution across ${
+              exploreType.includes("YOC")
+                ? "YOC/white"
+                : exploreType.toLowerCase()
+            }`}
           >
             <Selector
               values={[

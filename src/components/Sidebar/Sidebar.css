@@ -154,8 +154,8 @@ img {
   background-color: #292e37;
 }
 .circular-button {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background-color: #3c424b;
   border: none;
@@ -167,6 +167,9 @@ img {
 }
 .circular-button svg {
   scale: 0.8;
+}
+.circular-button-account svg {
+  scale: 1;
 }
 .circular-button-import svg {
   scale: 1.2;

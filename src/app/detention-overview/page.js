@@ -256,7 +256,7 @@ export default function Overview() {
         >
           <Header
             title="Secure Detention Utilization"
-            subtitle="Snapshot"
+            subtitle="Overview"
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}
             dropdownOptions={yearsArray}

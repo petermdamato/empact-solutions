@@ -74,7 +74,13 @@ const Header = ({
           )}
         </h1>
         <div style={{ display: "flex" }}>
-          {year ? (
+          {(["overview", "table"].includes(subtitle.toLowerCase()) ||
+            subtitle.toLowerCase().includes("table view")) &&
+          dropdownOptions?.length > 1 ? (
+            <h3 style={{ margin: 0 }}>{`${dropdownOptions[0]} – ${
+              dropdownOptions[dropdownOptions.length - 1]
+            }`}</h3>
+          ) : year ? (
             <h3 style={{ margin: 0 }}>{year}</h3>
           ) : (
             <h4 style={{ margin: 0 }}>{dekWithYear}</h4>

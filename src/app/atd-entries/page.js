@@ -459,7 +459,11 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Entries - All Programs`}
-            dekWithYear={`Showing entries to ATDs for ${selectedYear}`}
+            dekWithYear={`Showing entries to ATDs for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector

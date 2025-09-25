@@ -475,7 +475,11 @@ export default function Overview() {
           <Header
             title="Secure Detention Utilization"
             subtitle="Admissions"
-            dekWithYear={`Showing admissions to secure detention for ${selectedYear}.`}
+            dekWithYear={`Showing admissions to secure detention for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
             selectedYear={selectedYear}
             onSelectChange={onSelectChange}

@@ -564,7 +564,11 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Average Daily Population - All Programs`}
-            dekWithYear={`Showing average daily population in ATDs for ${selectedYear}`}
+            dekWithYear={`Showing average daily population in ATDs for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector

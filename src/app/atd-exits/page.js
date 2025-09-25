@@ -398,7 +398,11 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Exits - ${programType}`}
-            dekWithYear={`Showing exits to ATDs for ${selectedYear}`}
+            dekWithYear={`Showing exits to ATDs for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector

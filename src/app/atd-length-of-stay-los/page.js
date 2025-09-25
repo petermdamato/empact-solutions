@@ -595,7 +595,11 @@ export default function Overview() {
                 : incarcerationType
             }`}
             subtitle={`Average Length of Stay - All Programs`}
-            dekWithYear={`Showing length of stay in ATDs for ${selectedYear}`}
+            dekWithYear={`Showing length of stay in ATDs for ${
+              yearsArray.length > 1
+                ? yearsArray[0] + " – " + yearsArray[yearsArray.length - 1]
+                : selectedYear
+            }.`}
             showFilterInstructions
           >
             <Selector
@@ -811,7 +815,7 @@ export default function Overview() {
                       breakdowns={["Total"]}
                       height={columnHeights.column2[0] - 12}
                       margin={{ top: 0, right: 50, bottom: 20, left: 20 }}
-                      chartTitle={""}
+                      chartTitle={"LOS by Race"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         Total: "#5a6b7c",
