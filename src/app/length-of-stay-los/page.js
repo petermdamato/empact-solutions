@@ -840,7 +840,7 @@ export default function Overview() {
                       calculationType={calculationType}
                       height={columnHeights.column2[0]}
                       margin={{ top: 0, right: 50, bottom: 30, left: 20 }}
-                      chartTitle={""}
+                      chartTitle={"LOS by Race"}
                       colorMapOverride={{
                         "Pre-dispo": "#5a6b7c",
                         total: "#5a6b7c",
