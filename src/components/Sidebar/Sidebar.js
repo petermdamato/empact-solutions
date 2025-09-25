@@ -136,7 +136,6 @@ const Sidebar = () => {
               alignItems: "center",
               justifyContent: "space-between",
               gap: "8px",
-              // margin: "0 4px",
               margin: "0 12px",
             }}
           >
