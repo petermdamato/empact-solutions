@@ -54,7 +54,8 @@ const RecordsTable = ({ data, selectedKey }) => {
   const linkText = useLinkOut();
   const [columnWidths, setColumnWidths] = useState(
     columns.reduce((acc, col) => {
-      acc[col.key] = 150; // default initial width in px
+      // Set Override_Reason to 800px, others to 150px
+      acc[col.key] = col.key === "Override_Reason" ? 800 : 150;
       return acc;
     }, {})
   );
