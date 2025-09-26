@@ -24,7 +24,6 @@ export default function Overview() {
   const contentRef = useRef();
   const [dataArray1, setDataArray1] = useState([]);
   const [dataArray2, setDataArray2] = useState([]);
-  const [dataArray3, setDataArray3] = useState([]);
   const [incarcerationType] = useState("ATD Utilization");
   const [selectedYear, setSelectedYear] = useState(2025);
   const [programType, setProgramType] = useState("All Program Types");
@@ -68,12 +67,6 @@ export default function Overview() {
         ),
       },
     ]);
-    setDataArray3(
-      analyzeByYear(csvData, {
-        detentionType: "alternative-to-detention",
-        bySuccess: true,
-      })
-    );
   }, [csvData, programType]);
 
   useEffect(() => {

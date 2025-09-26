@@ -105,6 +105,7 @@ const StackedColumnChart = ({
   const ref = useRef();
   const [tooltip, setTooltip] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
+  const [sortBarsBy] = useState("value");
 
   const colorScale =
     detentionType === "secure-detention"
@@ -286,13 +287,13 @@ const StackedColumnChart = ({
     }
   });
 
-  const keys = Array.from(groupKeySet);
-
+  // First create the stackedData with temporary keys
+  const tempKeys = Array.from(groupKeySet);
   const stackedData = bucketOrder.map((bucket) => {
     const group = grouped[bucket] || {};
     const result = { bucket, total: 0 };
 
-    keys.forEach((key) => {
+    tempKeys.forEach((key) => {
       result[key] = group[key] || 0;
       result.total += result[key];
     });
@@ -300,7 +301,30 @@ const StackedColumnChart = ({
     return result;
   });
 
-  const stack = d3.stack().keys(keys);
+  // Calculate total values for each key across all buckets
+  const keyTotals = {};
+  tempKeys.forEach((key) => {
+    keyTotals[key] = stackedData.reduce((sum, d) => sum + (d[key] || 0), 0);
+  });
+
+  // Sort keys by their total values (largest first for bottom layer)
+  const keysValue = tempKeys.sort((a, b) => {
+    const totalA = keyTotals[a] || 0;
+    const totalB = keyTotals[b] || 0;
+
+    // If totals are equal, sort alphabetically as tiebreaker
+    if (totalA === totalB) {
+      return a.localeCompare(b);
+    }
+
+    return totalB - totalA; // Descending order (largest first)
+  });
+
+  const keysAlphabetical = Array.from(groupKeySet).sort();
+
+  const stack = d3
+    .stack()
+    .keys(sortBarsBy === "alphabetical" ? keysAlphabetical : keysValue);
   const series = stack(stackedData);
 
   const xScale = d3

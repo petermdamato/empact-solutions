@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import { useCSV } from "@/context/CSVContext";
 import PillContainer from "@/components/PillContainer/PillContainer";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
@@ -32,6 +32,11 @@ export default function Overview() {
   ]);
   const [legendOptions, setLegendOptions] = useState([]);
   const [selectedLegendOptions, setSelectedLegendOptions] = useState([]);
+
+  // Memoize the filter dimension setter
+  const memoizedSetFilterDimension = useCallback((dimension) => {
+    setFilterDimension(dimension);
+  }, []);
 
   useEffect(() => {
     if (!router) return; // router not yet mounted
