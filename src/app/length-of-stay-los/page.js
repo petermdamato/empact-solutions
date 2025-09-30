@@ -212,10 +212,6 @@ export default function Overview() {
     }
   }, [filterVariables, csvData, raceType, selectedTags]);
 
-  // Race array 2
-  // Gender array 3
-  // Age array 4
-
   useEffect(() => {
     if (programType === "All Program Types") {
       setDataArray11([
