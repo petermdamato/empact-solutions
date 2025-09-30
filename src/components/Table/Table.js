@@ -31,31 +31,31 @@ const TableComponent = ({ data }) => {
                 <tr key={index + "_" + section.category.replaceAll(" ", "-")}>
                   <th>{section.category}</th>
                   <th style={{ textAlign: "right" }}>
-                    {section.category.includes("Post-dispo")
-                      ? formatPercent(
-                          (section.body["All Post-Dispo"] /
-                            (section.header["New Offenses"] +
-                              section.header["Technicals"] +
-                              section.header["Other"])) *
-                            100
-                        )
-                      : section.category.includes("New offenses")
-                      ? formatPercent(
-                          (section.header["New Offenses"] /
-                            (section.header["New Offenses"] +
-                              section.header["Technicals"] +
-                              section.header["Other"])) *
-                            100
-                        )
-                      : section.category.includes("Technicals")
-                      ? formatPercent(
-                          (section.header["Technicals"] /
-                            (section.header["New Offenses"] +
-                              section.header["Technicals"] +
-                              section.header["Other"])) *
-                            100
-                        )
-                      : "100%"}
+                    {(() => {
+                      const total =
+                        (section.header?.["New Offenses"] || 0) +
+                        (section.header?.["Technicals"] || 0) +
+                        (section.header?.["Other"] || 0);
+
+                      if (section.category.includes("Post-dispo")) {
+                        const value = section.body?.["All Post-Dispo"] || 0;
+                        return total > 0
+                          ? formatPercent((value / total) * 100)
+                          : "—";
+                      } else if (section.category.includes("New offenses")) {
+                        const value = section.header?.["New Offenses"] || 0;
+                        return total > 0
+                          ? formatPercent((value / total) * 100)
+                          : "—";
+                      } else if (section.category.includes("Technicals")) {
+                        const value = section.header?.["Technicals"] || 0;
+                        return total > 0
+                          ? formatPercent((value / total) * 100)
+                          : "—";
+                      } else {
+                        return "100%";
+                      }
+                    })()}
                   </th>
                   <th style={{ textAlign: "right" }}>
                     {section.category.includes("New offenses")
@@ -110,14 +110,32 @@ const TableComponent = ({ data }) => {
                   .sort((a, b) => a.localeCompare(b))
                   .map((category, catIndex) => {
                     const value = section.body[category];
-                    const total =
+
+                    // Calculate total based on section type
+                    let total;
+                    if (
                       section.category.includes("New offenses") ||
                       section.category.includes("Technicals") ||
                       section.category.includes("Post-dispo")
-                        ? section.header["New Offenses"] +
-                          section.header["Technicals"] +
-                          section.header["Other"]
-                        : section.header.All;
+                    ) {
+                      total =
+                        (section.header?.["New Offenses"] || 0) +
+                        (section.header?.["Technicals"] || 0) +
+                        (section.header?.["Other"] || 0);
+                    } else {
+                      total = section.header?.All || 0;
+                    }
+
+                    // For Post-dispo sections, value is a percentage that needs to be converted
+                    const displayValue = section.category.includes("Post-dispo")
+                      ? value * total // Convert percentage back to count
+                      : value;
+
+                    const displayPercent = section.category.includes(
+                      "Post-dispo"
+                    )
+                      ? value * 100 // Value is already a decimal percentage
+                      : (displayValue / total) * 100;
 
                     return (
                       <tr key={catIndex}>
@@ -129,7 +147,7 @@ const TableComponent = ({ data }) => {
                             textAlign: "right",
                           }}
                         >
-                          {formatPercent((value / total) * 100)}
+                          {formatPercent(displayPercent)}
                         </td>
                         <td
                           style={{
@@ -138,7 +156,7 @@ const TableComponent = ({ data }) => {
                             textAlign: "right",
                           }}
                         >
-                          {formatNumber(value)}
+                          {formatNumber(displayValue)}
                         </td>
                       </tr>
                     );
