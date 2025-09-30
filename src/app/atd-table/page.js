@@ -54,7 +54,7 @@ export default function Overview() {
     };
 
     const uniqueYears = [
-      ...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date))),
+      ...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Entry_Date))),
     ]
       .filter((year) => {
         if (year === null || isNaN(year)) return false;
