@@ -8,6 +8,7 @@ import Papa from "papaparse";
 import dataTypes from "../utils/dataTypes";
 import { read, utils } from "xlsx";
 import "./CSVUploader.css";
+import { useRouter } from "next/navigation";
 
 export default function CSVUploader() {
   const { setCsvData, setValidationErrors, setFileName } = useCSV();
@@ -15,9 +16,11 @@ export default function CSVUploader() {
   const [errors, setErrors] = useState([]);
   const [csvUploaded, setCsvUploaded] = useState(false);
   const [fileType, setFileType] = useState("CSV");
+  const router = useRouter();
 
   const handleClick = () => {
     setShowUpload(false);
+    router.push("/detention-overview");
   };
 
   const validateCSV = (data) => {

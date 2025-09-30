@@ -26,8 +26,9 @@
   flex-shrink: 0;
   padding: 0 16px;
 }
+
 .header div img {
-  width: 100%;
+  width: 85%;
   height: auto;
 }
 .menu-divider {

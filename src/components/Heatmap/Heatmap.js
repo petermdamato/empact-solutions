@@ -3,12 +3,29 @@ import "./Heatmap.css";
 import Button from "@mui/material/Button";
 
 const bucketScore = (score) => {
+  if (score === null || score === undefined || score === "") return null;
+
   const num = parseInt(score, 10);
   if (isNaN(num)) return score;
+
   if (num >= 100) {
     return Math.floor(num / 100) * 100;
   }
   return num;
+};
+
+const isValidDSTScore = (score) => {
+  if (
+    score === null ||
+    score === undefined ||
+    score === "" ||
+    score === "NULL" ||
+    score === "N/A"
+  ) {
+    return false;
+  }
+  const numScore = parseInt(score, 10);
+  return !isNaN(numScore);
 };
 
 const Heatmap = ({
@@ -45,13 +62,29 @@ const Heatmap = ({
 
     dataSkeleton.forEach((item) => {
       let x = item[xKey];
-      if (showScores && xKey === "DST_Score") {
-        x = parseInt(x, 10);
-        if (x >= 100) {
-          x = Math.floor(x / 100) * 100;
+
+      if (xKey === "DST_Score") {
+        // Skip invalid DST scores
+        if (!isValidDSTScore(x)) {
+          return;
+        }
+
+        // Process valid scores
+        const numX = parseInt(x, 10);
+        if (showScores) {
+          if (numX >= 100) {
+            x = Math.floor(numX / 100) * 100;
+          } else {
+            x = numX;
+          }
         }
       }
+
       const y = item[yKey];
+      if (!y || y === "") {
+        return; // Skip empty decisions
+      }
+
       xSet.add(x);
       ySet.add(y);
     });
