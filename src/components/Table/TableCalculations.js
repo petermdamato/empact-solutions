@@ -3,8 +3,10 @@ import "./Table.css";
 import offenseMapFunction from "@/utils/offenseMapFunction";
 
 // Format numbers with fallback for NaN
-const formatNumber = (value) =>
-  isNaN(value) ? "—" : Math.round(value * 10) / 10;
+const formatNumber = (value) => {
+  if (value == null || isNaN(value) || value === "") return "—";
+  return Math.round(value * 10) / 10;
+};
 
 const TableCalculations = ({ data }) => {
   useEffect(() => {
@@ -53,20 +55,15 @@ const TableCalculations = ({ data }) => {
                       textAlign: "right",
                     }}
                   >
-                    {section.header["All"] && section.header["All"].average
-                      ? section.header["All"].average
-                      : ""}
-                    {section.category.includes("Technicals")
-                      ? section.header["Technicals"]
-                        ? section.header["Technicals"].average
-                        : ""
-                      : section.category.includes("New offenses")
-                      ? section.header["New Offenses"]
-                        ? section.header["New Offenses"].average
-                        : ""
-                      : section.header["Other"]
-                      ? section.body["All Post-Dispo"].average
-                      : ""}
+                    {formatNumber(
+                      section.header["All"]?.average ||
+                        (section.category.includes("Technicals") &&
+                          section.header["Technicals"]?.average) ||
+                        (section.category.includes("New offenses") &&
+                          section.header["New Offenses"]?.average) ||
+                        (section.header["Other"] &&
+                          section.body["All Post-Dispo"]?.average)
+                    )}
                   </th>
                   <th
                     style={{
@@ -75,20 +72,15 @@ const TableCalculations = ({ data }) => {
                       textAlign: "right",
                     }}
                   >
-                    {section.header["All"] && section.header["All"].median
-                      ? section.header["All"].median
-                      : ""}
-                    {section.category.includes("Technicals")
-                      ? section.header["Technicals"]
-                        ? section.header["Technicals"].median
-                        : ""
-                      : section.category.includes("New offenses")
-                      ? section.header["New Offenses"]
-                        ? section.header["New Offenses"].median
-                        : ""
-                      : section.header["Other"]
-                      ? section.body["All Post-Dispo"].median
-                      : ""}
+                    {formatNumber(
+                      section.header["All"]?.median ||
+                        (section.category.includes("Technicals") &&
+                          section.header["Technicals"]?.median) ||
+                        (section.category.includes("New offenses") &&
+                          section.header["New Offenses"]?.median) ||
+                        (section.header["Other"] &&
+                          section.body["All Post-Dispo"]?.median)
+                    )}
                   </th>
                 </tr>
               </thead>
