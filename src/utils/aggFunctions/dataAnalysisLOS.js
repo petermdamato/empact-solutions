@@ -11,24 +11,7 @@ import {
   offenseMap,
 } from "@/utils/categorizationUtils";
 
-const getSimplifiedReferralSource = (source) => {
-  if (!source) return "Other";
-  const s = source.toLowerCase();
-
-  if (s === "law enforcement") {
-    return "Law Enforcement";
-  }
-
-  if (s === "court") {
-    return "Court";
-  }
-
-  if (s.includes("school")) {
-    return "School";
-  }
-
-  return "Other";
-};
+import { getSimplifiedReferralSource } from "./../categories/categories";
 
 // Utility to parse dates safely
 const parseDate = (dateStr) => {
@@ -194,13 +177,18 @@ const getAgeAtAdmission = (dob, intake, bracketed = true) => {
   const intakeDate = parseDate(intake);
   if (!birth || !intakeDate) return "Unknown";
 
-  const age =
-    intakeDate.getFullYear() -
-    birth.getFullYear() -
-    (intakeDate <
-    new Date(intakeDate.getFullYear(), birth.getMonth(), birth.getDate())
-      ? 1
-      : 0);
+  // const age =
+  //   intakeDate.getFullYear() -
+  //   birth.getFullYear() -
+  //   (intakeDate <
+  //   new Date(intakeDate.getFullYear(), birth.getMonth(), birth.getDate())
+  //     ? 1
+  //     : 0);
+
+  const age = Math.floor(
+    (new Date(intakeDate) - new Date(birth)) / (365.25 * 24 * 60 * 60 * 1000)
+  );
+
   if (bracketed) {
     if (age < 11) return "10 and younger";
     if (age >= 11 && age <= 13) return "11-13";

@@ -126,7 +126,7 @@ const Sidebar = () => {
       }`}
     >
       <div className="header">
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", justifyContent: "space-around" }}>
           <img src="./logo_upper_color.png" alt="Empact Solutions Logo" />
         </div>
         <div>

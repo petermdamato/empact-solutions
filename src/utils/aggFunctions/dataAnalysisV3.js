@@ -6,24 +6,7 @@ import {
   offenseMap,
 } from "@/utils/categorizationUtils";
 
-const getSimplifiedReferralSource = (source) => {
-  if (!source) return "Other";
-  const s = source.toLowerCase();
-
-  if (s === "law enforcement") {
-    return "Law Enforcement";
-  }
-
-  if (s === "court") {
-    return "Court";
-  }
-
-  if (s.includes("school")) {
-    return "School";
-  }
-
-  return "Other";
-};
+import { getSimplifiedReferralSource } from "./../categories/categories";
 
 // Utility to parse dates safely
 const parseDate = (dateStr) => {

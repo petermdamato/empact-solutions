@@ -1,4 +1,4 @@
-const getSimplifiedReferralSource = (source) => {
+export const getSimplifiedReferralSource = (source) => {
   if (!source) return "Other";
   const s = source.toLowerCase();
 
