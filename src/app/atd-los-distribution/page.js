@@ -9,7 +9,6 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Selector from "@/components/Selector/Selector";
 import "./styles.css";
 import DownloadButton from "@/components/DownloadButton/DownloadButton";
-import { analyzeByYear } from "@/utils/aggFunctions";
 
 const parseDateYear = (dateStr) => {
   const date = new Date(dateStr);
@@ -86,7 +85,7 @@ export default function Overview() {
     };
 
     const uniqueYears = [
-      ...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date))),
+      ...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Entry_Date))),
     ]
       .filter((year) => {
         if (year === null || isNaN(year)) return false;

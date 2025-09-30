@@ -254,7 +254,7 @@ export default function Overview() {
     };
 
     const uniqueYears = [
-      ...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Exit_Date))),
+      ...new Set(csvData.map((obj) => parseDateYear(obj.ATD_Entry_Date))),
     ]
       .filter((year) => {
         if (year === null || isNaN(year)) return false;
@@ -289,8 +289,6 @@ export default function Overview() {
 
     setProgramTypeArray(programTypeArrayFinal);
   }, [finalData, fileName]);
-
-  console.log(yearsArray);
 
   useEffect(() => {
     if (dataArray11.length > 0 && dataArray11[0].body?.entriesByProgramType) {
