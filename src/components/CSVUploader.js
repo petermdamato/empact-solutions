@@ -122,6 +122,14 @@ export default function CSVUploader() {
           const transformedData = parsedData.map((row) => {
             const newRow = { ...row };
 
+            // Convert DST_Score and Auto_Hold to strings if they're numbers
+            if (typeof newRow["DST_Score"] === "number") {
+              newRow["DST_Score"] = String(newRow["DST_Score"]);
+            }
+            if (typeof newRow["Auto_Hold"] === "number") {
+              newRow["Auto_Hold"] = String(newRow["Auto_Hold"]);
+            }
+
             // Add "Screened/not screened" column if it doesn't exist
             if (!("Screened/not screened" in newRow)) {
               const autoHold = parseInt(newRow["Auto_Hold"]);
@@ -141,12 +149,27 @@ export default function CSVUploader() {
             }
             if (!("DST Recommendation" in newRow)) {
               const rawScore = newRow["DST_Score"];
-              const score =
-                rawScore !== undefined && rawScore !== null && rawScore !== ""
-                  ? Number(rawScore)
-                  : null;
 
-              if (typeof score === "number" && !isNaN(score)) {
+              let score = null;
+
+              // More robust conversion that handles strings with whitespace
+              if (
+                rawScore !== undefined &&
+                rawScore !== null &&
+                rawScore !== ""
+              ) {
+                // Convert to string first, then trim, then convert to number
+                const trimmed = String(rawScore).trim();
+                if (trimmed !== "") {
+                  const converted = Number(trimmed);
+                  // Only accept if it's a finite number (not NaN, not Infinity)
+                  if (!isNaN(converted) && isFinite(converted)) {
+                    score = converted;
+                  }
+                }
+              }
+
+              if (score !== null) {
                 if (score > 14) {
                   newRow["DST Recommendation"] = "Detained";
                 } else if (score >= 7 && score <= 14) {
@@ -155,6 +178,7 @@ export default function CSVUploader() {
                   newRow["DST Recommendation"] = "Released";
                 }
               } else {
+                console.log("Invalid score - setting to empty string");
                 newRow["DST Recommendation"] = ""; // If score is invalid or missing
               }
             }
