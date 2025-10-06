@@ -185,24 +185,6 @@ const Sidebar = () => {
                 <LogoutIcon style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
-            {/* <button
-              onClick={async () => {
-                try {
-                  // Sign out from Firebase client-side first
-                  await firebaseSignOut(firebaseAuth);
-
-                  // Then sign out from NextAuth (triggers server-side revocation)
-                  await nextAuthSignOut({ callbackUrl: "/auth/signin" });
-                } catch (error) {
-                  console.error("Signout error:", error);
-                  // Still try to clear NextAuth session even if Firebase fails
-                  await nextAuthSignOut({ callbackUrl: "/auth/signin" });
-                }
-              }}
-              className="signout-button"
-            >
-              Sign Out
-            </button> */}
           </div>
         </div>
 
@@ -219,7 +201,6 @@ const Sidebar = () => {
             ? "youth detention analytics"
             : selectedMenu}
         </h1>
-        {/* <h2>{selectedSubItemLabel || selectedMenu}</h2> */}
       </div>
 
       <nav ref={navRef}>

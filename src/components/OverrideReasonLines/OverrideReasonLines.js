@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as d3 from "d3";
 import wrap from "@/utils/wrap";
 
 const rowHeight = 70;
-
 const labelPadding = 24;
 
 const getMaxTextWidth = (
@@ -32,7 +31,6 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
   }
 
   const xOffset = 8;
-
   const years = Object.keys(data)
     .map(Number)
     .sort((a, b) => a - b);
@@ -48,9 +46,12 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
   // Calculate dynamic margin
   const maxLabelWidth = getMaxTextWidth(allReasons);
   const dynamicLeftMargin = Math.max(180, maxLabelWidth + labelPadding + 20);
-
   const chartWidth = dynamicLeftMargin + 200;
-  setLeftWidth(maxLabelWidth);
+
+  // Move setLeftWidth to useEffect
+  useEffect(() => {
+    setLeftWidth(maxLabelWidth);
+  }, [maxLabelWidth, setLeftWidth]);
 
   const margin = { top: 20, right: 40, bottom: 30, left: dynamicLeftMargin };
 
@@ -71,6 +72,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
     .scaleLinear()
     .domain(d3.extent(years))
     .range([margin.left, chartWidth - margin.right]);
+
   return (
     <div style={{ overflowX: "auto", width: `${chartWidth}px` }}>
       <svg width={chartWidth} height={totalHeight}>
@@ -79,7 +81,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
             <text
               key={`x-${year}`}
               x={x(year) + xOffset}
-              y={margin.top - 10} // position above first row's top margin
+              y={margin.top - 10}
               textAnchor="middle"
               fontSize="12px"
               fill="#666"
@@ -90,7 +92,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
           <line
             x1={margin.left + xOffset}
             x2={chartWidth - margin.right + xOffset}
-            y1={margin.top - 5} // small offset above first row
+            y1={margin.top - 5}
             y2={margin.top - 5}
             stroke="#333"
             strokeWidth={1}
@@ -101,7 +103,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
           const chartTop = rowY + margin.top;
           const chartBottom = rowY + rowHeight - margin.top;
 
-          const maxY = d3.max(s.values, (d) => d.value) || 1; // prevent zero domain
+          const maxY = d3.max(s.values, (d) => d.value) || 1;
           const y = d3
             .scaleLinear()
             .domain([0, maxY])

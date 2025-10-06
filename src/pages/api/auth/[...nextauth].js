@@ -68,6 +68,7 @@ const authOptions = {
 
         // If token is expiring soon, try to refresh the Firebase token
         try {
+          console.log(firebaseAuth.currentUser);
           const currentUser = firebaseAuth.currentUser;
           if (currentUser && currentUser.uid === token.uid) {
             const newIdToken = await currentUser.getIdToken(true);
@@ -119,4 +120,5 @@ const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-export default (req, res) => NextAuth(req, res, authOptions);
+// Use the standard NextAuth export - this is crucial!
+export default NextAuth(authOptions);
