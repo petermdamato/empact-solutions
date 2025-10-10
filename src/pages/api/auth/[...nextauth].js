@@ -15,7 +15,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-export const authOptions = {
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Firebase Credentials",
