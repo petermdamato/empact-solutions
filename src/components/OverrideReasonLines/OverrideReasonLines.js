@@ -26,6 +26,21 @@ const getMaxTextWidth = (
 };
 
 const OverrideReasonTable = ({ data, setLeftWidth }) => {
+  // ✅ Move useEffect to the top level
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0) {
+      const allReasonsSet = new Set();
+      Object.values(data).forEach((yearObj) => {
+        Object.keys(yearObj).forEach((reason) => {
+          if (reason && reason.trim() !== "") allReasonsSet.add(reason);
+        });
+      });
+      const allReasons = Array.from(allReasonsSet).sort();
+      const maxLabelWidth = getMaxTextWidth(allReasons);
+      setLeftWidth(maxLabelWidth);
+    }
+  }, [data, setLeftWidth]);
+
   if (!data || Object.keys(data).length === 0) {
     return <div>No override reason data available.</div>;
   }
@@ -47,11 +62,6 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
   const maxLabelWidth = getMaxTextWidth(allReasons);
   const dynamicLeftMargin = Math.max(180, maxLabelWidth + labelPadding + 20);
   const chartWidth = dynamicLeftMargin + 200;
-
-  // Move setLeftWidth to useEffect
-  useEffect(() => {
-    setLeftWidth(maxLabelWidth);
-  }, [maxLabelWidth, setLeftWidth]);
 
   const margin = { top: 20, right: 40, bottom: 30, left: dynamicLeftMargin };
 

@@ -9,7 +9,7 @@ import { useModal } from "@/context/ModalContext";
 import { firestore } from "@/lib/firebaseClient";
 import { useFirstLogin } from "@/context/FirstLoginContext";
 
-export default function PasswordResetForm() {
+export default function AccountPage() {
   const [email, setEmail] = useState("");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -20,7 +20,7 @@ export default function PasswordResetForm() {
 
   const { setShowAccount } = useModal();
   const { firstLogin, setFirstLogin } = useFirstLogin();
-  const { data: session, status } = useSession();
+  const { data: session, update: updateSession } = useSession();
 
   useEffect(() => {
     setEmail(session?.user?.email);
@@ -35,6 +35,11 @@ export default function PasswordResetForm() {
       return;
     }
 
+    if (newPassword.length < 6) {
+      setMessage("New password must be at least 6 characters long.");
+      return;
+    }
+
     try {
       setLoading(true);
       setSuccess(false);
@@ -46,49 +51,62 @@ export default function PasswordResetForm() {
         oldPassword
       );
 
-      const user = userCredential.user || "N/A";
+      const user = userCredential.user;
 
-      // console.log(user?.email, newPassword);
       // Update password
       await updatePassword(user, newPassword);
 
       // Update Firestore to mark forcePasswordChange -> false
-      const userDocRef = doc(firestore, "users", user?.uid); // adjust "users" to your collection name
+      const userDocRef = doc(firestore, "users", user.uid);
       await updateDoc(userDocRef, {
         forcePasswordChange: false,
       });
 
-      await fetch("/api/session", {
-        method: "POST",
+      // Refresh Firebase token after password change
+      const newIdToken = await user.getIdToken(true);
+
+      // Update NextAuth session with the new token and forcePasswordChange status
+      await updateSession({
+        idToken: newIdToken,
+        forcePasswordChange: false,
       });
 
       // Show success state
       setSuccess(true);
       setMessage("Password updated successfully.");
 
-      // Wait 1 second before closing modal
+      // Wait 2 seconds before closing modal
       setTimeout(() => {
         setFirstLogin(false);
         setShowAccount(false);
       }, 2000);
     } catch (error) {
-      console.error("Error updating password:", error.code);
+      console.error("Error updating password:", error);
       if (error.code === "auth/wrong-password") {
         setMessage("Old password is incorrect.");
       } else if (error.code === "auth/user-not-found") {
         setMessage("No user found with this email.");
       } else if (error.code === "auth/weak-password") {
-        setMessage("New password is too weak.");
+        setMessage(
+          "New password is too weak. Please use at least 6 characters."
+        );
       } else if (error.code.includes("auth/missing-password")) {
-        setMessage("New password is missing");
+        setMessage("Please enter a new password.");
+      } else if (error.code === "auth/requires-recent-login") {
+        setMessage("Security session expired. Please sign in again and try.");
+      } else if (error.code === "auth/network-request-failed") {
+        setMessage(
+          "Network error. Please check your connection and try again."
+        );
       } else {
-        setMessage("❌ " + error.message);
+        setMessage("❌ " + (error.message || "An unexpected error occurred."));
       }
     } finally {
       setLoading(false);
     }
   };
 
+  // ... rest of your component remains the same
   const renderButtonContent = () => {
     if (success) {
       return (
@@ -201,10 +219,11 @@ export default function PasswordResetForm() {
 
         <input
           type="password"
-          placeholder="New Password"
+          placeholder="New Password (min. 6 characters)"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
+          minLength={6}
           disabled={loading || success}
           style={{
             color: "#333a43",
@@ -238,6 +257,8 @@ export default function PasswordResetForm() {
             style={{
               marginTop: "8px",
               color: message.includes("success") || success ? "green" : "red",
+              fontSize: "14px",
+              fontWeight: success ? "600" : "400",
             }}
           >
             {message}
@@ -267,13 +288,23 @@ export default function PasswordResetForm() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            transition: "background-color 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            if (!loading && !success) {
+              e.target.style.backgroundColor = "#1a1f24";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loading && !success) {
+              e.target.style.backgroundColor = "#333a43";
+            }
           }}
         >
           {renderButtonContent()}
         </button>
       </div>
 
-      {/* Add CSS for spinner animation */}
       <style jsx>{`
         @keyframes spin {
           0% {
