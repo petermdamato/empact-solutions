@@ -22,15 +22,12 @@ export function WindowCloseHandler() {
 
       timer = setTimeout(() => {
         setIsUnloadHandlerActive(true);
-        console.log(
-          "WindowCloseHandler activated - will logout on window close"
-        );
-      }, 1000); // 30 seconds after login
+        console.log("Logout ready activated - will logout on window close");
+      }, 3000); // 3 seconds after login
     };
 
     // Listen for Firebase auth state changes
     const unsubscribeFirebase = onAuthStateChanged(firebaseAuth, (user) => {
-      console.log(user);
       if (user && !loginDetected) {
         console.log("Firebase user detected:", user.uid);
         startLoginTimer();

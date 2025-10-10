@@ -16,7 +16,6 @@ export function AuthListener() {
   // Debug logging
 
   useEffect(() => {
-    console.log(status);
     const handleAuthFailure = async () => {
       if (hasRedirectedRef.current) return;
 

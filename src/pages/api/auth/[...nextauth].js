@@ -58,7 +58,8 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
+      // Added session parameter here
       const now = Math.floor(Date.now() / 1000);
 
       // Initial sign in
@@ -68,12 +69,22 @@ export const authOptions = {
         token.expiresAt = now + 2 * 60 * 60; // 2 hours
         token.lastActivity = now;
         token.forcePasswordChange = user.forcePasswordChange;
-        console.log("Test: ", user);
         console.log(
           "JWT: New session created, expires at",
           new Date(token.expiresAt * 1000)
         );
         return token;
+      }
+
+      // Handle session updates (like password changes)
+      if (trigger === "update" && session) {
+        console.log("JWT: Updating token after session update", session);
+        return {
+          ...token,
+          ...session, // Merge all session updates
+          expiresAt: now + 2 * 60 * 60, // Reset expiration
+          lastActivity: now,
+        };
       }
 
       // Activity-based update (triggered by useActivityBasedSession)
@@ -84,7 +95,6 @@ export const authOptions = {
         // If token still has more than 30 minutes left, extend it
         if (token.expiresAt > now + 30 * 60) {
           console.log("JWT: Token still valid, extending by 2 hours from now");
-          // Extend the token by another 2 hours from now
           token.expiresAt = now + 2 * 60 * 60;
           return token;
         }
@@ -144,5 +154,4 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Use the standard NextAuth export - this is crucial!
 export default NextAuth(authOptions);
