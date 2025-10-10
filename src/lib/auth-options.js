@@ -7,7 +7,6 @@ import { getAuth, signOut } from "firebase/auth";
 
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
@@ -15,7 +14,7 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-const authOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Firebase Credentials",
@@ -153,5 +152,3 @@ const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-export default NextAuth(authOptions);
