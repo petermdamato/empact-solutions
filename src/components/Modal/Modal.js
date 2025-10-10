@@ -1,9 +1,33 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
+import { useSession } from "next-auth/react";
+import { useFirstLogin } from "@/context/FirstLoginContext";
 
 const Modal = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
+  const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
+  const { firstLogin } = useFirstLogin();
+
+  // Only render on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  const modalRoot = document.getElementById("modal-root");
+  if (!modalRoot) return null;
+
+  // Function to handle overlay click
+  const handleOverlayClick = (e) => {
+    // Prevent closing if it's a forced password change during first login
+    if (session?.forcePasswordChange && firstLogin) {
+      return; // Don't close the modal
+    }
+    onClose(); // Otherwise, close normally
+  };
 
   return ReactDOM.createPortal(
     <div
@@ -19,7 +43,7 @@ const Modal = ({ isOpen, onClose, children }) => {
         alignItems: "center",
         zIndex: 1000,
       }}
-      onClick={onClose}
+      onClick={handleOverlayClick} // Use the new handler
     >
       <div
         style={{
@@ -34,14 +58,21 @@ const Modal = ({ isOpen, onClose, children }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={onClose}
+          disabled={session?.forcePasswordChange && firstLogin}
+          onClick={
+            session?.forcePasswordChange && firstLogin ? undefined : onClose
+          }
           style={{
             float: "right",
             fontSize: "28px",
             border: "none",
             background: "none",
-            cursor: "pointer",
+            cursor:
+              session?.forcePasswordChange && firstLogin
+                ? "not-allowed"
+                : "pointer",
             color: "black",
+            opacity: session?.forcePasswordChange ? 0.6 : 1,
           }}
         >
           &times;
@@ -49,7 +80,7 @@ const Modal = ({ isOpen, onClose, children }) => {
         {children}
       </div>
     </div>,
-    document.getElementById("modal-root")
+    modalRoot
   );
 };
 

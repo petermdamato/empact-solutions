@@ -30,6 +30,7 @@ export function WindowCloseHandler() {
 
     // Listen for Firebase auth state changes
     const unsubscribeFirebase = onAuthStateChanged(firebaseAuth, (user) => {
+      console.log(user);
       if (user && !loginDetected) {
         console.log("Firebase user detected:", user.uid);
         startLoginTimer();

@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, getSession } from "next-auth/react";
 import React, { useState } from "react";
 import LockOutline from "@mui/icons-material/LockOutline";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
@@ -19,6 +19,14 @@ export default function SignInPage() {
       password,
     });
 
+    const session = await getSession();
+
+    if (!session?.uid) {
+      console.warn("No UID in session");
+      window.location.href = "/detention-overview";
+      return;
+    }
+
     if (result?.status !== 200) {
       setError("Wrong email/password combination");
     } else {
@@ -29,15 +37,8 @@ export default function SignInPage() {
   return (
     <div style={styles.pageContent}>
       <div style={styles.container}>
-        {/* Background graphic placeholder */}
-
         {/* Title content */}
         <div style={styles.textContainer}>
-          {/* <div style={styles.analyticsTitle}>
-            <div style={styles.titleLine1}>Annual Youth Secure</div>
-            <div style={styles.titleLine2}>Detention Analytics</div>
-          </div> */}
-
           <div style={styles.graphicWrapper}>
             <img
               style={styles.backgroundGraphic}
@@ -102,7 +103,11 @@ export default function SignInPage() {
                 </button>
               </div>
             </div>
-            {error && <p style={styles.errorMessage}>{error}</p>}
+            {error && (
+              <p style={styles.errorMessage}>
+                {error.includes("Firebase") ? "Missing password" : error}
+              </p>
+            )}
             <button
               type="submit"
               style={{
