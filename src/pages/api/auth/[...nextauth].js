@@ -2,8 +2,20 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { signInWithEmailAndPassword } from "@/lib/firebaseClient";
 import { firebaseAuth } from "@/lib/firebaseClient";
+import admin from "firebase-admin";
+import { getAuth, signOut } from "firebase/auth";
 
-const authOptions = {
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
+const db = admin.firestore();
+
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Firebase Credentials",
@@ -13,6 +25,10 @@ const authOptions = {
       },
       async authorize({ email, password }) {
         try {
+          // Force sign out before login attempts
+          const auth = getAuth();
+          await signOut(auth);
+
           const userCredential = await signInWithEmailAndPassword(
             firebaseAuth,
             email,
@@ -23,11 +39,16 @@ const authOptions = {
           // Get Firebase ID token
           const idToken = await user.getIdToken();
 
+          const userDoc = await db.collection("users").doc(user.uid).get();
+          const userData = userDoc.exists ? userDoc.data() : {};
+          const forcePasswordChange = Boolean(userData?.forcePasswordChange);
+
           return {
             id: user.uid,
             email: user.email,
             name: user.displayName || "Firebase User",
             idToken, // Include the Firebase token
+            forcePasswordChange,
           };
         } catch (err) {
           console.error("Firebase auth error:", err);
@@ -37,7 +58,8 @@ const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
+      // Added session parameter here
       const now = Math.floor(Date.now() / 1000);
 
       // Initial sign in
@@ -46,11 +68,23 @@ const authOptions = {
         token.uid = user.id;
         token.expiresAt = now + 2 * 60 * 60; // 2 hours
         token.lastActivity = now;
+        token.forcePasswordChange = user.forcePasswordChange;
         console.log(
           "JWT: New session created, expires at",
           new Date(token.expiresAt * 1000)
         );
         return token;
+      }
+
+      // Handle session updates (like password changes)
+      if (trigger === "update" && session) {
+        console.log("JWT: Updating token after session update", session);
+        return {
+          ...token,
+          ...session, // Merge all session updates
+          expiresAt: now + 2 * 60 * 60, // Reset expiration
+          lastActivity: now,
+        };
       }
 
       // Activity-based update (triggered by useActivityBasedSession)
@@ -61,14 +95,12 @@ const authOptions = {
         // If token still has more than 30 minutes left, extend it
         if (token.expiresAt > now + 30 * 60) {
           console.log("JWT: Token still valid, extending by 2 hours from now");
-          // Extend the token by another 2 hours from now
           token.expiresAt = now + 2 * 60 * 60;
           return token;
         }
 
         // If token is expiring soon, try to refresh the Firebase token
         try {
-          console.log(firebaseAuth.currentUser);
           const currentUser = firebaseAuth.currentUser;
           if (currentUser && currentUser.uid === token.uid) {
             const newIdToken = await currentUser.getIdToken(true);
@@ -99,6 +131,8 @@ const authOptions = {
       if (token.idToken && token.expiresAt) {
         session.idToken = token.idToken;
         session.uid = token.uid;
+        session.forcePasswordChange = token.forcePasswordChange;
+
         // Keep expires as Unix timestamp for consistency
         session.expires = token.expiresAt;
         session.lastActivity = token.lastActivity;
@@ -120,5 +154,4 @@ const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Use the standard NextAuth export - this is crucial!
 export default NextAuth(authOptions);

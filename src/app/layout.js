@@ -6,7 +6,7 @@ import { ModalProvider } from "@/context/ModalContext";
 import { TagsProvider } from "@/context/TagsContext";
 import { AuthListener } from "@/components/AuthListener/AuthListener";
 import { WindowCloseHandler } from "@/components/WindowCloseHandler/WindowCloseHandler";
-
+import { FirstLoginProvider } from "@/context/FirstLoginContext";
 import SessionWrapper from "@/components/SessionWrapper/SessionWrapper";
 import "./globals.css";
 
@@ -35,12 +35,14 @@ export default function RootLayout({ children }) {
             <WindowCloseHandler />
             <LinkOutProvider>
               <TagsProvider>
-                <SidebarProvider>
-                  <ModalProvider>
-                    {children}
-                    <div id="modal-root"></div>
-                  </ModalProvider>
-                </SidebarProvider>
+                <FirstLoginProvider>
+                  <SidebarProvider>
+                    <ModalProvider>
+                      {children}
+                      <div id="modal-root"></div>
+                    </ModalProvider>
+                  </SidebarProvider>
+                </FirstLoginProvider>
               </TagsProvider>
             </LinkOutProvider>
           </CSVProvider>

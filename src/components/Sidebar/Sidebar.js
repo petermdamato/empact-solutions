@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
@@ -13,6 +13,8 @@ import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
 import AccountPage from "@/app/account/page";
 import { useCSV } from "@/context/CSVContext";
+import { useFirstLogin } from "@/context/FirstLoginContext";
+import { useSession } from "next-auth/react";
 import { useModal } from "@/context/ModalContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { signOut as nextAuthSignOut } from "next-auth/react";
@@ -73,7 +75,13 @@ const Sidebar = () => {
     setShowAccount,
   } = useModal();
 
+  const { firstLogin } = useFirstLogin();
+
+  const { data: session } = useSession();
+
   const navRef = useRef(null);
+
+  const [firstTime, setFirstTime] = useState(false);
 
   // save scroll position before unmount
   useEffect(() => {
@@ -99,11 +107,18 @@ const Sidebar = () => {
 
   useEffect(() => {
     const hasShownUpload = sessionStorage.getItem("hasShownUpload");
-    if (!hasShownUpload) {
+
+    if (firstLogin) {
+      setFirstTime(true);
+      setShowAccount(true);
+      // Clear any upload flag when first login is detected
+      sessionStorage.removeItem("hasShownUpload");
+    } else if (!hasShownUpload && firstLogin === false) {
+      // Only show upload if firstLogin is explicitly false (not null/undefined)
       setShowUpload(true);
       sessionStorage.setItem("hasShownUpload", "true");
     }
-  }, []);
+  }, [firstLogin]);
 
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
@@ -114,6 +129,29 @@ const Sidebar = () => {
 
     if (menuElement.length > 0) {
       selectMenu(label, navElement, subItemLabel);
+    }
+  };
+
+  // Function to handle modal close with restriction for first login
+  const handleModalClose = (modalType) => {
+    // Prevent closing if it's the account modal and user is forced to change password
+    if (modalType === "account" && session?.forcePasswordChange && firstLogin) {
+      return;
+    }
+
+    // Otherwise, close the modal
+    switch (modalType) {
+      case "settings":
+        setShowSettings(false);
+        break;
+      case "upload":
+        setShowUpload(false);
+        break;
+      case "account":
+        setShowAccount(false);
+        break;
+      default:
+        break;
     }
   };
 
@@ -155,7 +193,7 @@ const Sidebar = () => {
                 <FaFileImport style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
-            {/* <button
+            <button
               onClick={() => setShowAccount(true)}
               className="circular-button circular-button-account"
             >
@@ -164,7 +202,7 @@ const Sidebar = () => {
                   style={{ cursor: "pointer", color: "white" }}
                 />
               </SimpleTooltip>
-            </button> */}
+            </button>
             <button
               onClick={async () => {
                 try {
@@ -367,17 +405,17 @@ const Sidebar = () => {
       </footer>
 
       {/* Settings Modal */}
-      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)}>
+      <Modal isOpen={showSettings} onClose={() => handleModalClose("settings")}>
         <SettingsPage />
       </Modal>
 
-      {/* Settings Modal */}
-      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)}>
+      {/* Upload Modal */}
+      <Modal isOpen={showUpload} onClose={() => handleModalClose("upload")}>
         <UploadPage />
       </Modal>
 
-      {/* Settings Modal */}
-      <Modal isOpen={showAccount} onClose={() => setShowAccount(false)}>
+      {/* Account Modal - restrict closing during first login */}
+      <Modal isOpen={showAccount} onClose={() => handleModalClose("account")}>
         <AccountPage />
       </Modal>
     </div>
