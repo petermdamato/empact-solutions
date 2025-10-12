@@ -10,7 +10,6 @@ import Link from "next/link";
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
-import AccountPage from "@/app/account/page";
 import { useCSV } from "@/context/CSVContext";
 import { useFirstLogin } from "@/context/FirstLoginContext";
 import { useSession } from "next-auth/react";
@@ -52,6 +51,7 @@ const menuItems = [
   },
   { label: "User Guide", access: "Active" },
   { label: "Glossary", access: "Active" },
+  { label: "Account", access: "Active" }, // Add Account to main navigation
 ];
 
 const Sidebar = () => {
@@ -74,6 +74,8 @@ const Sidebar = () => {
 
   const navRef = useRef(null);
 
+  const [firstTime, setFirstTime] = useState(false);
+
   // save scroll position before unmount
   useEffect(() => {
     const navEl = navRef.current;
@@ -95,7 +97,7 @@ const Sidebar = () => {
       if (saved) navEl.scrollTop = parseInt(saved, 10);
     }
   }, []);
-
+  console.log(sessionStorage, csvData);
   useEffect(() => {
     const hasShownUpload = sessionStorage.getItem("hasShownUpload");
 
@@ -103,7 +105,7 @@ const Sidebar = () => {
       setShowUpload(true);
       sessionStorage.setItem("hasShownUpload", "true");
     }
-  }, []);
+  }, [sessionStorage]);
 
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
@@ -117,9 +119,7 @@ const Sidebar = () => {
     }
   };
 
-  // Function to handle modal close with restriction for first login
   const handleModalClose = (modalType) => {
-    // Otherwise, close the modal
     switch (modalType) {
       case "settings":
         setShowSettings(false);
@@ -174,14 +174,10 @@ const Sidebar = () => {
             <button
               onClick={async () => {
                 try {
-                  // Sign out from Firebase client-side first
                   await firebaseSignOut(firebaseAuth);
-
-                  // Then sign out from NextAuth (triggers server-side revocation)
                   await nextAuthSignOut({ callbackUrl: "/auth/signin" });
                 } catch (error) {
                   console.error("Signout error:", error);
-                  // Still try to clear NextAuth session even if Firebase fails
                   await nextAuthSignOut({ callbackUrl: "/auth/signin" });
                 }
               }}
@@ -201,7 +197,7 @@ const Sidebar = () => {
               : "secure-detention"
           }`}
         >
-          {["User Guide", "Upload", "Settings", "Glossary"].includes(
+          {["User Guide", "Upload", "Settings", "Glossary", "Account"].includes(
             selectedMenu
           )
             ? "youth detention analytics"
@@ -253,11 +249,15 @@ const Sidebar = () => {
                   </button>
                 ) : (
                   <Link
-                    href={`/${item.label
-                      .toLowerCase()
-                      .replaceAll(" ", "-")
-                      .replace("(", "")
-                      .replace(")", "")}`}
+                    href={
+                      item.label === "Account"
+                        ? "/account?fromSidebar=true"
+                        : `/${item.label
+                            .toLowerCase()
+                            .replaceAll(" ", "-")
+                            .replace("(", "")
+                            .replace(")", "")}`
+                    }
                   >
                     <button>{item.label}</button>
                   </Link>
@@ -315,11 +315,7 @@ const Sidebar = () => {
 
       <footer>
         <div style={{ display: "flex" }}>
-          <a
-            href="https://empactsolutions.org"
-            // target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://empactsolutions.org" rel="noopener noreferrer">
             <img
               className="sidebar-logo"
               src="/logo.png"
