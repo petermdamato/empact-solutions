@@ -74,7 +74,7 @@ export default function Overview() {
           <div style={{ maxWidth: "600px" }}>
             <p style={{ fontSize: "1rem", marginBottom: "1rem" }}>
               You clicked on an element that is designed to link to your inmate
-              record lookup system, but you haven't configured a link to your
+              record lookup system, but you havent configured a link to your
               lookup system. Return to the Youth Detention Analytics system and
               click the gear icon to access the settings, then add the link to
               your inmate record lookup system.
@@ -82,7 +82,7 @@ export default function Overview() {
             <p style={{ fontSize: "1rem" }}>
               This will allow you to easily view inmate information through the
               Detention Screening table and the Length of Stay and ATD Length of
-              Stay distribution charts by clicking on each individual's record.
+              Stay distribution charts by clicking on each individuals record.
             </p>
           </div>
         </div>

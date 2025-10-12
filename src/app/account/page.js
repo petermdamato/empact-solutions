@@ -12,7 +12,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useModal } from "@/context/ModalContext";
 import { useFirstLogin } from "@/context/FirstLoginContext";
 
-export default function PasswordResetForm() {
+export default function AccountPage() {
   const [email, setEmail] = useState("");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -52,6 +52,11 @@ export default function PasswordResetForm() {
 
     if (newPassword !== confirmPassword) {
       setMessage("New passwords do not match.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setMessage("New password must be at least 6 characters long.");
       return;
     }
 
@@ -98,11 +103,19 @@ export default function PasswordResetForm() {
       } else if (error.code === "auth/user-not-found") {
         setMessage("No user found with this email.");
       } else if (error.code === "auth/weak-password") {
-        setMessage("New password is too weak.");
+        setMessage(
+          "New password is too weak. Please use at least 6 characters."
+        );
       } else if (error.code.includes("auth/missing-password")) {
-        setMessage("New password is missing");
+        setMessage("Please enter a new password.");
+      } else if (error.code === "auth/requires-recent-login") {
+        setMessage("Security session expired. Please sign in again and try.");
+      } else if (error.code === "auth/network-request-failed") {
+        setMessage(
+          "Network error. Please check your connection and try again."
+        );
       } else {
-        setMessage("❌ " + error.message);
+        setMessage("❌ " + (error.message || "An unexpected error occurred."));
       }
     } finally {
       setLoading(false);

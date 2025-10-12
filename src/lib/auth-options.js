@@ -1,13 +1,12 @@
-import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { signInWithEmailAndPassword } from "@/lib/firebaseClient";
 import { firebaseAuth } from "@/lib/firebaseClient";
 import admin from "firebase-admin";
 import { getAuth, signOut } from "firebase/auth";
 
+// Initialize Firebase Admin (server-side only)
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
@@ -59,7 +58,6 @@ export const authOptions = {
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // Added session parameter here
       const now = Math.floor(Date.now() / 1000);
 
       // Initial sign in
@@ -76,15 +74,24 @@ export const authOptions = {
         return token;
       }
 
-      // Handle session updates (like password changes)
+      // Handle session updates (like password changes) - FIXED!
       if (trigger === "update" && session) {
         console.log("JWT: Updating token after session update", session);
-        return {
+
+        // Only merge specific fields we want to update
+        const updatedToken = {
           ...token,
-          ...session, // Merge all session updates
-          expiresAt: now + 2 * 60 * 60, // Reset expiration
+          expiresAt: now + 2 * 60 * 60,
           lastActivity: now,
         };
+
+        // Safely update only the fields that exist in session
+        if (session.idToken) updatedToken.idToken = session.idToken;
+        if (session.forcePasswordChange !== undefined) {
+          updatedToken.forcePasswordChange = session.forcePasswordChange;
+        }
+
+        return updatedToken;
       }
 
       // Activity-based update (triggered by useActivityBasedSession)
@@ -153,5 +160,3 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-export default NextAuth(authOptions);
