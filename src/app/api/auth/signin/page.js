@@ -38,8 +38,12 @@ export default function SignInPage() {
       console.log("Session after signIn:", session);
 
       if (session?.uid) {
-        // Successful login - redirect to overview
-        window.location.href = "/detention-overview";
+        if (session.forcePasswordChange) {
+          window.location.href = "/account";
+        } else {
+          // Successful login - redirect to overview
+          window.location.href = "/detention-overview";
+        }
       } else {
         // This should rarely happen if signIn was successful, but just in case
         setError("Login failed. Please try again.");

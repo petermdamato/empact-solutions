@@ -108,17 +108,12 @@ const Sidebar = () => {
   useEffect(() => {
     const hasShownUpload = sessionStorage.getItem("hasShownUpload");
 
-    if (firstLogin) {
-      setFirstTime(true);
-      setShowAccount(true);
-      // Clear any upload flag when first login is detected
-      sessionStorage.removeItem("hasShownUpload");
-    } else if (!hasShownUpload && firstLogin === false) {
+    if (!hasShownUpload) {
       // Only show upload if firstLogin is explicitly false (not null/undefined)
       setShowUpload(true);
       sessionStorage.setItem("hasShownUpload", "true");
     }
-  }, [firstLogin]);
+  }, []);
 
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
@@ -193,7 +188,7 @@ const Sidebar = () => {
                 <FaFileImport style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
-            <button
+            {/* <button
               onClick={() => setShowAccount(true)}
               className="circular-button circular-button-account"
             >
@@ -202,7 +197,7 @@ const Sidebar = () => {
                   style={{ cursor: "pointer", color: "white" }}
                 />
               </SimpleTooltip>
-            </button>
+            </button> */}
             <button
               onClick={async () => {
                 try {
