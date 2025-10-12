@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Tooltip } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { FaFileImport } from "react-icons/fa";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Link from "next/link";
@@ -66,22 +65,14 @@ const Sidebar = () => {
     selectMenu,
   } = useSidebar();
 
-  const {
-    showSettings,
-    setShowSettings,
-    showUpload,
-    setShowUpload,
-    showAccount,
-    setShowAccount,
-  } = useModal();
+  const { showSettings, setShowSettings, showUpload, setShowUpload } =
+    useModal();
 
   const { firstLogin } = useFirstLogin();
 
   const { data: session } = useSession();
 
   const navRef = useRef(null);
-
-  const [firstTime, setFirstTime] = useState(false);
 
   // save scroll position before unmount
   useEffect(() => {
@@ -108,17 +99,11 @@ const Sidebar = () => {
   useEffect(() => {
     const hasShownUpload = sessionStorage.getItem("hasShownUpload");
 
-    if (firstLogin) {
-      setFirstTime(true);
-      setShowAccount(true);
-      // Clear any upload flag when first login is detected
-      sessionStorage.removeItem("hasShownUpload");
-    } else if (!hasShownUpload && firstLogin === false) {
-      // Only show upload if firstLogin is explicitly false (not null/undefined)
+    if (!hasShownUpload) {
       setShowUpload(true);
       sessionStorage.setItem("hasShownUpload", "true");
     }
-  }, [firstLogin]);
+  }, []);
 
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
@@ -134,11 +119,6 @@ const Sidebar = () => {
 
   // Function to handle modal close with restriction for first login
   const handleModalClose = (modalType) => {
-    // Prevent closing if it's the account modal and user is forced to change password
-    if (modalType === "account" && session?.forcePasswordChange && firstLogin) {
-      return;
-    }
-
     // Otherwise, close the modal
     switch (modalType) {
       case "settings":
@@ -146,9 +126,6 @@ const Sidebar = () => {
         break;
       case "upload":
         setShowUpload(false);
-        break;
-      case "account":
-        setShowAccount(false);
         break;
       default:
         break;
@@ -193,16 +170,7 @@ const Sidebar = () => {
                 <FaFileImport style={{ cursor: "pointer", color: "white" }} />
               </SimpleTooltip>
             </button>
-            <button
-              onClick={() => setShowAccount(true)}
-              className="circular-button circular-button-account"
-            >
-              <SimpleTooltip tooltipText="Account" positioning={"right"}>
-                <AccountCircleIcon
-                  style={{ cursor: "pointer", color: "white" }}
-                />
-              </SimpleTooltip>
-            </button>
+
             <button
               onClick={async () => {
                 try {
@@ -412,11 +380,6 @@ const Sidebar = () => {
       {/* Upload Modal */}
       <Modal isOpen={showUpload} onClose={() => handleModalClose("upload")}>
         <UploadPage />
-      </Modal>
-
-      {/* Account Modal - restrict closing during first login */}
-      <Modal isOpen={showAccount} onClose={() => handleModalClose("account")}>
-        <AccountPage />
       </Modal>
     </div>
   );
