@@ -9,10 +9,14 @@ import {
   signOut as firebaseSignOut,
 } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { useModal } from "@/context/ModalContext";
 import { useFirstLogin } from "@/context/FirstLoginContext";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function AccountPage() {
+export default function PasswordResetForm() {
+  const searchParams = useSearchParams();
+  const fromSidebar = searchParams.get("fromSidebar") === "true";
   const [email, setEmail] = useState("");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -21,27 +25,28 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const { setShowAccount } = useModal();
-  const { firstLogin, setFirstLogin } = useFirstLogin();
+  const { firstLogin } = useFirstLogin();
   const { data: session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     setEmail(session?.user?.email ?? "");
   }, [session]);
 
+  const handleGoBack = () => {
+    // Go back to the previous page in browser history
+    router.back();
+  };
+
   const handleLogoutAndRedirect = async () => {
     try {
-      // Sign out from Firebase
       await firebaseSignOut(firebaseAuth);
-
-      // Sign out from NextAuth and redirect to signin page
       await nextAuthSignOut({
         callbackUrl: "/api/auth/signin",
         redirect: true,
       });
     } catch (error) {
       console.error("Error during logout:", error);
-      // Even if there's an error, redirect to signin page
       window.location.href = "/api/auth/signin";
     }
   };
@@ -52,11 +57,6 @@ export default function AccountPage() {
 
     if (newPassword !== confirmPassword) {
       setMessage("New passwords do not match.");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setMessage("New password must be at least 6 characters long.");
       return;
     }
 
@@ -79,7 +79,6 @@ export default function AccountPage() {
         forcePasswordChange: false,
       });
 
-      // Update the session to reflect the change
       await fetch("/api/session", {
         method: "POST",
       });
@@ -89,7 +88,6 @@ export default function AccountPage() {
         "Password updated successfully! You will be asked to login in again."
       );
 
-      // Wait a moment to show success message, then logout and redirect
       setTimeout(() => {
         handleLogoutAndRedirect();
       }, 1500);
@@ -103,19 +101,11 @@ export default function AccountPage() {
       } else if (error.code === "auth/user-not-found") {
         setMessage("No user found with this email.");
       } else if (error.code === "auth/weak-password") {
-        setMessage(
-          "New password is too weak. Please use at least 6 characters."
-        );
+        setMessage("New password is too weak.");
       } else if (error.code.includes("auth/missing-password")) {
-        setMessage("Please enter a new password.");
-      } else if (error.code === "auth/requires-recent-login") {
-        setMessage("Security session expired. Please sign in again and try.");
-      } else if (error.code === "auth/network-request-failed") {
-        setMessage(
-          "Network error. Please check your connection and try again."
-        );
+        setMessage("New password is missing");
       } else {
-        setMessage("❌ " + (error.message || "An unexpected error occurred."));
+        setMessage("❌ " + error.message);
       }
     } finally {
       setLoading(false);
@@ -147,19 +137,32 @@ export default function AccountPage() {
   return (
     <div style={styles.pageContainer}>
       <div style={styles.formContainer}>
-        <h2 style={styles.title}>
-          {firstLogin ? "Set Your Password" : "Reset Your Password"}
-        </h2>
+        {/* Header with conditional back button */}
+        <div style={styles.header}>
+          <h2 style={styles.title}>
+            {firstLogin ? "Set Your Password" : "Reset Your Password"}
+          </h2>
+          {fromSidebar && !firstLogin && (
+            <button
+              onClick={handleGoBack}
+              style={styles.backButton}
+              disabled={loading || success}
+            >
+              ← Back to App
+            </button>
+          )}
+        </div>
+
         {firstLogin && (
           <p style={styles.subtext}>
             This is your first time signing in. Please choose a secure password.
-            You'll be asked to sign in again after updating your password.
+            You&apos;ll be asked to sign in again after updating your password.
           </p>
         )}
         {!firstLogin && (
           <p style={styles.subtext}>
-            You'll be signed out and redirected to the login page after updating
-            your password.
+            You&apos;ll be signed out and redirected to the login page after
+            updating your password.
           </p>
         )}
 
@@ -275,16 +278,35 @@ const styles = {
     backgroundColor: "#fff",
     boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)",
   },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: "10px",
+    gap: "20px",
+  },
   title: {
     fontSize: "24px",
-    marginBottom: "10px",
     color: "#000",
-    textAlign: "center",
+    textAlign: "left",
+    flex: 1,
+    margin: 0,
+  },
+  backButton: {
+    background: "transparent",
+    border: "1px solid #104488",
+    color: "#104488",
+    padding: "8px 16px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "14px",
+    whiteSpace: "nowrap",
+    marginTop: "4px",
   },
   subtext: {
     fontSize: "14px",
     color: "#333",
-    textAlign: "center",
+    textAlign: "left",
     marginBottom: "20px",
     lineHeight: "1.4",
   },
