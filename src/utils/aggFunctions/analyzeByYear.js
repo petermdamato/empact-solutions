@@ -10,9 +10,16 @@ function analyzeByYear(
   const dateMatch = fileName.match(/(\d{8}).*?(\d{8})/);
 
   let endDateString;
+  let startDateString;
+
   if (dateMatch) {
+    startDateString = dateMatch[1];
     endDateString = dateMatch[2];
   }
+
+  const startYear = startDateString
+    ? parseInt(startDateString.slice(4, 8))
+    : null;
 
   // Filter data based on getLosForUnreleased setting
   const filteredData = data.filter((record) => {
@@ -52,7 +59,10 @@ function analyzeByYear(
   const minYear = Math.min(Math.min(...entryYears), Math.min(...exitYears));
   const maxYear = Math.max(Math.max(...entryYears), Math.max(...exitYears));
 
-  const uniqueYears = d3.range(minYear, maxYear + 1);
+  const uniqueYears = d3.range(
+    startYear ? Math.max(startYear, minYear) : minYear,
+    maxYear + 1
+  );
 
   const getDates = (record) => {
     if (detentionType === "secure-detention") {
@@ -247,7 +257,10 @@ function analyzeByYear(
   // Finalize metrics
   const final = {};
   for (const year in results) {
-    if (!validYears.has(Number(year))) continue;
+    const yearNum = Number(year);
+    if (!validYears.has(yearNum)) continue;
+    if (startYear && yearNum < startYear) continue;
+
     final[year] = {};
     for (const key in results[year]) {
       const obj = results[year][key];

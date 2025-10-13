@@ -1,4 +1,5 @@
 import React from "react";
+import { StyleConstants } from "@/constants/styles";
 
 const ChangeStatistics = ({ data, caption, map = false }) => {
   if (!data || data.length !== 2) return null;
@@ -17,6 +18,7 @@ const ChangeStatistics = ({ data, caption, map = false }) => {
         flexDirection: "column",
         display: "flex",
         textAlign: "center",
+        marginTop: StyleConstants.overview.spaceBelowHeader,
       }}
     >
       <div

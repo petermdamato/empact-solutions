@@ -69,6 +69,9 @@ export default function Overview() {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setFilterVariable([]);
+        setDstScoreValue(null);
+        setDecisionValue(null);
+        setDstValue(null);
       }
     };
 
