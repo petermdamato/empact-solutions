@@ -155,13 +155,13 @@ export default function PasswordResetForm() {
         {firstLogin && (
           <p style={styles.subtext}>
             This is your first time signing in. Please choose a secure password.
-            You'll be asked to sign in again after updating your password.
+            You&apos;ll be asked to sign in again after updating your password.
           </p>
         )}
         {!firstLogin && (
           <p style={styles.subtext}>
-            You'll be signed out and redirected to the login page after updating
-            your password.
+            You&apos;ll be signed out and redirected to the login page after
+            updating your password.
           </p>
         )}
 
