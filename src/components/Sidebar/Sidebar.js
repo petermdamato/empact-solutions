@@ -7,6 +7,7 @@ import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
 import { FaFileImport } from "react-icons/fa";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
@@ -51,7 +52,7 @@ const menuItems = [
   },
   { label: "User Guide", access: "Active" },
   { label: "Glossary", access: "Active" },
-  { label: "Account", access: "Active" }, // Add Account to main navigation
+  { label: "Account", access: "Active" },
 ];
 
 const Sidebar = () => {
@@ -69,12 +70,36 @@ const Sidebar = () => {
     useModal();
 
   const { firstLogin } = useFirstLogin();
-
   const { data: session } = useSession();
-
   const navRef = useRef(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [firstTime, setFirstTime] = useState(false);
+
+  // Auto-expand parent menus when a submenu item is active
+  useEffect(() => {
+    // Check if current path matches any submenu item
+    menuItems.forEach((item) => {
+      if (item.subItems) {
+        const isSubItemActive = item.subItems.some((subItem) => {
+          const subItemPath =
+            "/" +
+            subItem
+              .toLowerCase()
+              .replaceAll(" ", "-")
+              .replace("(", "")
+              .replace(")", "");
+          return pathname === subItemPath;
+        });
+
+        // If a subitem is active but the parent menu isn't open, open it
+        if (csvData?.length > 0 && isSubItemActive && !openMenus[item.label]) {
+          toggleMenu(item.label);
+        }
+      }
+    });
+  }, [pathname, openMenus, toggleMenu]);
 
   // save scroll position before unmount
   useEffect(() => {
@@ -97,15 +122,13 @@ const Sidebar = () => {
       if (saved) navEl.scrollTop = parseInt(saved, 10);
     }
   }, []);
-  console.log(sessionStorage, csvData);
-  useEffect(() => {
-    const hasShownUpload = sessionStorage.getItem("hasShownUpload");
 
-    if (!hasShownUpload) {
+  useEffect(() => {
+    if (csvData?.length === 0) {
       setShowUpload(true);
       sessionStorage.setItem("hasShownUpload", "true");
     }
-  }, [sessionStorage]);
+  }, [csvData, setShowUpload]);
 
   const handleSelect = (label, menuElement = "", subItemLabel = "") => {
     const navElement = menuElement
@@ -132,10 +155,51 @@ const Sidebar = () => {
     }
   };
 
+  // Function to determine if a menu item should be active
+  const isMenuItemActive = (item) => {
+    if (pathname === "/account") {
+      return item.label === "Account";
+    }
+
+    if (item.subItems) {
+      return item.subItems.some((subItem) => {
+        const subItemPath =
+          "/" +
+          subItem
+            .toLowerCase()
+            .replaceAll(" ", "-")
+            .replace("(", "")
+            .replace(")", "");
+        return pathname === subItemPath;
+      });
+    } else {
+      const itemPath =
+        "/" +
+        item.label
+          .toLowerCase()
+          .replaceAll(" ", "-")
+          .replace("(", "")
+          .replace(")", "");
+      return pathname === itemPath;
+    }
+  };
+
+  // Function to determine if a submenu item should be active
+  const isSubMenuItemActive = (subItem) => {
+    const subItemPath =
+      "/" +
+      subItem
+        .toLowerCase()
+        .replaceAll(" ", "-")
+        .replace("(", "")
+        .replace(")", "");
+    return pathname === subItemPath;
+  };
+
   return (
     <div
       className={`sidebar sidebar-${
-        selectedMenu.includes("Alternative")
+        selectedMenu.includes("Alternative") || pathname.includes("atd")
           ? "alternative-to-detention"
           : "secure-detention"
       }`}
@@ -192,14 +256,14 @@ const Sidebar = () => {
 
         <h1
           className={`sidebar-menu sidebar-menu-${
-            selectedMenu.includes("Alternative")
+            selectedMenu.includes("Alternative") || pathname.includes("atd")
               ? "alternative-to-detention"
               : "secure-detention"
           }`}
         >
           {["User Guide", "Upload", "Settings", "Glossary", "Account"].includes(
             selectedMenu
-          )
+          ) || pathname === "/account"
             ? "youth detention analytics"
             : selectedMenu}
         </h1>
@@ -215,11 +279,7 @@ const Sidebar = () => {
                     ? "expanded"
                     : item.subItems
                     ? "collapsed"
-                    : item.label
-                        .replace("(", "")
-                        .replace(")", "")
-                        .replaceAll(" ", "-")
-                        .toLowerCase() === selectedElement
+                    : isMenuItemActive(item)
                     ? "active"
                     : "single"
                 } ${
@@ -264,42 +324,43 @@ const Sidebar = () => {
                 )}
                 {item.subItems && openMenus[item.label] && (
                   <ul className="submenu">
-                    {item.subItems.map((subItem) => (
-                      <li
-                        key={subItem}
-                        className={`${
-                          `${item.label}-${subItem}`
-                            .replace("(", "")
-                            .replace(")", "")
-                            .replaceAll(" ", "-")
-                            .toLowerCase() === selectedElement
-                            ? selectedMenu.includes("Alternative")
-                              ? "active alternative"
-                              : "active"
-                            : "single"
-                        }`}
-                        onClick={() =>
-                          handleSelect(
-                            item.label,
-                            `${item.label}-${subItem}`,
-                            subItem
-                          )
-                        }
-                      >
-                        <Link
-                          href={
-                            "/" +
-                            subItem
-                              .toLowerCase()
-                              .replaceAll(" ", "-")
-                              .replace("(", "")
-                              .replace(")", "")
+                    {item.subItems.map((subItem) => {
+                      const isSubItemActive = isSubMenuItemActive(subItem);
+
+                      return (
+                        <li
+                          key={subItem}
+                          className={`${
+                            isSubItemActive
+                              ? selectedMenu.includes("Alternative") ||
+                                pathname.includes("atd")
+                                ? "active alternative"
+                                : "active"
+                              : "single"
+                          }`}
+                          onClick={() =>
+                            handleSelect(
+                              item.label,
+                              `${item.label}-${subItem}`,
+                              subItem
+                            )
                           }
                         >
-                          <button>{subItem}</button>
-                        </Link>
-                      </li>
-                    ))}
+                          <Link
+                            href={
+                              "/" +
+                              subItem
+                                .toLowerCase()
+                                .replaceAll(" ", "-")
+                                .replace("(", "")
+                                .replace(")", "")
+                            }
+                          >
+                            <button>{subItem}</button>
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </li>
@@ -349,7 +410,7 @@ const Sidebar = () => {
                     style={{
                       paddingLeft: "1em",
                       margin: 0,
-                      listStylePosition: "inside",
+                      listStyleType: "disc",
                     }}
                   >
                     <li>Map function enabled</li>
