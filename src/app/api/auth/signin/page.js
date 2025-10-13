@@ -24,7 +24,7 @@ export default function SignInPage() {
         password,
       });
 
-      console.log("SignIn result:", result);
+      // console.log("SignIn result:", result);
 
       // Check the signIn result first - this tells us if credentials were wrong
       if (result?.error) {
@@ -35,7 +35,7 @@ export default function SignInPage() {
 
       // If signIn was successful, then check the session
       const session = await getSession();
-      console.log("Session after signIn:", session);
+      // console.log("Session after signIn:", session);
 
       if (session?.uid) {
         if (session.forcePasswordChange) {

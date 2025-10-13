@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { firebaseAuth, firestore } from "@/lib/firebaseClient";
 import {
   signInWithEmailAndPassword,
@@ -10,13 +11,8 @@ import {
 } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { useFirstLogin } from "@/context/FirstLoginContext";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 export default function PasswordResetForm() {
-  const searchParams = useSearchParams();
-  const fromSidebar = searchParams.get("fromSidebar") === "true";
   const [email, setEmail] = useState("");
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -28,13 +24,15 @@ export default function PasswordResetForm() {
   const { firstLogin } = useFirstLogin();
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromSidebar = searchParams.get("fromSidebar") === "true";
 
   useEffect(() => {
     setEmail(session?.user?.email ?? "");
   }, [session]);
 
   const handleGoBack = () => {
-    // Go back to the previous page in browser history
+    // Use the browser's back navigation to return to the exact previous page
     router.back();
   };
 
@@ -79,6 +77,7 @@ export default function PasswordResetForm() {
         forcePasswordChange: false,
       });
 
+      // Update the session to reflect the change
       await fetch("/api/session", {
         method: "POST",
       });
@@ -148,7 +147,7 @@ export default function PasswordResetForm() {
               style={styles.backButton}
               disabled={loading || success}
             >
-              ← Back to App
+              ← Back
             </button>
           )}
         </div>
@@ -156,13 +155,13 @@ export default function PasswordResetForm() {
         {firstLogin && (
           <p style={styles.subtext}>
             This is your first time signing in. Please choose a secure password.
-            You&apos;ll be asked to sign in again after updating your password.
+            You'll be asked to sign in again after updating your password.
           </p>
         )}
         {!firstLogin && (
           <p style={styles.subtext}>
-            You&apos;ll be signed out and redirected to the login page after
-            updating your password.
+            You'll be signed out and redirected to the login page after updating
+            your password.
           </p>
         )}
 
