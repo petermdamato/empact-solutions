@@ -26,7 +26,6 @@ const getMaxTextWidth = (
 };
 
 const OverrideReasonTable = ({ data, setLeftWidth }) => {
-  // ✅ Move useEffect to the top level
   useEffect(() => {
     if (data && Object.keys(data).length > 0) {
       const allReasonsSet = new Set();
@@ -78,6 +77,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
 
   const totalHeight = allReasons.length * rowHeight + margin.bottom;
 
+  // X-axis with explicit year values to ensure one tick per year
   const x = d3
     .scaleLinear()
     .domain(d3.extent(years))
@@ -87,6 +87,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
     <div style={{ overflowX: "auto", width: `${chartWidth}px` }}>
       <svg width={chartWidth} height={totalHeight}>
         <g>
+          {/* X-axis labels - one per year */}
           {years.map((year) => (
             <text
               key={`x-${year}`}
@@ -120,6 +121,18 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
             .nice()
             .range([chartBottom, chartTop]);
 
+          // Calculate smart tick values for Y-axis to avoid decimals
+          const yMax = d3.max(s.values, (d) => d.value) || 1;
+          let yTickStep;
+          if (yMax <= 5) yTickStep = 1;
+          else if (yMax <= 10) yTickStep = 2;
+          else if (yMax <= 25) yTickStep = 5;
+          else if (yMax <= 50) yTickStep = 10;
+          else if (yMax <= 100) yTickStep = 20;
+          else yTickStep = 25;
+
+          const yTickValues = d3.range(0, yMax + yTickStep, yTickStep);
+
           const lineGenerator = d3
             .line()
             .defined((d) => d.value > 0 && Number.isFinite(d.value))
@@ -150,7 +163,8 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
                 {s.reason}
               </text>
 
-              {y.ticks(3).map((tick) => (
+              {/* Y-axis with clean whole number ticks */}
+              {yTickValues.map((tick) => (
                 <g key={`${s.reason}-${tick}`}>
                   <text
                     x={margin.left - 5}
@@ -160,7 +174,7 @@ const OverrideReasonTable = ({ data, setLeftWidth }) => {
                     fontSize="9px"
                     fill="#999"
                   >
-                    {Number.isFinite(tick) ? tick : ""}
+                    {Number.isFinite(tick) ? Math.round(tick) : ""}
                   </text>
                   <line
                     x1={margin.left}

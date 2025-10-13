@@ -93,6 +93,7 @@ export default function Overview() {
       aggregateByGender(csvData, selectedYear, detentionType),
       aggregateByRace(csvData, selectedYear, detentionType),
     ]);
+
     let statusData = aggregateByOffense(
       csvData,
       selectedYear,
@@ -111,8 +112,14 @@ export default function Overview() {
       { post: 0, pre: 0 }
     );
 
+    // Check if selected year is the earliest year
+    const isEarliestYear = selectedYear === Math.min(...yearsArray);
+    const previousPeriodCount = isEarliestYear
+      ? null
+      : statusData.previousPeriodCount;
+
     setDataArray2([
-      [columnAgg.pre + columnAgg.post, statusData.previousPeriodCount],
+      [columnAgg.pre + columnAgg.post, previousPeriodCount],
       Object.entries(columnAgg).map(([key, value]) => ({
         label: key === "pre" ? "Pre-dispo" : "Post-dispo",
         value,
@@ -178,7 +185,9 @@ export default function Overview() {
                   10) /
                   (columnAggCalculations.pre + columnAggCalculations.post)
               ) / 10,
-              statusDataCalculations.previousPeriodCount,
+              isEarliestYear
+                ? null
+                : statusDataCalculations.previousPeriodCount,
             ],
             // The statistic and change stat calculations (currently only mapped as average)
             ["post", "pre"].map((key) => ({
@@ -199,7 +208,7 @@ export default function Overview() {
         : [
             [
               statusDataMedian.overall.all.median,
-              statusDataMedian.previousPeriod.median,
+              isEarliestYear ? null : statusDataMedian.previousPeriod.median,
             ],
             // The statistic and change stat calculations (currently only mapped as average)
             ["post", "pre"].map((key) => ({
@@ -241,7 +250,7 @@ export default function Overview() {
         Math.round(
           (columnAggPopulations.pre + columnAggPopulations.post) * 10
         ) / 10,
-        statusDataPopulation.previousPeriodCount,
+        isEarliestYear ? null : statusDataPopulation.previousPeriodCount,
       ],
       ["post", "pre"].map((key) => ({
         label: key === "pre" ? "Pre-dispo" : "Post-dispo",
@@ -254,7 +263,7 @@ export default function Overview() {
         return entry;
       }),
     ]);
-  }, [csvData, selectedYear, calculation]);
+  }, [csvData, selectedYear, calculation, yearsArray]); // Added yearsArray to dependencies
 
   return (
     <div className="max-w-xl mx-auto mt-10">

@@ -101,6 +101,7 @@ export default function Overview() {
       analyzeByYear(dataArray, {
         detentionType: "alternative-to-detention",
         breakdown: mappedBreakdown,
+        fileName: fileName,
       })
     );
   }, [csvData, programType, breakdownType, selectedLegendOptions]);

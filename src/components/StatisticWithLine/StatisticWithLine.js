@@ -89,7 +89,10 @@ const OverridePercentStat = ({ data }) => {
       .append("g")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(
-        d3.axisBottom(x).ticks(parsedData.length).tickFormat(d3.format("d"))
+        d3
+          .axisBottom(x)
+          .tickValues(parsedData.map((d) => d.year))
+          .tickFormat(d3.format("d"))
       );
 
     chart.append("g").call(
