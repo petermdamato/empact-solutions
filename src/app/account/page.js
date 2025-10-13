@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { firebaseAuth, firestore } from "@/lib/firebaseClient";
 import {
   signInWithEmailAndPassword,

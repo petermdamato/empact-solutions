@@ -7,7 +7,7 @@ import SimpleTooltip from "../SimpleTooltip/SimpleTooltip";
 import { FaFileImport } from "react-icons/fa";
 import LogoutIcon from "@mui/icons-material/Logout";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Modal from "../Modal/Modal";
 import SettingsPage from "@/app/settings/page";
 import UploadPage from "@/app/upload/page";
@@ -73,7 +73,6 @@ const Sidebar = () => {
   const { data: session } = useSession();
   const navRef = useRef(null);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const [firstTime, setFirstTime] = useState(false);
 
