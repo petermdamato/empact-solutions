@@ -4,18 +4,48 @@ import { signIn, getSession } from "next-auth/react";
 import React, { useState } from "react";
 import LockOutline from "@mui/icons-material/LockOutline";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
+import { firebaseAuth } from "@/lib/firebaseClient";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState("signin"); // "signin" | "reset"
 
-  const handleSubmit = async (e) => {
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Please enter your email to reset your password.");
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      await sendPasswordResetEmail(firebaseAuth, email);
+      setMessage("Password reset email sent. Check your inbox.");
+    } catch (err) {
+      console.error("Password reset error:", err);
+      if (err.code === "auth/user-not-found") {
+        setError("No account found with that email address.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("Failed to send password reset email. Try again later.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignIn = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     try {
       const result = await signIn("credentials", {
@@ -24,34 +54,27 @@ export default function SignInPage() {
         password,
       });
 
-      // console.log("SignIn result:", result);
-
-      // Check the signIn result first - this tells us if credentials were wrong
       if (result?.error) {
         setError("Wrong email/password combination");
         setLoading(false);
         return;
       }
 
-      // If signIn was successful, then check the session
       const session = await getSession();
-      // console.log("Session after signIn:", session);
 
       if (session?.uid) {
         if (session.forcePasswordChange) {
           window.location.href = "/account";
         } else {
-          // Successful login - redirect to overview
           window.location.href = "/detention-overview";
         }
       } else {
-        // This should rarely happen if signIn was successful, but just in case
         setError("Login failed. Please try again.");
-        setLoading(false);
       }
     } catch (error) {
       console.error("Login error:", error);
       setError("An unexpected error occurred. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -77,17 +100,16 @@ export default function SignInPage() {
               animation: "spin 1s linear infinite",
             }}
           />
-          Signing In...
+          {mode === "signin" ? "Signing In..." : "Sending..."}
         </div>
       );
     }
-    return "Sign In";
+    return mode === "signin" ? "Sign In" : "Send Reset Link";
   };
 
   return (
     <div style={styles.pageContent}>
       <div style={styles.container}>
-        {/* Title content */}
         <div style={styles.textContainer}>
           <div style={styles.graphicWrapper}>
             <img
@@ -101,9 +123,13 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
+
       <div style={styles.loginContainer}>
         <div style={styles.loginElement}>
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={mode === "signin" ? handleSignIn : handleResetPassword}
+          >
+            {/* Email Field */}
             <div style={styles.formField}>
               <label htmlFor="email" style={styles.label}>
                 Email
@@ -113,93 +139,104 @@ export default function SignInPage() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onFocus={(e) => {
-                  e.target.style.backgroundColor = "white";
-                  e.target.style.color = "black";
-                }}
-                onBlur={(e) => {
-                  e.target.style.backgroundColor = "white";
-                  e.target.style.color = "black";
-                }}
                 required
                 disabled={loading}
-                style={{
-                  ...styles.input,
-                  opacity: loading ? 0.6 : 1,
-                }}
+                style={{ ...styles.input, opacity: loading ? 0.6 : 1 }}
               />
             </div>
-            <div style={styles.formField}>
-              <label htmlFor="password" style={styles.label}>
-                Password
-              </label>
-              <div style={styles.inputWrapper}>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                  style={{
-                    ...styles.inputWithIcon,
-                    opacity: loading ? 0.6 : 1,
-                  }}
-                />
+
+            {/* Password Field (only for sign-in mode) */}
+            {mode === "signin" && (
+              <div style={styles.formField}>
+                <label htmlFor="password" style={styles.label}>
+                  Password
+                </label>
+                <div style={styles.inputWrapper}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                    style={{
+                      ...styles.inputWithIcon,
+                      opacity: loading ? 0.6 : 1,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={styles.iconButton}
+                    aria-label="Toggle password visibility"
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <LockOpenIcon
+                        style={{ fontSize: 20, color: "#133A6F" }}
+                      />
+                    ) : (
+                      <LockOutline style={{ fontSize: 20, color: "#133A6F" }} />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Error and Success Messages */}
+            {error && <p style={styles.errorMessage}>{error}</p>}
+            {message && <p style={styles.successMessage}>{message}</p>}
+
+            <div style={styles.buttonRow}>
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  ...styles.loginButton,
+                  backgroundColor: loading ? "#666" : "#133A6F",
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {renderButtonContent()}
+              </button>
+
+              {mode === "signin" ? (
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={styles.iconButton}
-                  aria-label="Toggle password visibility"
+                  onClick={() => {
+                    setMode("reset");
+                    setError(null);
+                    setMessage(null);
+                    setPassword("");
+                  }}
+                  style={styles.forgotPasswordButton}
                   disabled={loading}
                 >
-                  {showPassword ? (
-                    <LockOpenIcon
-                      style={{
-                        fontSize: 20,
-                        color: "#133A6F",
-                        opacity: loading ? 0.6 : 1,
-                      }}
-                    />
-                  ) : (
-                    <LockOutline
-                      style={{
-                        fontSize: 20,
-                        color: "#133A6F",
-                        opacity: loading ? 0.6 : 1,
-                      }}
-                    />
-                  )}
+                  Forgot Password?
                 </button>
-              </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signin");
+                    setError(null);
+                    setMessage(null);
+                  }}
+                  style={styles.forgotPasswordButton}
+                  disabled={loading}
+                >
+                  ← Back to Sign In
+                </button>
+              )}
             </div>
-            {error && <p style={styles.errorMessage}>{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                ...styles.loginButton,
-                backgroundColor: loading ? "#666" : "#133A6F",
-                color: "white",
-                marginTop: "10px",
-                height: "40px",
-                padding: "6px 12px",
-                fontSize: "16px",
-                borderRadius: "4px",
-                width: "100%",
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {renderButtonContent()}
-            </button>
           </form>
+
           <div style={styles.copyright}>
             © 2025 Empact Solutions. Empulse Data Studio™. All rights reserved.
           </div>
         </div>
       </div>
 
-      {/* Add CSS for spinner animation */}
       <style jsx global>{`
         @keyframes spin {
           0% {
@@ -208,20 +245,6 @@ export default function SignInPage() {
           100% {
             transform: rotate(360deg);
           }
-        }
-
-        input::selection {
-          background: #133a6f;
-          color: white;
-        }
-
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus,
-        input:-webkit-autofill:active {
-          -webkit-box-shadow: 0 0 0 1000px white inset !important;
-          -webkit-text-fill-color: black !important;
-          transition: background-color 5000s ease-in-out 0s;
         }
       `}</style>
     </div>
@@ -335,6 +358,13 @@ const styles = {
     fontSize: "14px",
     textAlign: "center",
   },
+  successMessage: {
+    color: "#133a6f",
+    marginTop: "8px",
+    marginBottom: "8px",
+    fontSize: "14px",
+    textAlign: "center",
+  },
   input: {
     backgroundColor: "white",
     color: "black",
@@ -371,5 +401,26 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     height: "100%",
+  },
+  forgotPasswordContainer: {
+    textAlign: "right",
+    marginBottom: "10px",
+    width: "100%",
+  },
+  forgotPasswordButton: {
+    background: "none",
+    border: "none",
+    color: "#133A6F",
+    textDecoration: "underline",
+    fontSize: "14px",
+    cursor: "pointer",
+    padding: 0,
+  },
+  buttonRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginTop: "16px",
   },
 };
