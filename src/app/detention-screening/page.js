@@ -157,7 +157,8 @@ export default function Overview() {
     filterVariables,
   ]);
   useEffect(() => {
-    setTimeSeriesDataPercentage(analyzeOverridesByYear(csvData));
+    setTimeSeriesDataPercentage(analyzeOverridesByYear(filteredData));
+
     setTimeSeriesDataCountByReason(analyzeOverridesByReasonByYear(csvData));
   }, [filteredData]);
 
@@ -326,7 +327,7 @@ export default function Overview() {
                       data: filteredData,
                       charts: ["distributionStacked", "distributionV2"],
                       chartTitles: [
-                        "DST Recommendation Restrictivness Compared to Actual Decision",
+                        "DST Recommendation Restrictiveness Compared to Actual Decision",
                         "DST Override Reason",
                       ],
                       keysArray: [
