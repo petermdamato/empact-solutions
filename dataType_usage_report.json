@@ -1,0 +1,532 @@
+{
+  "ATD_Entry_Date": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-overview/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByGender.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/mapAggregate.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/ages.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeEntriesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExits.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByScreenedStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js",
+    "/Users/peterdamato/empact-solutions/src/components/DateRangeSlider/DateRangeSlider.js"
+  ],
+  "ATD_Entry_Time": [
+    "\u274c Not found"
+  ],
+  "ATD_Exit_Date": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByGender.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/mapAggregate.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeEntriesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExits.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByScreenedStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "ATD_Exit_FTA": [
+    "/Users/peterdamato/empact-solutions/src/utils/categories/disruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js"
+  ],
+  "ATD_Exit_New_Offense": [
+    "/Users/peterdamato/empact-solutions/src/utils/categories/disruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js"
+  ],
+  "ATD_Exit_Other": [
+    "/Users/peterdamato/empact-solutions/src/utils/categories/disruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js"
+  ],
+  "ATD_Exit_Specify_Other": [
+    "\u274c Not found"
+  ],
+  "ATD_Exit_Technical": [
+    "/Users/peterdamato/empact-solutions/src/utils/categories/disruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js"
+  ],
+  "ATD_Exit_Time": [
+    "\u274c Not found"
+  ],
+  "ATD_Program_Name": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByProgramType.js"
+  ],
+  "ATD_Reoffense_Type": [
+    "\u274c Not found"
+  ],
+  "ATD_Successful_Exit": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Admission_Date": [
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/detention-overview/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/overview/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByGender.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/mapAggregate.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/ages.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeEntriesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExits.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByScreenedStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByScreenedStatus.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Admission_Time": [
+    "\u274c Not found"
+  ],
+  "Adult_Court": [
+    "\u274c Not found"
+  ],
+  "AtdProgramCategory": [
+    "\u274c Not found"
+  ],
+  "Auto_Hold": [
+    "/Users/peterdamato/empact-solutions/src/app/detention-screening/page.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/ColumnHeatmap.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChartStacked.js"
+  ],
+  "Auto_Hold_Reason": [
+    "\u274c Not found"
+  ],
+  "Booking_Date": [
+    "\u274c Not found"
+  ],
+  "Booking_Time": [
+    "\u274c Not found"
+  ],
+  "CountyName": [
+    "/Users/peterdamato/empact-solutions/src/components/ZipMap/ZipMap.js"
+  ],
+  "DST_Score": [
+    "/Users/peterdamato/empact-solutions/src/app/detention-screening/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/analyzeOverridesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/Heatmap/Heatmap.js"
+  ],
+  "Date_of_Birth": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/ages.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Detention_IYAS_Date": [
+    "\u274c Not found"
+  ],
+  "DispositionDate": [
+    "\u274c Not found"
+  ],
+  "Ethnicity": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/getColorByOption.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Exit_To": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js"
+  ],
+  "Facility": [
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeEntriesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExits.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByYear.js"
+  ],
+  "Gender": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByGender.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/getColorByOption.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/Table/Table.js",
+    "/Users/peterdamato/empact-solutions/src/components/Table/TableCalculations.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Hearing_Date": [
+    "\u274c Not found"
+  ],
+  "Hearing_Outcome": [
+    "\u274c Not found"
+  ],
+  "Hearing_Time": [
+    "\u274c Not found"
+  ],
+  "Hearing_Type": [
+    "\u274c Not found"
+  ],
+  "HighCutoff": [
+    "\u274c Not found"
+  ],
+  "Hispanic": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/races.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/getColorByOption.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Home_Language": [
+    "\u274c Not found"
+  ],
+  "Home_Zip_Code": [
+    "/Users/peterdamato/empact-solutions/src/utils/mapAggregate.js"
+  ],
+  "Intake_Date": [
+    "/Users/peterdamato/empact-solutions/src/app/detention-screening/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/analyzeOverridesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/analyzeOverridesByReasonByYear.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/Heatmap/Heatmap.js",
+    "/Users/peterdamato/empact-solutions/src/components/DateRangeSlider/DateRangeSlider.js"
+  ],
+  "Intake_Decision": [
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js"
+  ],
+  "Intake_Time": [
+    "\u274c Not found"
+  ],
+  "LawEnforcementAgency": [
+    "\u274c Not found"
+  ],
+  "MediumCutoff": [
+    "\u274c Not found"
+  ],
+  "Offense": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categorizationUtils.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/offenseMapFunction.js",
+    "/Users/peterdamato/empact-solutions/src/utils/helper.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/disruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categoriesV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/getColorByOption.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/groupReasons.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExitsByDisruptionType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/EnhancedTooltip/EnhancedTooltip.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "OffenseCategory": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-overview/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categoriesV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Out_Of_County": [
+    "\u274c Not found"
+  ],
+  "Override_Reason": [
+    "/Users/peterdamato/empact-solutions/src/app/detention-screening/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/analyzeOverridesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/analyzeOverridesByReasonByYear.js",
+    "/Users/peterdamato/empact-solutions/src/components/TileContainer/TileContainerV2.js",
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChartV2.js"
+  ],
+  "Post-Dispo Stay Reason": [
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByGender.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Post_Adjudicated_Status": [
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categories.js"
+  ],
+  "Race": [
+    "/Users/peterdamato/empact-solutions/src/app/atd-explore/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/los-distribution/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/explore-trends/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-exits/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/admissions/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-table/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/avg-daily-pop-adp/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-entries/page.js",
+    "/Users/peterdamato/empact-solutions/src/app/atd-length-of-stay-los/page.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/getColorByOption.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDisruptionPercentsByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByBreakdownType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedBar/StackedBarChartGeneric.js",
+    "/Users/peterdamato/empact-solutions/src/components/Table/Table.js",
+    "/Users/peterdamato/empact-solutions/src/components/Table/TableCalculations.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Record_ID": [
+    "\u274c Not found"
+  ],
+  "Referral_ID": [
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Referral_Source": [
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/categories/categoriesV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js"
+  ],
+  "Release_Date": [
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByRace.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateByGender.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateCalculationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/mapAggregate.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregatePopulationByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggregateMedianByOffense.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeEntriesByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeExits.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysis.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLOSSubcategories.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByScreenedStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeLengthByProgramType.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeByYear.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByDispoStatus.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV3.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisV2.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/dataAnalysisLOS.js",
+    "/Users/peterdamato/empact-solutions/src/utils/aggFunctions/analyzeDailyPopByScreenedStatus.js",
+    "/Users/peterdamato/empact-solutions/src/components/StackedColumn/StackedColumn.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ],
+  "Release_Stage": [
+    "\u274c Not found"
+  ],
+  "Release_Stage_Other": [
+    "\u274c Not found"
+  ],
+  "Release_Time": [
+    "\u274c Not found"
+  ],
+  "RiskLevel": [
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js"
+  ],
+  "Youth_ID": [
+    "/Users/peterdamato/empact-solutions/src/components/RecordsTable/RecordsTableDST.js",
+    "/Users/peterdamato/empact-solutions/src/components/DistributionChart/DistributionChart.js"
+  ]
+}

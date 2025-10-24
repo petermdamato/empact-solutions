@@ -6,7 +6,12 @@ const OverridePercentStat = ({ data }) => {
   const [showChart, setShowChart] = useState(false);
 
   // Set defaults to avoid conditional hook execution
-  const finalData = data || {};
+  const finalData =
+    Object.fromEntries(
+      Object.entries(data).filter(([key]) => key !== "total")
+    ) || {};
+
+  const percentageVal = data.total;
 
   const parsedData = Object.entries(finalData)
     .map(([year, stats]) => ({
@@ -95,12 +100,15 @@ const OverridePercentStat = ({ data }) => {
           .tickFormat(d3.format("d"))
       );
 
-    chart.append("g").call(
-      d3
-        .axisLeft(y)
-        .ticks(4)
-        .tickFormat((d) => `${d}%`)
-    );
+    chart
+      .append("g")
+      .attr("transform", `translate(-8,0)`)
+      .call(
+        d3
+          .axisLeft(y)
+          .ticks(4)
+          .tickFormat((d) => `${d}%`)
+      );
   }, [showChart, parsedData]);
 
   // Render nothing if there's no usable data
@@ -121,11 +129,10 @@ const OverridePercentStat = ({ data }) => {
       onMouseLeave={() => setShowChart(false)}
     >
       <div style={{ fontSize: "28px", fontWeight: "bold", color: "#1a202c" }}>
-        {latestYear.percent}%
+        {percentageVal.percentWithOverride}%
       </div>
       <div style={{ fontSize: "14px", color: "#4a5568" }}>
-        Override Percentage{" "}
-        {Object.keys(finalData)[Object.keys(finalData).length - 1]}
+        Detention Override Rate
       </div>
 
       {showChart && (
