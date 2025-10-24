@@ -100,12 +100,15 @@ const OverridePercentStat = ({ data }) => {
           .tickFormat(d3.format("d"))
       );
 
-    chart.append("g").call(
-      d3
-        .axisLeft(y)
-        .ticks(4)
-        .tickFormat((d) => `${d}%`)
-    );
+    chart
+      .append("g")
+      .attr("transform", `translate(-8,0)`)
+      .call(
+        d3
+          .axisLeft(y)
+          .ticks(4)
+          .tickFormat((d) => `${d}%`)
+      );
   }, [showChart, parsedData]);
 
   // Render nothing if there's no usable data
