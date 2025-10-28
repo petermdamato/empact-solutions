@@ -4,8 +4,6 @@ export function analyzeOverridesByYear(data) {
   if (!Array.isArray(data)) return {};
 
   const groupedByYear = {};
-  let grandTotalWithScore = 0;
-  let grandTotalWithOverride = 0;
 
   data.forEach((record) => {
     const dateStr = record["Intake_Date"];
@@ -24,7 +22,6 @@ export function analyzeOverridesByYear(data) {
     }
 
     groupedByYear[year].totalWithScore += 1;
-    grandTotalWithScore += 1;
 
     if (
       override !== null &&
@@ -32,7 +29,6 @@ export function analyzeOverridesByYear(data) {
       String(override).trim() !== ""
     ) {
       groupedByYear[year].totalWithOverride += 1;
-      grandTotalWithOverride += 1;
     }
   });
 
@@ -48,15 +44,6 @@ export function analyzeOverridesByYear(data) {
         : "0.0",
     };
   }
-
-  // Add overall totals
-  result["total"] = {
-    totalWithScore: grandTotalWithScore,
-    totalWithOverride: grandTotalWithOverride,
-    percentWithOverride: grandTotalWithScore
-      ? ((grandTotalWithOverride / grandTotalWithScore) * 100).toFixed(1)
-      : "0.0",
-  };
 
   return result;
 }
