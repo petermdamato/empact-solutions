@@ -6,12 +6,7 @@ const OverridePercentStat = ({ data }) => {
   const [showChart, setShowChart] = useState(false);
 
   // Set defaults to avoid conditional hook execution
-  const finalData =
-    Object.fromEntries(
-      Object.entries(data).filter(([key]) => key !== "total")
-    ) || {};
-
-  const percentageVal = data.total;
+  const finalData = data || {};
 
   const parsedData = Object.entries(finalData)
     .map(([year, stats]) => ({
@@ -129,10 +124,11 @@ const OverridePercentStat = ({ data }) => {
       onMouseLeave={() => setShowChart(false)}
     >
       <div style={{ fontSize: "28px", fontWeight: "bold", color: "#1a202c" }}>
-        {percentageVal.percentWithOverride}%
+        {latestYear.percent}%
       </div>
       <div style={{ fontSize: "14px", color: "#4a5568" }}>
-        Detention Override Rate
+        Override Percentage{" "}
+        {Object.keys(finalData)[Object.keys(finalData).length - 1]}
       </div>
 
       {showChart && (

@@ -157,7 +157,7 @@ export default function Overview() {
     filterVariables,
   ]);
   useEffect(() => {
-    setTimeSeriesDataPercentage(analyzeOverridesByYear(filteredData));
+    setTimeSeriesDataPercentage(analyzeOverridesByYear(csvData));
 
     setTimeSeriesDataCountByReason(analyzeOverridesByReasonByYear(csvData));
   }, [filteredData]);
