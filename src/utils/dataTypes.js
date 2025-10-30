@@ -1,6 +1,6 @@
 const dataTypes = {
   CountyName: "string",
-  Referral_ID: "number",
+  Referral_ID: ["string", "number"],
   Youth_ID: "number",
   // Record_ID: "number",
   Gender: "string",
